@@ -43,19 +43,44 @@ sans Wine, dans `cubecoders/ampbase:debian`.
 - Image Debian obligatoire : runtime .NET 8, et l'utilitaire `script` pour fournir un
   PTY — le serveur appelle `Console.KeyAvailable`, qui lève une exception quand
   l'entrée standard est un tube comme dans AMP.
+- `App.ExecutableLinux=Server/Linux/start.sh` : ce chemin est relatif à `App.RootDir`,
+  **pas** à `App.BaseDirectory`. Avec `start.sh` seul, AMP cherche `/AMP/rwmt/start.sh`,
+  journalise `Specified executable ... does not exist` et relance l'Update à chaque
+  clic sur Start.
 - Champ **Server download URL** : build officiel `continuous/Server-beta.zip` par
   défaut, ou tout zip fourni sur le Discord du projet.
-- Port 30502 déclaré en TCP et UDP ; la valeur réelle vient du `settings.toml`
+- Port 30502 déclaré en TCP et UDP ; LiteNetLib ouvre en réalité **UDP** (vérifié :
+  `0.0.0.0:30502 udp` en écoute), et la valeur effective vient du `settings.toml`
   téléversé par le premier client.
 - Aucune configuration manuelle : le premier joueur connecté fait le bootstrap depuis
   RimWorld.
 - Les mises à jour ne touchent jamais `settings.toml`, `save.zip` ni `Saved/` : un
   garde-fou refuse l'archive si elle en contient.
 
+### Côté joueurs
+
+RimWorld avec le mod Multiplayer, **même version que le serveur** — une différence de
+version fait refuser la connexion. Connexion en IP directe sur `<ip>:30502`, Steam n'est
+pas utilisé : le serveur headless ne peut pas héberger de lobby Steam.
+
+Le premier joueur connecté configure la carte et le scénario depuis RimWorld, et son
+client téléverse le `settings.toml` sur le serveur. Les suivants rejoignent la session
+en cours, sans configuration. Pour jouer depuis l'extérieur, rediriger **UDP 30502**
+sur le routeur.
+
+### État vérifié
+
+Validé de bout en bout le 1er novembre 2026 sur AMP 2.8.0.4 : runtime 8.0.15 installé
+dans `rwmt/dotnet`, wrapper PTY fonctionnel, serveur en écoute, journal affichant les
+deux lignes de bootstrap.
+
 ## Notes de maintenance
 
 - Chaque template garde son `Meta.AppConfigId` propre ; seul le `manifest.json` du
   dépôt porte l'identifiant unique du dépôt.
+- Une modification du kvp n'est prise en compte qu'au **redémarrage de l'instance** :
+  AMP charge la définition une fois, au démarrage. Incrémenter `Meta.ConfigVersion` à
+  chaque changement, puis Fetch → redémarrer l'instance.
 - Si AMP affiche une erreur de chemin du type `DeploymentTemplates/--main/...` après un
   push, refetcher le dépôt, et au besoin supprimer le dossier du template dans
   `DeploymentTemplates` avant de refetcher.
