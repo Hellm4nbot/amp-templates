@@ -1,0 +1,9 @@
+[
+  {
+    "Protocol": "Both",
+    "Port": 30502,
+    "Ref": "GamePort",
+    "Name": "RWMT Port",
+    "Description": "Port declared in settings.toml by the first client. Default 30502. Both protocols are mapped because LiteNetLib negotiates transport at runtime."
+  }
+]

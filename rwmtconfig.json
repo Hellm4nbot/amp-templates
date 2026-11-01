@@ -1,0 +1,34 @@
+[
+  {
+    "DisplayName": "Server download URL",
+    "Category": "Server:cloud_download",
+    "Description": "Archive fetched on Update. Default is the official continuous build. Paste a Discord link for a newer zip. Must contain Server/Linux/.",
+    "FieldName": "ServerUrl",
+    "InputType": "text",
+    "IncludeInCommandLine": false,
+    "DefaultValue": "https://github.com/rwmt/Multiplayer/releases/download/continuous/Server-beta.zip",
+    "Required": true,
+    "EnumValues": {}
+  },
+  {
+    "DisplayName": "Dotnet version",
+    "Category": "Server:build",
+    "Description": "Linux x64 .NET runtime installed into the instance on first Update. RWMT targets net8.0, so keep an 8.0.x version. Change only if a future build moves to another major version.",
+    "FieldName": "DotnetVersion",
+    "InputType": "text",
+    "IncludeInCommandLine": false,
+    "DefaultValue": "8.0.15",
+    "Required": true,
+    "EnumValues": {}
+  },
+  {
+    "DisplayName": "Additional arguments",
+    "Category": "Server:terminal",
+    "Description": "Raw argument string appended to the command line. The RWMT server currently takes no arguments, so leave empty unless a build introduces some.",
+    "FieldName": "CustomArgs",
+    "InputType": "text",
+    "IncludeInCommandLine": false,
+    "DefaultValue": "",
+    "EnumValues": {}
+  }
+]
