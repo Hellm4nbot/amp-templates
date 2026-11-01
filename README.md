@@ -59,9 +59,17 @@ sans Wine, dans `cubecoders/ampbase:debian`.
   du `settings.toml` téléversé par le premier client.
 - Onglet **RWMT server settings** : `settings.toml` est mappé dans l'interface par
   `rwmtmetaconfig.json`, selon la méthode des templates BeamMP et Pumpkin — deux entrées,
-  une pour les valeurs entre guillemets, une pour les booléens, nombres et tableaux. Les
-  paramètres apparaissent dès que le fichier existe, c'est-à-dire après la première
-  connexion. Avant, l'onglet est vide : le fichier n'est créé que par le bootstrap.
+  une pour les valeurs entre guillemets, une pour les booléens, nombres et tableaux. Le
+  chemin `ConfigFile` est relatif à `App.BaseDirectory`, donc il vaut `settings.toml` et
+  non `Server/Linux/settings.toml`, sous peine de doubler le segment. Les paramètres
+  apparaissent dès que le fichier existe, c'est-à-dire après la première connexion.
+  Avant, l'onglet est vide : le fichier n'est créé que par le bootstrap.
+- **AMP recopie le template dans le dossier de l'instance à sa création** :
+  `<instance>/configmanifest.json` et `<instance>/metaconfig.json` sont des instantanés.
+  Les modifier dans `DeploymentTemplates/` ou dans le dépôt ne change rien pour une
+  instance existante, et un redémarrage ne les rafraîchit pas — seule une recréation le
+  fait. C'est la cause d'une erreur `DirectoryNotFoundException` dans `WriteMetaconfigs`
+  avec un chemin en double : il faut corriger `<instance>/metaconfig.json` directement.
 - Aucune configuration manuelle : le premier joueur connecté fait le bootstrap depuis
   RimWorld.
 - Les mises à jour ne touchent jamais `settings.toml`, `save.zip` ni `Saved/` : un
