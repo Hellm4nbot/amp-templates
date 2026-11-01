@@ -64,9 +64,22 @@ sans Wine, dans `cubecoders/ampbase:debian`.
 
 ### Côté joueurs
 
-RimWorld avec le mod Multiplayer, **même version que le serveur** — une différence de
-version fait refuser la connexion. Connexion en IP directe sur `<ip>:30502`, Steam n'est
-pas utilisé : le serveur headless ne peut pas héberger de lobby Steam.
+RimWorld avec le mod Multiplayer, **même build que le serveur** — une différence fait
+refuser la connexion. Connexion en IP directe sur `<ip>:30502`, Steam n'est pas utilisé :
+le serveur headless ne peut pas héberger de lobby Steam.
+
+Le mod client se prend sur la **même release que le serveur** :
+
+```
+https://github.com/rwmt/Multiplayer/releases/download/continuous/Multiplayer-beta.zip
+```
+
+Les deux archives, `Server-beta.zip` et `Multiplayer-beta.zip`, sont deux assets de la
+même release `continuous`, produits par la même exécution d'intégration : ils
+correspondent donc par construction. Si le champ *Server download URL* est remplacé par
+un zip récupéré sur le Discord, il faut fournir aux joueurs le **client du même build**
+et mettre à jour le champ *Client mod URL* en conséquence — l'interface l'affiche comme
+un lien cliquable, et l'Update le rappelle dans sa sortie.
 
 Le premier joueur connecté configure la carte et le scénario depuis RimWorld, et son
 client téléverse le `settings.toml` sur le serveur. Les suivants rejoignent la session
