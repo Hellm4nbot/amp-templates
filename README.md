@@ -49,9 +49,14 @@ sans Wine, dans `cubecoders/ampbase:debian`.
   clic sur Start.
 - Champ **Server download URL** : build officiel `continuous/Server-beta.zip` par
   défaut, ou tout zip fourni sur le Discord du projet.
-- Port 30502 déclaré en TCP et UDP ; LiteNetLib ouvre en réalité **UDP** (vérifié :
-  `0.0.0.0:30502 udp` en écoute), et la valeur effective vient du `settings.toml`
-  téléversé par le premier client.
+- Port 30502 déclaré en **UDP seul** ; LiteNetLib, la bibliothèque réseau du mod, n'ouvre
+  aucune socket TCP (vérifié : `0.0.0.0:30502 udp` en écoute). La valeur effective vient
+  du `settings.toml` téléversé par le premier client.
+- Onglet **RWMT server settings** : `settings.toml` est mappé dans l'interface par
+  `rwmtmetaconfig.json`, selon la méthode des templates BeamMP et Pumpkin — deux entrées,
+  une pour les valeurs entre guillemets, une pour les booléens, nombres et tableaux. Les
+  paramètres apparaissent dès que le fichier existe, c'est-à-dire après la première
+  connexion. Avant, l'onglet est vide : le fichier n'est créé que par le bootstrap.
 - Aucune configuration manuelle : le premier joueur connecté fait le bootstrap depuis
   RimWorld.
 - Les mises à jour ne touchent jamais `settings.toml`, `save.zip` ni `Saved/` : un

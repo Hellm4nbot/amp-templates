@@ -1,0 +1,18 @@
+[
+  {
+    "ConfigFile": "Server/Linux/settings.toml",
+    "AutoMap": true,
+    "Importable": true,
+    "ConfigType": "ini",
+    "ConfigFormat": "{0} = \"{1}\"",
+    "ConfigFormatRegex": "^(?<key>.+?) = \"(?<value>.*?)\"\\r?$"
+  },
+  {
+    "ConfigFile": "Server/Linux/settings.toml",
+    "AutoMap": true,
+    "Importable": true,
+    "ConfigType": "ini",
+    "ConfigFormat": "{0} = {1}",
+    "ConfigFormatRegex": "^(?<key>.+?) = (?<value>true|false|[\\d\\.-]+|\\[.*?\\])\\r?$"
+  }
+]
