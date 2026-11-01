@@ -11,6 +11,16 @@
     "EnumValues": {}
   },
   {
+    "DisplayName": "Client mod URL (for players)",
+    "Category": "Server",
+    "Description": "Send this link to your players. It must come from the same build as the server zip above.",
+    "FieldName": "ClientUrl",
+    "InputType": "url",
+    "IncludeInCommandLine": false,
+    "DefaultValue": "https://github.com/rwmt/Multiplayer/releases/download/continuous/Multiplayer-beta.zip",
+    "EnumValues": {}
+  },
+  {
     "DisplayName": ".NET runtime version",
     "Category": "Server",
     "Description": "8.0.x only: the server targets net8.0.",

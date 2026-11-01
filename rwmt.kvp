@@ -1,5 +1,5 @@
 Meta.DisplayName=RimWorld Multiplayer (RWMT)
-Meta.Description=Dedicated server for Zetrith's Multiplayer (RWMT). Native Linux .NET 8 app run behind a PTY wrapper, downloaded from GitHub or any custom zip URL you paste.
+Meta.Description=RimWorld Multiplayer (RWMT) standalone server. Native Linux .NET 8, PTY wrapper. Game settings appear under their own tab once the first player connects and uploads settings.toml.
 Meta.OS=2
 Meta.Arch=x86_64
 Meta.AarchSupport=Unknown
@@ -19,7 +19,7 @@ Meta.ContainerPolicyReason=RWMT needs the .NET 8 runtime and the script utility 
 Meta.Prerequisites=[]
 Meta.ExtraContainerPackages=[]
 Meta.ConfigReleaseState=NotSpecified
-Meta.ConfigVersion=5
+Meta.ConfigVersion=6
 Meta.NoCommercialUsage=False
 Meta.ImportableExtensions=[]
 Meta.AppIsMultiIPAware=False
