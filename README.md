@@ -47,6 +47,11 @@ sans Wine, dans `cubecoders/ampbase:debian`.
   **pas** à `App.BaseDirectory`. Avec `start.sh` seul, AMP cherche `/AMP/rwmt/start.sh`,
   journalise `Specified executable ... does not exist` et relance l'Update à chaque
   clic sur Start.
+- `App.WorkingDir` reste **vide**. Ce champ-là est résolu depuis `App.BaseDirectory`, pas
+  depuis `RootDir` : avec `BaseDirectory=./rwmt/Server/Linux/`, une valeur `Server/Linux`
+  donnait `/AMP/rwmt/Server/Linux/Server/Linux` et Start échouait sur
+  `Could not find a part of the path`. C'est `start.sh` qui se place dans son propre
+  dossier.
 - Champ **Server download URL** : build officiel `continuous/Server-beta.zip` par
   défaut, ou tout zip fourni sur le Discord du projet.
 - Port 30502 déclaré en **UDP seul** ; LiteNetLib, la bibliothèque réseau du mod, n'ouvre
