@@ -31,9 +31,43 @@ parce que `BannerlordCoopServer.exe` n'a pas de build Linux.
 - Ports UDP 4200 et 4201, plus 7210 interne.
 - Licence : acceptation persistée dans `eula.txt` avec `eula-sha256`. Ne pas laisser
   `DS_ACCEPT_EULA` en permanence, sinon une nouvelle version du texte serait acceptée
-  sans lecture.
+  sans lecture. Procédure complète ci-dessous.
 - Le serveur vérifie par SHA-256 son module Coop au démarrage : client et serveur
-  doivent être sur la même build (v0.1.6 au moment de l'écriture, jeu v1.4.8).
+  doivent être sur la même build, sans quoi le refus est immédiat en code 4. Au moment
+  de l'écriture, l'atelier servait encore v0.1.6, alors que v0.1.7 est publiée sur
+  GitHub depuis le 30 octobre 2026 et attend son approbation sur Steam.
+
+### Licence (EULA)
+
+Le serveur refuse de démarrer tant que les conditions ne sont pas acceptées, et sort en
+**code 6**. Un `eula.txt` réduit à `eula=true` ne suffit pas : le serveur y ajoute
+l'identifiant du texte accepté sous forme `eula-sha256`, qui doit correspondre à celui du
+build installé. C'est ce qui protège d'une acceptation donnée sur une version antérieure.
+
+Pour accepter, deux voies.
+
+**Par la variable d'environnement**, la seule disponible aujourd'hui. Dans
+`<instance>/GenericModule.kvp`, ajouter `DS_ACCEPT_EULA` aux variables :
+
+```
+App.EnvironmentVariables={"DS_ACCEPT_EULA":"true","WINEPREFIX":"{{$FullRootDir}}.wine","WINEARCH":"win64","WINEDEBUG":"-all","SteamAppId":"261550"}
+```
+
+Démarrer une fois : le serveur écrit `eula.txt` complet, 316 octets avec son
+`eula-sha256`. Puis **retirer la variable** et redémarrer — le fichier suffit, et le
+serveur échouera proprement en code 6 si une future version change le texte. Laisser la
+variable en place reviendrait à accepter par avance toute licence future, sans lecture.
+
+**Par un champ dans AMP**, possible et prévu avec la prochaine version du template : un
+champ à deux valeurs, `false` par défaut, injecté dans `App.EnvironmentVariables` sous la
+forme `"DS_ACCEPT_EULA":"{{AcceptEula}}"`. Les valeurs sont littérales, donc pas de
+surprise de conversion. Le principe reste le même : on coche, on démarre une fois, on
+décoche. La case ne doit jamais rester cochée en permanence, pour la raison ci-dessus.
+
+`eula.txt` vit dans `CoopData/DedicatedServer/`, hors de l'arborescence remplacée par
+l'update, donc il survit aux mises à jour. Une nouvelle instance, elle, repart sans lui :
+c'est pour ça qu'une acceptation ne se transfère pas d'une instance à l'autre sans
+recopier le fichier.
 
 ## RimWorld Multiplayer (RWMT)
 
