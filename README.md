@@ -13,7 +13,7 @@ un seul `manifest.json` à la racine, tous les fichiers de template au même niv
 
 ## Installation dans AMP
 
-Configuration → Instance Deployment → Add Configuration Repository → `Hellm4n/amp-templates:main`,
+Configuration → Instance Deployment → Add Configuration Repository → `Hellm4nbot/amp-templates:main`,
 puis **Fetch** et rafraîchir la page.
 
 Variante locale, sans GitHub : copier les fichiers dans
