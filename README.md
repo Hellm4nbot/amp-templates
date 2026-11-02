@@ -69,6 +69,40 @@ l'update, donc il survit aux mises à jour. Une nouvelle instance, elle, repart 
 c'est pour ça qu'une acceptation ne se transfère pas d'une instance à l'autre sans
 recopier le fichier.
 
+### Variante : repli sur le CDN de la team (test)
+
+Template séparé, `Bannerlord Coop Dedicated Server (CDN fallback)`, ajouté pour tester sans
+toucher au template d'origine, qui reste inchangé. Les deux coexistent dans AMP.
+
+Champs ajoutés :
+
+- `Update source` : `auto` tente l'atelier puis bascule sur le CDN, `steam` impose l'atelier
+  et échoue si l'objet est indisponible, `cdn` ignore SteamCMD et ne demande aucun compte Steam
+- `Release tag for CDN` : `v0.1.7`, ou `latest` pour résoudre la dernière release GitHub
+
+Déroulé de l'update :
+
+1. atelier Steam via SteamCMD, avec les mêmes champs de compte que le template d'origine
+2. si le téléchargement échoue, ou si la source est `cdn`, lecture du `manifest.json` de la
+   release, qui donne l'URL, la taille et le SHA-256 de l'archive serveur
+3. téléchargement sur le disque de l'instance, puis vérification du SHA-256
+4. extraction avec `7zr.exe` sous Wine, l'image ne contenant ni `7z` ni `pip`
+5. copie dans le dossier que le template utilise déjà, donc `WorkingDir`, `Executable` et
+   les ports ne changent pas
+
+Mesures de référence sur v0.1.7 : archive de 4,52 Go téléchargée en 87 secondes, empreinte
+`c5818885…` conforme au manifeste, extraction en 188 secondes pour 5 622 fichiers. Le
+préfixe Wine pèse 1,4 Go et doit rester sur le disque de l'instance, jamais dans la couche
+du conteneur.
+
+**Attention aux ports** : la variante utilise les mêmes 4200, 4201 et 7210 que le template
+d'origine. Les deux instances ne peuvent pas tourner en même temps sans changer les ports
+de l'une des deux.
+
+Côté licence, rien à refaire : le `EULA.md` de v0.1.7 est identique octet pour octet à
+celui de v0.1.6, et un serveur 0.1.7 démarre avec une acceptation donnée sous 0.1.6 —
+vérifié en conditions réelles, jusqu'à `SERVING` avec la campagne chargée.
+
 ## RimWorld Multiplayer (RWMT)
 
 Serveur dédié du mod RimWorld Multiplayer (projet Zetrith), **Linux natif .NET 8**,
