@@ -58,11 +58,16 @@ Démarrer une fois : le serveur écrit `eula.txt` complet, 316 octets avec son
 serveur échouera proprement en code 6 si une future version change le texte. Laisser la
 variable en place reviendrait à accepter par avance toute licence future, sans lecture.
 
-**Par un champ dans AMP**, possible et prévu avec la prochaine version du template : un
-champ à deux valeurs, `false` par défaut, injecté dans `App.EnvironmentVariables` sous la
-forme `"DS_ACCEPT_EULA":"{{AcceptEula}}"`. Les valeurs sont littérales, donc pas de
-surprise de conversion. Le principe reste le même : on coche, on démarre une fois, on
-décoche. La case ne doit jamais rester cochée en permanence, pour la raison ci-dessus.
+**Par un champ dans AMP**, disponible dans la variante CDN : le réglage
+`Accept the licence on next start` vaut `No` par défaut et s'injecte dans
+`App.EnvironmentVariables` sous la forme `"DS_ACCEPT_EULA":"{{AcceptEula}}"`. Les valeurs
+sont littérales, donc pas de surprise de conversion. On le passe à `Yes`, on démarre une
+fois, le serveur écrit son `eula.txt` avec l'empreinte du texte qu'il embarque, puis on le
+remet à `No`. Le laisser sur `Yes` reviendrait à accepter par avance toute licence future.
+
+Le champ n'apparaît qu'à la création de l'instance : AMP fige la définition du template et
+ses réglages dans le kvp de l'instance. Une instance existante doit être recréée pour voir
+un réglage ajouté depuis.
 
 `eula.txt` vit dans `CoopData/DedicatedServer/`, hors de l'arborescence remplacée par
 l'update, donc il survit aux mises à jour. Une nouvelle instance, elle, repart sans lui :
