@@ -69,6 +69,25 @@ l'update, donc il survit aux mises à jour. Une nouvelle instance, elle, repart 
 c'est pour ça qu'une acceptation ne se transfère pas d'une instance à l'autre sans
 recopier le fichier.
 
+Pour transférer une acceptation existante vers une instance neuve, la seule condition est
+que le texte de licence soit identique. On compare les empreintes des deux `EULA.md`, puis
+on copie le fichier — sans le recopier à la main, l'identifiant `eula-sha256` devant rester
+intact :
+
+```
+EA=$(find /home/amp/.ampdata/instances/Bannerlord01/bannerlordcoop/steamhome -name EULA.md | head -1)
+EB=$(find /home/amp/.ampdata/instances/Bannerlord201/bannerlordcoop/steamhome -name EULA.md | head -1)
+md5sum "$EA" "$EB"
+cp -a /home/amp/.ampdata/instances/Bannerlord01/bannerlordcoop/CoopData/DedicatedServer/eula.txt /home/amp/.ampdata/instances/Bannerlord201/bannerlordcoop/CoopData/DedicatedServer/
+chown 1001:1001 /home/amp/.ampdata/instances/Bannerlord201/bannerlordcoop/CoopData/DedicatedServer/eula.txt
+```
+
+Les chemins ci-dessus supposent la lecture depuis un conteneur monté sur
+`/home/amp/.ampdata`, et `1001` est l'identifiant de `amp` dans les images CubeCoders.
+
+Si les deux empreintes diffèrent, ne pas copier : c'est le contrôle qui protège d'une
+acceptation donnée sur un texte qui a changé depuis.
+
 ### Variante : repli sur le CDN de la team (test)
 
 Template séparé, `Bannerlord Coop Dedicated Server (CDN fallback)`, ajouté pour tester sans
