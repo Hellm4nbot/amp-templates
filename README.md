@@ -127,7 +127,72 @@ Côté licence, rien à refaire : le `EULA.md` de v0.1.7 est identique octet pou
 celui de v0.1.6, et un serveur 0.1.7 démarre avec une acceptation donnée sous 0.1.6 —
 vérifié en conditions réelles, jusqu'à `SERVING` avec la campagne chargée.
 
+### Sauvegarde avant mise à jour
+
+Les deux templates écrivent une copie de l'état courant **avant** de remplacer le moindre
+binaire, dans le dossier `Backups` de l'instance, à côté de ceux qu'AMP gère lui-même.
+
+Le nom porte la version qui va être remplacée, pas la nouvelle : `pre-update-0.1.6-…` pour
+Bannerlord, `pre-update-<sha12>-…` pour RWMT. Une version n'étant remplacée qu'une fois, le
+premier dossier créé reste l'état d'origine, et une seconde exécution de l'update ne
+l'écrase pas. Trois dossiers sont conservés au maximum.
+
+Ce que contient chaque sauvegarde :
+
+- Bannerlord : `Game Saves/` en entier, `.sav` et `.json` jumeaux compris, plus
+  `server-config.json`, `mod-config.json` et `eula.txt`
+- RWMT : `settings.toml`, `save.zip` et `Saved/` lorsqu'ils existent
+- dans les deux cas un `LISEZ-MOI.txt` avec la date, la version sortante, la version
+  entrante et le `saveName` en cours, qu'on ne peut pas reconstituer après coup
+
+La restauration se fait à la main : arrêter le serveur, vider les fichiers concernés dans
+le dossier de données, recopier le contenu de la sauvegarde, relancer. Rien n'est automatique
+dans ce sens, c'est volontaire — une restauration silencieuse sur un monde vivant serait
+plus dangereuse qu'utile.
+
+Le risque réel couvert n'est pas la mise à jour en elle-même, qui ne touche pas aux données,
+mais une version qui migre la sauvegarde en place au premier chargement. Sans copie prise
+avant que la nouvelle version ne tourne, il n'y a alors aucun retour possible.
+
+### Exploitation au quotidien
+
+Commandes à taper dans la console de l'instance, sans interface dédiée :
+
+- `save` sauvegarde immédiatement. Une sauvegarde automatique tourne aussi toutes les cinq
+  minutes, réglable par `autosaveMinutes` dans `server-config.json`, `0` pour l'arrêter
+- `stop` sauvegarde puis ferme, en laissant jusqu'à trente secondes. Il n'y a **pas** de
+  bouton de redémarrage : il faut relancer `BannerlordCoopServer.exe` ensuite
+- `help` liste les autres commandes, dont `status`, `say` et `kick`
+
+Toute modification de `server-config.json` ou de `mod-config.json` exige un redémarrage,
+sinon elle n'est pas appliquée.
+
+Le monde joué est celui que désigne `saveName` dans `server-config.json`. Mettre un nom qui
+n'existe pas encore crée un monde neuf, sans supprimer l'ancien : il suffit de remettre son
+nom pour y revenir. Pour charger une sauvegarde précise, déposer le `.sav` **et** le `.json`
+du même nom dans `Game Saves/`, puis renseigner `saveName` sans l'extension.
+
+Codes de sortie à connaître : `6` quand la licence n'est pas acceptée, `4` quand le module
+Coop a été modifié et ne correspond plus au build du serveur. Les journaux sont dans
+`CoopData/DedicatedServer/logs`, et une sauvegarde faite avec War Sails activé ne se chargera
+pas.
+
 ## RimWorld Multiplayer (RWMT)
+
+### Après l'initialisation du monde
+
+Le premier client qui se connecte sur un serveur vide écrit `settings.toml`, puis
+`save.zip`, et le serveur s'arrête de lui-même une fois la configuration terminée. Un
+redémarrage est nécessaire pour qu'il charge la sauvegarde.
+
+Le wrapper `start.sh` s'en charge : si le serveur sort proprement et que `save.zip` ou
+`Saved/` est présent, il le relance une seule fois pour charger le monde. Si l'arrêt vient
+du bouton Stop d'AMP, ou si aucun monde n'existe encore, rien n'est relancé.
+
+Ce comportement est dans le wrapper et non dans AMP, parce qu'AMP n'a pas de réglage pour
+cela : `AppStartupMode` ne définit que ce que l'instance fait **quand elle démarre**, et
+`AutoRetryCount` ne couvre que les plantages, pas une sortie propre.
+
 
 Serveur dédié du mod RimWorld Multiplayer (projet Zetrith), **Linux natif .NET 8**,
 sans Wine, dans `cubecoders/ampbase:debian`.
