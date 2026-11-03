@@ -183,24 +183,36 @@ pas.
 **mêmes mods aux mêmes versions** que le serveur pour se connecter : installer côté serveur
 d'abord, puis activer.
 
-1. copier le dossier complet du mod dans `engine/Modules`, à la racine de l'installation
-   du serveur, via le bouton qui ouvre ce dossier
-2. vérifier que le nom du dossier correspond à l'`Id` déclaré par le mod : sinon il apparaît
-   en erreur d'installation et le message indique le nom attendu
-3. recharger la liste, le mod apparaît alors parmi ceux disponibles
-4. l'activer, il passe dans l'ordre de chargement
-5. régler l'ordre : la liste se lit de haut en bas, les fichiers du jeu et Coop en premier,
-   le module du serveur en dernier, ces entrées étant verrouillées
-6. enregistrer la liste, qui est écrite dans `server-config.json`
-7. redémarrer : les changements ne s'appliquent qu'au démarrage suivant, et la page est
-   verrouillée pendant que le serveur tourne
+La 0.1.7 livre aussi `BannerlordCoopServerManager.exe`, une interface Windows pour piloter
+le serveur et gérer les mods. Elle est **inutilisable sur cette instance** : le template lance
+`BannerlordCoopServer.exe` en console, sans écran, et l'interface a besoin d'un bureau Windows.
+Ses étapes sont donc reproduites à la main ci-dessous — c'est exactement ce qu'elle fait.
+
+1. copier le dossier **complet** du mod dans `engine/Modules`, à la racine de l'installation
+   du serveur, par SFTP ou par le gestionnaire de fichiers d'AMP
+2. vérifier que le nom du dossier correspond à l'`Id` déclaré par le mod dans son
+   `SubModule.xml` (`<Module><Id value="…"/>`) : sinon le serveur ne le trouve pas, et le
+   Manager affiche l'erreur et le nom attendu
+3. déclarer le mod dans le tableau `modules` de `server-config.json`, dans
+   `CoopData/DedicatedServer/` — c'est le seul geste que l'interface graphique faisait à
+   votre place. La clé **n'existe pas** tant qu'aucun mod n'a été activé : la créer au même
+   niveau que `saveName`, avec les identifiants dans l'ordre de chargement.
+
+```json
+"modules": ["MyMod", "AnotherMod"]
+```
+
+L'ordre du tableau **est** l'ordre de chargement. Les modules toujours chargés ne doivent
+jamais y figurer, le serveur les ajoute lui-même : `native`, `sandboxcore`, `sandbox`,
+`coop`, `coopnightly`, `dedicatedserver.windows`. Le fichier doit rester un JSON valide, et
+les changements ne s'appliquent qu'au démarrage suivant : on redémarre l'instance depuis
+l'interface AMP, il n'y a aucune commande à taper.
 
 Messages à savoir lire : « Needs mods » signale une dépendance manquante, désactivée, trop
-ancienne ou placée trop bas dans la liste, avec la correction à faire et un avertissement
-avant démarrage ; « Not installed » signale un dossier absent, et le serveur s'arrête tant
-que le mod n'est pas installé ou désactivé ; « Client code only » signale un mod sans code
-serveur. Si la sauvegarde a été faite avec un mod absent de la liste, le serveur pose la
-question avant de démarrer — charger sans lui peut casser la campagne.
+ancienne ou placée trop bas dans la liste ; « Not installed » signale un dossier absent, et le
+serveur s'arrête tant que le mod n'est pas installé ou désactivé ; « Client code only » signale
+un mod sans code serveur. Si la sauvegarde a été faite avec un mod absent de la liste, le
+serveur pose la question avant de démarrer — charger sans lui peut casser la campagne.
 
 War Sails, Birth and Aging Options et Fast Mode ne fonctionnent pas sur un serveur dédié :
 les laisser désactivés.
@@ -210,6 +222,14 @@ remplace. Les dossiers de mods qui ne viennent pas de l'archive sont mis de côt
 copie, puis remis en place après, avec un contrôle que chacun est bien revenu ; les noms
 sont aussi inscrits dans le `LISEZ-MOI.txt` de la sauvegarde pré-update. Les modules livrés
 par la nouvelle version, eux, sont bien remplacés.
+
+**Limite connue : les réglages de gameplay de l'interface AMP ne s'appliquent pas.** Les
+réglages `Battle Size`, `Difficulty`, exécutions et autres sont écrits par AMP dans un
+`mod-config.json` situé dans `CoopData/DedicatedServer/`, où le serveur ne le lit pas. Le
+fichier effectif est celui du préfixe Wine :
+`bannerlordcoop/.wine/drive_c/users/amp/Documents/Mount and Blade II Bannerlord/CoopData/mod-config.json`.
+C'est celui-là qu'il faut éditer, puis redémarrer. Une correction du template est à
+l'étude ; en attendant, ne pas se fier à ces champs dans l'interface.
 
 ### Exécutions entre joueurs
 
