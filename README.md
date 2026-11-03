@@ -179,6 +179,13 @@ pas.
 
 ### Ajouter des mods
 
+> **Version requise : template v7 ou plus récent.** La préservation des mods dans
+> `engine/Modules` date de la version 7. Sur une version antérieure, le script d'update vide
+> le dossier d'installation avant d'y copier la nouvelle archive : tout mod déposé serait
+> perdu à la mise à jour suivante, sans avertissement. Vérifier `Meta.ConfigVersion` dans le
+> `GenericModule.kvp` de l'instance avant de déposer un mod, et faire le Fetch puis l'Update
+> pour passer en version 7.
+
 À partir de la 0.1.7, le serveur dédié accepte des mods. Les joueurs doivent avoir les
 **mêmes mods aux mêmes versions** que le serveur pour se connecter : installer côté serveur
 d'abord, puis activer.
@@ -189,7 +196,10 @@ le serveur et gérer les mods. Elle est **inutilisable sur cette instance** : le
 Ses étapes sont donc reproduites à la main ci-dessous — c'est exactement ce qu'elle fait.
 
 1. copier le dossier **complet** du mod dans `engine/Modules`, à la racine de l'installation
-   du serveur, par SFTP ou par le gestionnaire de fichiers d'AMP
+   du serveur, par SFTP ou par le gestionnaire de fichiers d'AMP. Le chemin complet, dans le
+   dossier de l'instance, est
+   `bannerlordcoop/steamhome/Steam/steamapps/workshop/content/261550/3770450698/DedicatedServer/engine/Modules`
+   — l'interface d'AMP ne l'affiche nulle part
 2. vérifier que le nom du dossier correspond à l'`Id` déclaré par le mod dans son
    `SubModule.xml` (`<Module><Id value="…"/>`) : sinon le serveur ne le trouve pas, et le
    Manager affiche l'erreur et le nom attendu
@@ -201,6 +211,10 @@ Ses étapes sont donc reproduites à la main ci-dessous — c'est exactement ce 
 ```json
 "modules": ["MyMod", "AnotherMod"]
 ```
+
+Ce format vient du code du Manager de la 0.1.7, qui écrit ce tableau. Que le **serveur** le
+relise au démarrage est en revanche **déduit** de là, pas observé : à confirmer au premier mod
+réellement activé.
 
 L'ordre du tableau **est** l'ordre de chargement. Les modules toujours chargés ne doivent
 jamais y figurer, le serveur les ajoute lui-même : `native`, `sandboxcore`, `sandbox`,
@@ -224,9 +238,9 @@ sont aussi inscrits dans le `LISEZ-MOI.txt` de la sauvegarde pré-update. Les mo
 par la nouvelle version, eux, sont bien remplacés.
 
 **Limite connue : les réglages de gameplay de l'interface AMP ne s'appliquent pas.** Les
-réglages `Battle Size`, `Difficulty`, exécutions et autres sont écrits par AMP dans un
-`mod-config.json` situé dans `CoopData/DedicatedServer/`, où le serveur ne le lit pas. Le
-fichier effectif est celui du préfixe Wine :
+réglages `Battle Size`, `Difficulty`, exécutions et autres sont censés être écrits par AMP
+dans un `mod-config.json` situé dans `CoopData/DedicatedServer/` — un fichier qui **n'existe
+pas** dans l'instance. Le fichier effectif est **présumé** être celui du préfixe Wine :
 `bannerlordcoop/.wine/drive_c/users/amp/Documents/Mount and Blade II Bannerlord/CoopData/mod-config.json`.
 C'est celui-là qu'il faut éditer, puis redémarrer. Une correction du template est à
 l'étude ; en attendant, ne pas se fier à ces champs dans l'interface.
