@@ -4,6 +4,26 @@ Dépôt unique regroupant mes templates de modules génériques pour CubeCoders 
 Organisation à plat, comme `CubeCoders/AMPTemplates` et `Greelan/AMPTemplates` :
 un seul `manifest.json` à la racine, tous les fichiers de template au même niveau.
 
+## Branches
+
+| Branche | Panel visé | Différence |
+|---|---|---|
+| `main` | AMP 2 | image `cubecoders/ampbase`, compte Unix `amp` supposé |
+| `amp3` | AMP 3 | image `cubecoders/amp3base`, nom de compte Wine résolu à l'exécution |
+
+AMP 2 lit `Hellm4nbot/amp-templates:main`, AMP 3 lit `Hellm4nbot/amp-templates:amp3`.
+Les deux panels acceptent la forme `owner/repo:branche`, donc une seule base de code
+sert les deux, et `main` ne bouge pas tant qu'une instance AMP 2 tourne.
+
+Sur la branche `amp3`, deux adaptations seulement :
+
+- `Meta.SpecificDockerImage` passe de `cubecoders/ampbase` à `cubecoders/amp3base`,
+  à tag identique (`wine-stable`, `debian`).
+- Le préfixe Wine n'est plus cherché sous `drive_c/users/amp` en dur, mais sous
+  `drive_c/users/$(id -un …)`. AMP 3 ne garantit plus que le serveur tourne sous le
+  compte `amp` : en mode natif chaque shard reçoit son propre compte, et en conteneur
+  l'identité est décidée au lancement (`--userns=keep-id`).
+
 ## Templates
 
 | Template | Préfixe des fichiers | Source |
