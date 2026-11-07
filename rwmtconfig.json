@@ -23,11 +23,11 @@
   {
     "DisplayName": ".NET runtime version",
     "Category": "Server",
-    "Description": "8.0.x only: the server targets net8.0.",
+    "Description": "10.0.x: the server now targets net10.0.",
     "FieldName": "DotnetVersion",
     "InputType": "text",
     "IncludeInCommandLine": false,
-    "DefaultValue": "8.0.15",
+    "DefaultValue": "10.0.14",
     "Required": true,
     "EnumValues": {}
   },
