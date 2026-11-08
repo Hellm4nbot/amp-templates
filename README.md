@@ -31,6 +31,7 @@ Sur la branche `amp3`, deux adaptations seulement :
 | Bannerlord Coop Dedicated Server | `bannerlord-coop*` | copie de `rhinotastic/bannerlord-coop-amp-template`, métadonnées adaptées |
 | RimWorld Multiplayer (RWMT) | `rwmt*` | créé ici, à partir du binaire `Server-beta.zip` |
 | Project Zomboid (AMP 3) | `project-zomboid-amp3*` | copie du template officiel `CubeCoders/AMPTemplates`, étape de copie de `steamclient.so` réécrite |
+| Subnautica (Nitrox) AMP 3 | `subnautica-nitrox-amp3*` | copie de `subnautica2.kvp` (DisplayName « Subnautica (Nitrox Mod) »), chemin du jeu sorti du réglage cassé |
 
 ## Project Zomboid sur AMP 3
 
@@ -382,3 +383,27 @@ deux lignes de bootstrap.
 - Si AMP affiche une erreur de chemin du type `DeploymentTemplates/--main/...` après un
   push, refetcher le dépôt, et au besoin supprimer le dossier du template dans
   `DeploymentTemplates` avant de refetcher.
+
+## Subnautica (Nitrox) sur AMP 3
+
+Le template officiel `subnautica2.kvp` porte le nom « Subnautica (Nitrox Mod) ». Il passe le
+chemin du jeu par le réglage `ClientFilesLocationMode`, dont la valeur est elle-même une
+variable : `{{$FullBaseDir}}Game`. AMP ne résout pas cette seconde couche, donc Nitrox reçoit
+la chaîne littérale et s'arrête sur :
+
+```
+EnvironmentFinder: Game installation directory '{$FullBaseDir}Game' is invalid
+Unhandled exception. System.IO.DirectoryNotFoundException: Could not find Subnautica installation.
+```
+
+L'emplacement lui-même était correct : l'étape SteamCMD installe bien le jeu dans
+`264710/Game`. Seule l'indirection par réglage cassait. Le chemin est donc écrit en dur dans
+`App.CommandLineArgs` et dans `SUBNAUTICA_INSTALLATION_PATH`, et les deux réglages devenus
+inutiles sont retirés du manifeste.
+
+Le serveur est le binaire **Linux x64 natif** publié par Nitrox, pas la version Windows sous
+Wine. Il faut en revanche le runtime .NET 9, installé par l'étape dédiée du template.
+
+Subnautica est un jeu payant : SteamCMD ne le télécharge qu'avec un compte qui le possède,
+d'où `SteamUpdateAnonymousLogin=False` et `SteamForceLoginPrompt=True`. Les identifiants se
+saisissent dans les réglages de l'instance, jamais dans le template.
