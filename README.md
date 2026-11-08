@@ -30,6 +30,21 @@ Sur la branche `amp3`, deux adaptations seulement :
 |---|---|---|
 | Bannerlord Coop Dedicated Server | `bannerlord-coop*` | copie de `rhinotastic/bannerlord-coop-amp-template`, métadonnées adaptées |
 | RimWorld Multiplayer (RWMT) | `rwmt*` | créé ici, à partir du binaire `Server-beta.zip` |
+| Project Zomboid (AMP 3) | `project-zomboid-amp3*` | copie du template officiel `CubeCoders/AMPTemplates`, étape de copie de `steamclient.so` réécrite |
+
+## Project Zomboid sur AMP 3
+
+Le template officiel échoue sur l'étape « Copy Steamclient Files » avec
+`'bash' exited with code 1`. Il suppose que le SteamCMD d'AMP est posé à la racine
+de l'instance, donc que `linux32/steamclient.so` se trouve juste à côté du jeu :
+AMP 3 le range dans `.amp/steamcmd`, et envoie les erreurs de `cp` dans `/dev/null`,
+d'où un code 1 sans explication.
+
+L'étape est remplacée par un script qui cherche la bibliothèque dans la disposition
+AMP 2, puis dans `.amp/steamcmd`, puis par un `find` borné dans l'instance. Elle
+crée le dossier de destination au besoin et **sort toujours en code 0** : sans
+`steamclient.so` le serveur démarre quand même, seul le réseau Steam est dégradé.
+Ne jamais bloquer une mise à jour pour une bibliothèque optionnelle.
 
 ## Installation dans AMP
 

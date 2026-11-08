@@ -1,0 +1,48 @@
+[
+ {
+  "UpdateStageName": "SteamCMD Download",
+  "UpdateSourcePlatform": "All",
+  "UpdateSource": "SteamCMD",
+  "UpdateSourceData": "380870",
+  "UpdateSourceArgs": "108600",
+  "UpdateSourceVersion": "public",
+  "UpdateSourceConditionSetting": "EnableBeta",
+  "UpdateSourceConditionValue": "false",
+  "SkipOnFailure": false
+ },
+ {
+  "UpdateStageName": "SteamCMD Download",
+  "UpdateSourcePlatform": "All",
+  "UpdateSource": "SteamCMD",
+  "UpdateSourceData": "380870",
+  "UpdateSourceArgs": "108600",
+  "UpdateSourceVersion": "{{BetaBranch}}",
+  "UpdateSourceConditionSetting": "EnableBeta",
+  "UpdateSourceConditionValue": "true",
+  "SkipOnFailure": false
+ },
+ {
+  "UpdateStageName": "Copy Steamclient Files",
+  "UpdateSourcePlatform": "Linux",
+  "UpdateSource": "Executable",
+  "UpdateSourceData": "/bin/bash",
+  "UpdateSourceArgs": "-c \"echo IyEvYmluL2Jhc2gKIyBDb3BpZSBkZSBzdGVhbWNsaWVudC5zbyBkYW5zIGxlIGRvc3NpZXIgZHUgamV1IFByb2plY3QgWm9tYm9pZC4KIyBBZGFwdGUgcG91ciBBTVAgMyA6IFN0ZWFtQ01EIG4nZXN0IHBsdXMgYSBsYSByYWNpbmUgZGUgbCdpbnN0YW5jZSBtYWlzIGRhbnMKIyAuYW1wL3N0ZWFtY21kLCBldCBsJ2FnZW50IHBldXQgb3Ugbm9uIGNyZWVyIGxlcyBsaWVucyBsaW51eDMyL2xpbnV4NjQuCiMgUmVnbGUgZCdvciA6IG5lIGphbWFpcyBmYWlyZSBlY2hvdWVyIGxhIG1pc2UgYSBqb3VyLiBTYW5zIHN0ZWFtY2xpZW50IGxlCiMgc2VydmV1ciBkZW1hcnJlIHF1YW5kIG1lbWUsIHNldWwgbGUgcmVzZWF1IFN0ZWFtIGVzdCBkZWdyYWRlLgoKY2QgcHJvamVjdC16b21ib2lkIDI+L2Rldi9udWxsIHx8IHsgZWNobyAnUFJPSkVDVCBaT01CT0lEIDogZG9zc2llciBwcm9qZWN0LXpvbWJvaWQgYWJzZW50LCByaWVuIGEgY29waWVyJzsgZXhpdCAwOyB9CkJBU0U9JFBXRApERVNUPSRCQVNFLzM4MDg3MApta2RpciAtcCAiJERFU1QvbGludXg2NCIKb2s9MAoKY29weW9uZSgpIHsKICAgIGlmIFsgLWYgIiQxIiBdOyB0aGVuCiAgICAgICAgXGNwIC1mICIkMSIgIiQyIiAmJiBlY2hvICJzdGVhbWNsaWVudCA6ICQxIC0+ICQyIgogICAgICAgIHJldHVybiAwCiAgICBmaQogICAgcmV0dXJuIDEKfQoKIyAxLiBkaXNwb3NpdGlvbiBBTVAgMiA6IGxpbnV4MzIgZXQgbGludXg2NCBhIGxhIHJhY2luZSBkdSB0ZW1wbGF0ZQpjb3B5b25lICIkQkFTRS9saW51eDMyL3N0ZWFtY2xpZW50LnNvIiAiJERFU1Qvc3RlYW1jbGllbnQuc28iICYmIG9rPTEKY29weW9uZSAiJEJBU0UvbGludXg2NC9zdGVhbWNsaWVudC5zbyIgIiRERVNUL2xpbnV4NjQvc3RlYW1jbGllbnQuc28iICYmIG9rPTEKCiMgMi4gZGlzcG9zaXRpb24gQU1QIDMgOiBTdGVhbUNNRCBtdXR1YWxpc2UgZGFucyAuYW1wL3N0ZWFtY21kCmlmIFsgIiRvayIgLWVxIDAgXTsgdGhlbgogICAgY29weW9uZSAiJEJBU0UvLmFtcC9zdGVhbWNtZC9saW51eDMyL3N0ZWFtY2xpZW50LnNvIiAiJERFU1Qvc3RlYW1jbGllbnQuc28iICYmIG9rPTEKICAgIGNvcHlvbmUgIiRCQVNFLy5hbXAvc3RlYW1jbWQvbGludXg2NC9zdGVhbWNsaWVudC5zbyIgIiRERVNUL2xpbnV4NjQvc3RlYW1jbGllbnQuc28iICYmIG9rPTEKZmkKCiMgMy4gZGVybmllciByZWNvdXJzIDogb24gY2hlcmNoZSBsYSBiaWJsaW90aGVxdWUgZGFucyBsJ2luc3RhbmNlCmlmIFsgIiRvayIgLWVxIDAgXTsgdGhlbgogICAgZm9yIHAgaW4gJChmaW5kICIkQkFTRSIgLW1heGRlcHRoIDYgLW5hbWUgc3RlYW1jbGllbnQuc28gMj4vZGV2L251bGwgfCBoZWFkIC00KTsgZG8KICAgICAgICBjYXNlICRwIGluCiAgICAgICAgICAgICpsaW51eDMyKikgY29weW9uZSAiJHAiICIkREVTVC9zdGVhbWNsaWVudC5zbyIgJiYgb2s9MSA7OwogICAgICAgICAgICAqbGludXg2NCopIGNvcHlvbmUgIiRwIiAiJERFU1QvbGludXg2NC9zdGVhbWNsaWVudC5zbyIgJiYgb2s9MSA7OwogICAgICAgIGVzYWMKICAgIGRvbmUKZmkKCmlmIFsgIiRvayIgLWVxIDAgXTsgdGhlbgogICAgZWNobyAnc3RlYW1jbGllbnQuc28gaW50cm91dmFibGUgOiBsZSBzZXJ2ZXVyIGRlbWFycmUgc2FucyBTdGVhbSwgbGUgcmVzZWF1IFN0ZWFtIHNlcmEgZGVncmFkZScKZmkKZXhpdCAwCg== | base64 -d | bash\"",
+  "SkipOnFailure": true
+ },
+ {
+  "UpdateStageName": "Copy Steamclient Files",
+  "UpdateSourcePlatform": "Windows",
+  "UpdateSource": "Executable",
+  "UpdateSourceData": "powershell.exe",
+  "UpdateSourceArgs": "-NoProfile -Command \"Set-Location -Path 'project-zomboid'; 'steamclient.dll','steamclient64.dll','tier0_s.dll','tier0_s64.dll','vstdlib_s.dll','vstdlib_s64.dll' | % { Copy-Item -Path \\\"$_\\\" -Destination \\\"380870\\\" -Force -ErrorAction SilentlyContinue | Out-Null }\"",
+  "SkipOnFailure": false
+ },
+ {
+  "UpdateStageName": "Mods Directory Creation",
+  "UpdateSourcePlatform": "All",
+  "UpdateSource": "CreateDirectory",
+  "UpdateSourceArgs": "{{$FullBaseDir}}Zomboid/mods",
+  "OverwriteExistingFiles": false,
+  "SkipOnFailure": false
+ }
+]
