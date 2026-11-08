@@ -1,0 +1,48 @@
+[
+ {
+  "UpdateStageName": "SteamCMD Download",
+  "UpdateSourcePlatform": "All",
+  "UpdateSource": "SteamCMD",
+  "UpdateSourceData": "380870",
+  "UpdateSourceArgs": "108600",
+  "UpdateSourceVersion": "public",
+  "UpdateSourceConditionSetting": "EnableBeta",
+  "UpdateSourceConditionValue": "false",
+  "SkipOnFailure": false
+ },
+ {
+  "UpdateStageName": "SteamCMD Download",
+  "UpdateSourcePlatform": "All",
+  "UpdateSource": "SteamCMD",
+  "UpdateSourceData": "380870",
+  "UpdateSourceArgs": "108600",
+  "UpdateSourceVersion": "{{BetaBranch}}",
+  "UpdateSourceConditionSetting": "EnableBeta",
+  "UpdateSourceConditionValue": "true",
+  "SkipOnFailure": false
+ },
+ {
+  "UpdateStageName": "Copy Steamclient Files",
+  "UpdateSourcePlatform": "Linux",
+  "UpdateSource": "Executable",
+  "UpdateSourceData": "/bin/bash",
+  "UpdateSourceArgs": "-c \"echo IyEvYmluL2Jhc2gKIyBDb3BpZSBkZSBzdGVhbWNsaWVudC5zbyBkYW5zIGxlIGRvc3NpZXIgZHUgamV1IFByb2plY3QgWm9tYm9pZC4KIyBBZGFwdGUgcG91ciBBTVAgMyA6IFN0ZWFtQ01EIG4nZXN0IHBsdXMgYSBsYSByYWNpbmUgZGUgbCdpbnN0YW5jZSBtYWlzIGRhbnMKIyAuYW1wL3N0ZWFtY21kLCBldCBsJ2FnZW50IHBldXQgb3Ugbm9uIGNyZWVyIGxlcyBsaWVucyBsaW51eDMyL2xpbnV4NjQuCiMgQU1QIDMgcmFuZ2UgY2UgU3RlYW1DTUQgZGFucyBsZSBkb3NzaWVyIGRlIGwnSU5TVEFOQ0UsIGRvbmMgdW4gbml2ZWF1IEFVLURFU1NVUwojIGR1IGRvc3NpZXIgZHUgdGVtcGxhdGUgOiAvYW1wLy5hbXAvc3RlYW1jbWQgcG91ciB1bmUgaW5zdGFuY2UgL2FtcC4KIyBSZWdsZSBkJ29yIDogbmUgamFtYWlzIGZhaXJlIGVjaG91ZXIgbGEgbWlzZSBhIGpvdXIuIFNhbnMgc3RlYW1jbGllbnQgbGUKIyBzZXJ2ZXVyIGRlbWFycmUgcXVhbmQgbWVtZSwgc2V1bCBsZSByZXNlYXUgU3RlYW0gZXN0IGRlZ3JhZGUuCgpjZCBwcm9qZWN0LXpvbWJvaWQgMj4vZGV2L251bGwgfHwgeyBlY2hvICdQUk9KRUNUIFpPTUJPSUQgOiBkb3NzaWVyIHByb2plY3Qtem9tYm9pZCBhYnNlbnQsIHJpZW4gYSBjb3BpZXInOyBleGl0IDA7IH0KQkFTRT0kUFdECkRFU1Q9JEJBU0UvMzgwODcwCm1rZGlyIC1wICIkREVTVC9saW51eDY0Igpvaz0wCgpjb3B5b25lKCkgewogICAgaWYgWyAtZiAiJDEiIF07IHRoZW4KICAgICAgICBcY3AgLWYgIiQxIiAiJDIiICYmIGVjaG8gInN0ZWFtY2xpZW50IDogJDEgLT4gJDIiCiAgICAgICAgcmV0dXJuIDAKICAgIGZpCiAgICByZXR1cm4gMQp9CgojIDEuIGRpc3Bvc2l0aW9uIEFNUCAyIDogbGludXgzMiBldCBsaW51eDY0IGEgbGEgcmFjaW5lIGR1IHRlbXBsYXRlCmNvcHlvbmUgIiRCQVNFL2xpbnV4MzIvc3RlYW1jbGllbnQuc28iICIkREVTVC9zdGVhbWNsaWVudC5zbyIgJiYgb2s9MQpjb3B5b25lICIkQkFTRS9saW51eDY0L3N0ZWFtY2xpZW50LnNvIiAiJERFU1QvbGludXg2NC9zdGVhbWNsaWVudC5zbyIgJiYgb2s9MQoKIyAyLiBkaXNwb3NpdGlvbiBBTVAgMyA6IFN0ZWFtQ01EIG11dHVhbGlzZSwgZGFucyBsZSBkb3NzaWVyIGRlIGwnaW5zdGFuY2UKIyAgICAodW4gbml2ZWF1IGF1LWRlc3N1cykgb3UgZGFucyBjZWx1aSBkdSB0ZW1wbGF0ZSBzZWxvbiBsYSB2ZXJzaW9uCmlmIFsgIiRvayIgLWVxIDAgXTsgdGhlbgogICAgZm9yIHJhY2luZSBpbiAiJEJBU0UvLi4iICIkQkFTRSI7IGRvCiAgICAgICAgY29weW9uZSAiJHJhY2luZS8uYW1wL3N0ZWFtY21kL2xpbnV4MzIvc3RlYW1jbGllbnQuc28iICIkREVTVC9zdGVhbWNsaWVudC5zbyIgJiYgb2s9MQogICAgICAgIGNvcHlvbmUgIiRyYWNpbmUvLmFtcC9zdGVhbWNtZC9saW51eDY0L3N0ZWFtY2xpZW50LnNvIiAiJERFU1QvbGludXg2NC9zdGVhbWNsaWVudC5zbyIgJiYgb2s9MQogICAgZG9uZQpmaQoKIyAzLiBkZXJuaWVyIHJlY291cnMgOiByZWNoZXJjaGUgZGFucyBsJ2luc3RhbmNlLCBzYW5zIGRlc2NlbmRyZSBkYW5zCiMgICAgbCdhcmJvcmVzY2VuY2UgZHUgamV1IHF1aSBjb250aWVudCBkZXMgbWlsbGllcnMgZGUgZmljaGllcnMKaWYgWyAiJG9rIiAtZXEgMCBdOyB0aGVuCiAgICBmb3IgcCBpbiAkKGZpbmQgIiRCQVNFLy4uIiAtbWF4ZGVwdGggNSAtbmFtZSBzdGVhbWNsaWVudC5zbyBcCiAgICAgICAgICAgICAgICAgICAtbm90IC1wYXRoICcqLzM4MDg3MC8qJyAyPi9kZXYvbnVsbCB8IGhlYWQgLTQpOyBkbwogICAgICAgIGNhc2UgJHAgaW4KICAgICAgICAgICAgKmxpbnV4MzIqKSBjb3B5b25lICIkcCIgIiRERVNUL3N0ZWFtY2xpZW50LnNvIiAmJiBvaz0xIDs7CiAgICAgICAgICAgICpsaW51eDY0KikgY29weW9uZSAiJHAiICIkREVTVC9saW51eDY0L3N0ZWFtY2xpZW50LnNvIiAmJiBvaz0xIDs7CiAgICAgICAgICAgICopIGNvcHlvbmUgIiRwIiAiJERFU1Qvc3RlYW1jbGllbnQuc28iICYmIG9rPTEgOzsKICAgICAgICBlc2FjCiAgICBkb25lCmZpCgppZiBbICIkb2siIC1lcSAwIF07IHRoZW4KICAgIGVjaG8gJ3N0ZWFtY2xpZW50LnNvIGludHJvdXZhYmxlIDogbGUgc2VydmV1ciBkZW1hcnJlIHNhbnMgU3RlYW0sIGxlIHJlc2VhdSBTdGVhbSBzZXJhIGRlZ3JhZGUnCmVsc2UKICAgIGVjaG8gJ3N0ZWFtY2xpZW50IDogY29waWUgdGVybWluZWUnCmZpCmV4aXQgMAo= | base64 -d | bash\"",
+  "SkipOnFailure": true
+ },
+ {
+  "UpdateStageName": "Copy Steamclient Files",
+  "UpdateSourcePlatform": "Windows",
+  "UpdateSource": "Executable",
+  "UpdateSourceData": "powershell.exe",
+  "UpdateSourceArgs": "-NoProfile -Command \"Set-Location -Path 'project-zomboid'; 'steamclient.dll','steamclient64.dll','tier0_s.dll','tier0_s64.dll','vstdlib_s.dll','vstdlib_s64.dll' | % { Copy-Item -Path \\\"$_\\\" -Destination \\\"380870\\\" -Force -ErrorAction SilentlyContinue | Out-Null }\"",
+  "SkipOnFailure": false
+ },
+ {
+  "UpdateStageName": "Mods Directory Creation",
+  "UpdateSourcePlatform": "All",
+  "UpdateSource": "CreateDirectory",
+  "UpdateSourceArgs": "{{$FullBaseDir}}Zomboid/mods",
+  "OverwriteExistingFiles": false,
+  "SkipOnFailure": false
+ }
+]
