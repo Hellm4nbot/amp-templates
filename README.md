@@ -500,3 +500,31 @@ est « Toolchain and headers for building PostgreSQL from source » et qui livre
 `make`, `git`, `curl`, `tar` et `base64`. `amp3base:redis` fonctionne aussi (Ubuntu 26.04), avec le
 même outillage. Compilation vérifiée en compte non privilégié dans `postgresql` : même binaire,
 même `sha256`.
+
+## Miroir des fichiers NightCoop
+
+Le projet peut retirer un build, et une session exige que tous les joueurs aient le **même** build du
+mod. Les fichiers sont donc mirroirés à deux endroits, avec leurs empreintes :
+
+- **pCloud**, dossier `NightCoop Mirror` (compte du bot) — 5 fichiers, vérifiés par re-téléchargement
+  et comparaison du `sha256`
+- **serveur**, `/home/hermes/archives/nightcoop/` — même contenu, sur le disque du serveur
+- **dépôt**, fichier `nightcoop-mirror.txt` — les empreintes et la procédure, jamais les binaires :
+  deux archives de 10 Mo dans l'historique git ralentiraient chaque `Fetch` d'AMP
+
+Contenu du miroir au 2026-11-09 :
+
+| Fichier | Taille | Rôle |
+|---|---|---|
+| `NightCoop-0.2.0-beta-2.5.zip` | 10 117 378 o | client pour un jeu en 2.5 (RED4ext 1.31.0) |
+| `NightCoop-0.2.0-beta-2.31.zip` | 10 115 285 o | client pour un jeu en 2.31 (RED4ext 1.30.0) |
+| `nightcoop-hub-6b694a6c…tar.gz` | 161 303 o | sources du hub, commit épinglé par le template |
+| `enet-5a9c537f…tar.gz` | 83 822 o | ENet, commit épinglé par le Dockerfile amont |
+| `MANIFEST.txt` | 3 445 o | empreintes complètes, versions, procédure |
+
+Les empreintes des deux clients correspondent aux préfixes publiés par le projet
+(`ca070aa296519fb4…`, `ecb66f43c23dd212…`). Détail complet dans `nightcoop-mirror.txt`.
+
+À refaire quand : un nouveau build du mod sort, ou le commit du hub change dans
+`tools/nightcoop_hub_build.sh`. Le miroir doit toujours correspondre au template déployé, sinon il
+induit en erreur — un joueur avec l'ancien build ne rejoint pas une session.
