@@ -32,6 +32,7 @@ Sur la branche `amp3`, deux adaptations seulement :
 | RimWorld Multiplayer (RWMT) | `rwmt*` | créé ici, à partir du binaire `Server-beta.zip` |
 | Project Zomboid (AMP 3) | `project-zomboid-amp3*` | copie du template officiel `CubeCoders/AMPTemplates`, étape de copie de `steamclient.so` réécrite |
 | Subnautica (Nitrox) AMP 3 | `subnautica-nitrox-amp3*` | copie de `subnautica2.kvp` (DisplayName « Subnautica (Nitrox Mod) »), chemin du jeu sorti du réglage cassé |
+| NightCoop Hub (AMP 3) | `nightcoop-hub-amp3*` | créé ici : aucun binaire publié en amont, le template compile le hub depuis ses sources |
 
 ## Project Zomboid sur AMP 3
 
@@ -407,3 +408,65 @@ Wine. Il faut en revanche le runtime .NET 9, installé par l'étape dédiée du 
 Subnautica est un jeu payant : SteamCMD ne le télécharge qu'avec un compte qui le possède,
 d'où `SteamUpdateAnonymousLogin=False` et `SteamForceLoginPrompt=True`. Les identifiants se
 saisissent dans les réglages de l'instance, jamais dans le template.
+
+## NightCoop Hub sur AMP 3
+
+Point de rendez-vous du mod **NightCoop** (coop pour Cyberpunk 2077). Template à part dans le
+dépôt : ce serveur **n'héberge aucun jeu**. Le monde reste la sauvegarde du joueur hôte, sur son
+PC Windows ; le hub distribue les codes de session, indique à chaque joueur comment Internet le
+voit — ce qui permet à deux joueurs derrière une box d'ouvrir un chemin direct — et relaie les
+paquets quand aucun chemin direct ne s'ouvre. Les liens hôte-invité sont chiffrés de bout en bout
+(X25519, XChaCha20-Poly1305) : le hub ne voit que des enveloppes scellées.
+
+### Compilation, faute de binaire publié
+
+Le projet ne publie **aucun binaire Linux** : son dépôt ne contient que des sources, avec un
+`Dockerfile` et une recette de compilation. L'étape de mise à jour du template compile donc le hub
+dans l'instance, avec le script `tools/nightcoop_hub_build.sh` (embarqué en base64 dans
+`nightcoop-hub-amp3updates.json`, qui reste la copie exécutée).
+
+- sources du hub : commit `6b694a6c86fd7c2b93743497ab3bd924553f25b8`, en archive `codeload`
+- ENet : commit `5a9c537fd464b3c6d3c55e1d3bd47588faf71b42`, celui que le `Dockerfile` amont épingle
+- Monocypher 4.0.2 : déjà dans l'arborescence du dépôt amont
+- `g++` est installé par l'étape elle-même ; l'image `amp3base:debian` livre `git`, `curl` et
+  `tar` mais **aucun compilateur**
+- le binaire est lié avec `-static-libstdc++ -static-libgcc`, donc les sources et les objets sont
+  supprimés après la compilation
+
+Compilation vérifiée trois fois à l'identique, y compris depuis la commande exacte de l'étape
+AMP : binaire de 2 422 512 octets, `sha256 09c77f911392fe0eb83d2f6786ef37a3e94f3d647e58474999a063f714c3e738`.
+Le hub démarre, crée sa clé, affiche son empreinte et sort proprement sur SIGTERM.
+
+### Réglages et ports
+
+- `Shards` (2 par défaut) : un fil par cœur, chacun sur son propre port UDP. Un cœur sert environ
+  300 joueurs, donc deux suffisent largement ; au-delà de deux, ouvrir les ports suivants
+- `MaxClients` (512) : connexions acceptées par fil
+- `MaxGuests` (7) : invités par session, soit les 8 joueurs du mod avec l'hôte
+- **UDP 47800** est le port d'entrée, obligatoire ; `47810` et `47811` sont les ports des deux fils
+- l'hôte a besoin d'une **IPv4 publique** et d'une redirection UDP sur la box : depuis le LAN, un
+  hub n'est joignable par personne
+
+### La clé et l'empreinte
+
+La clé est l'identité du hub, créée au premier démarrage dans `data/hub-sign.key` (mode 0600) et
+conservée d'une mise à jour à l'autre. Son **empreinte à 16 caractères** s'affiche dans la console
+au démarrage :
+
+```
+hub: the fingerprint of this hub's key is PEAJ-796J-9TBC-4BTZ
+```
+
+C'est elle qu'on donne aux joueurs avec l'adresse, sous la forme
+`monhub.example.org#PEAJ-796J-9TBC-4BTZ`. Sans empreinte le jeu se connecte quand même, mais
+indique « chiffré, non vérifié » : il ne peut pas distinguer le hub d'un imposteur. Une clé perdue
+donne une nouvelle empreinte, à redistribuer.
+
+### Côté joueurs
+
+Chaque joueur installe le même build du mod que les autres. Côté hôte, le menu Coop → Serveur → …
+→ Ajouter un serveur perso, avec l'adresse et l'empreinte. L'hôte choisit ensuite une sauvegarde
+et le code de session s'affiche ; l'invité le colle dans Rejoindre par code.
+
+Le `Dockerfile` amont, lui, tourne en `network_mode: host` avec un conteneur en lecture seule : ce
+template fait l'équivalent en natif dans l'instance, sans Docker.
