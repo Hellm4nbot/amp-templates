@@ -433,8 +433,9 @@ induit en erreur — un joueur avec l'ancien build ne rejoint pas une session.
 
 Tous les templates ne méritent pas un miroir. Le critère est la nature de la source : on conserve ce
 qui est **mutable ou éphémère**, on laisse ce qui est déjà immuable. Le détail complet, empreintes
-comprises, est dans `mirror-templates.txt` ; les fichiers sont dans pCloud, dossier `AMP3 Mirror`
-(sous-dossiers `nightcoop`, `rwmt`, `nitrox`), et en local sous `/home/hermes/archives/`.
+comprises, est dans `mirror-templates.txt` ; les fichiers sont dans les dépôts `amp-mirror` — GitHub
+`Hellm4nbot/amp-mirror`, Codeberg `hellm4nbot/amp-mirror` — branches `main` et `amp3`, avec une copie
+locale sous `/home/hermes/archives/`.
 
 - **RWMT — mirroiré, priorité haute.** La release `continuous` a un tag **roulant** : ses deux
   archives sont écrasées à chaque build. Un serveur installé hier ne peut plus être reproduit depuis
