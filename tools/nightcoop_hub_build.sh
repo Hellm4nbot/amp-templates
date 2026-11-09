@@ -15,14 +15,10 @@ cd "$BASE"
 echo "NightCoop hub build - base directory: $BASE"
 
 if ! command -v g++ >/dev/null 2>&1; then
-    if [ "$(id -u)" != "0" ]; then
-        echo "ERROR: g++ is missing and this stage is not root, so it cannot be installed."
-        echo "ERROR: run the build stage in the instance container (it is root there)."
-        exit 1
-    fi
-    echo "Installing the C++ toolchain (g++)..."
-    apt-get update -qq
-    apt-get install -y --no-install-recommends g++ >/dev/null
+    echo "ERROR: no C++ compiler in this instance."
+    echo "ERROR: AMP 3 installs no package at runtime, so the toolchain has to come from the image."
+    echo "ERROR: set Meta.SpecificDockerImage to cubecoders/amp3base:postgresql (or :redis), which ship g++."
+    exit 1
 fi
 g++ --version | head -n1
 

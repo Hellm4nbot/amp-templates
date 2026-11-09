@@ -487,3 +487,16 @@ et le code de session s'affiche ; l'invité le colle dans Rejoindre par code.
 
 Le `Dockerfile` amont, lui, tourne en `network_mode: host` avec un conteneur en lecture seule : ce
 template fait l'équivalent en natif dans l'instance, sans Docker.
+
+### L'image doit fournir le compilateur
+
+AMP 3 **n'installe aucun paquet à l'exécution** : la doc du produit est explicite — « without root
+there is no apt, so `ExtraContainerPackages` cannot be applied at launch ». L'étape de compilation
+tourne donc sous l'utilisateur de l'instance, pas en root, et ne peut rien installer elle-même.
+
+`amp3base:debian` n'a aucun compilateur. Le template déclare donc
+`Meta.SpecificDockerImage=cubecoders/amp3base:postgresql`, image Debian 13 dont la description
+est « Toolchain and headers for building PostgreSQL from source » et qui livre `g++`, `gcc`,
+`make`, `git`, `curl`, `tar` et `base64`. `amp3base:redis` fonctionne aussi (Ubuntu 26.04), avec le
+même outillage. Compilation vérifiée en compte non privilégié dans `postgresql` : même binaire,
+même `sha256`.
