@@ -1,0 +1,70 @@
+NightCoop - miroir
+==================
+
+Copie de reference des fichiers necessaires a l'instance AMP 3 « NightCoop Hub »
+du serveur 192.168.1.13, et des clients que les joueurs doivent installer.
+Le hub etant un relais, il n'heberge aucun monde : ce qui doit correspondre entre
+les joueurs, c'est le build du mod.
+
+Date du miroir : 2026-11-09
+Origine : https://nightcoop.net/ et https://github.com/Twenfys/nightcoop-hub
+
+1. Clients (mod cote joueur) - version 0.2.0-beta, protocole 164
+---------------------------------------------------------------
+Tous les joueurs d'une session doivent utiliser le MEME build. La variante
+depend de la version du jeu installee ; seule la version de RED4ext differe,
+le mod est identique.
+
+NightCoop-0.2.0-beta-2.5.zip
+  jeu : 2.5 (RED4ext 1.31.0)
+  taille : 10117378 octets
+  sha256 : ca070aa296519fb4147dadf14a625a538df59d6a20d289fa3e335ae3da3cace5
+  source : https://nightcoop.net/dl/0.2.0-beta/NightCoop-0.2.0-beta-2.5.zip
+
+NightCoop-0.2.0-beta-2.31.zip
+  jeu : 2.31 (RED4ext 1.30.0)
+  taille : 10115285 octets
+  sha256 : ecb66f43c23dd212069981761d6cc2a0cf9d36c204a1f140dcfee6f2d86d20f4
+  source : https://nightcoop.net/dl/0.2.0-beta/NightCoop-0.2.0-beta-2.31.zip
+
+Les deux empreintes correspondent aux prefixes publies sur la page de
+telechargement du projet : ca070aa296519fb4... et ecb66f43c23dd212...
+Aucun audit independant ne couvre la 0.2.0 ; celui de kalopsia-space porte sur
+les 0.1.0 et 0.1.1.
+
+Installation : decompresser l'archive a la racine du jeu (les dossiers bin et
+red4ext se superposent), verifier la presence de
+red4ext\plugins\NightCoop\NightCoop.dll, lancer le jeu, l'entree « Coop »
+apparait dans le menu principal. Sauvegarder
+%USERPROFILE%\Saved Games\CD Projekt Red\Cyberpunk 2077 avant la premiere session.
+
+2. Serveur (relais hub) - compiles depuis les sources
+-----------------------------------------------------
+Le projet ne publie aucun binaire Linux : l'instance AMP compile avec ces deux
+archives, epinglees par empreinte de commit dans le script de mise a jour.
+
+nightcoop-hub-6b694a6c86fd7c2b93743497ab3bd924553f25b8.tar.gz
+  commit : 6b694a6c86fd7c2b93743497ab3bd924553f25b8 (message « 0.1.0 », 2026-10-23)
+  taille : 161303 octets
+  sha256 : 76fd8bc963c5a657b0ca4a5fe44e8a0c878c4b9e8fa9ca70801f6a25430d6de6
+  source : https://codeload.github.com/Twenfys/nightcoop-hub/tar.gz/6b694a6c86fd7c2b93743497ab3bd924553f25b8
+
+enet-5a9c537fd464b3c6d3c55e1d3bd47588faf71b42.tar.gz
+  commit : 5a9c537fd464b3c6d3c55e1d3bd47588faf71b42 (celui qu'epingle le Dockerfile amont)
+  taille : 83822 octets
+  sha256 : 537d42f31b0c0d27f5a9635f6c224f2451c1c1484bfde50e94c884e96181c290
+  source : https://codeload.github.com/lsalzman/enet/tar.gz/5a9c537fd464b3c6d3c55e1d3bd47588faf71b42
+
+Compilation verifiee quatre fois a l'identique dans cubecoders/amp3base:postgresql,
+en compte non privilegie : binaire nightcoop_hub de 2422512 octets,
+sha256 09c77f911392fe0eb83d2f6786ef37a3e94f3d647e58474999a063f714c3e738.
+
+3. Instance en service
+----------------------
+Template : Hellm4nbot/amp-templates, fichiers nightcoop-hub-amp3*
+Image : cubecoders/amp3base:postgresql (fournit g++)
+Ports : UDP 47800 (entree), 47810 (2e fil)
+Cle du hub : data/hub-sign.key dans l'instance, 438 octets, mode 0600.
+  La perdre change l'empreinte et oblige chaque joueur a re-ajouter le serveur.
+  Empreinte de l'instance en service : CD6P-6AHZ-1ZBQ-PHM4
+  (a revalider avec : nightcoop_hub --hub-public <cle>)
