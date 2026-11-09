@@ -1,0 +1,80 @@
+Miroir des fichiers pour les templates AMP 3
+=============================================
+
+Principe : on mirroite ce qui est mutable ou ephemere. Ce qui est deja immuable
+n'a pas besoin de copie, et offrir un miroir laisserait croire a une garantie
+qui n'existe pas.
+
+pCloud, dossier « AMP3 Mirror » (compte du bot), et copies locales sous
+/home/hermes/archives/ sur le serveur. Date : 2026-11-09
+
+1. RWMT (rimworld-multiplayer-rwmt) - MIROIRE, priorite haute
+--------------------------------------------------------------
+Le template telecharge la release « continuous », dont le tag est ROULANT : les
+deux archives sont ecrasees a chaque build. Un serveur installe la semaine
+derniere ne peut plus etre reproduit depuis GitHub, et le client du joueur doit
+correspondre au serveur au bit pres. C'est le seul cas ou perdre les fichiers
+rend un serveur impossible a reconstruire.
+
+  rwmt-Multiplayer-beta.zip
+    taille : 5267320 o
+    sha256 : fd535a7b1acebcac177364e7a3fd7749a1d88e36646f2f6ac488b4da27ac951e
+    reference : release continuous du 2026-11-06T22:44:21Z
+
+  rwmt-Server-beta.zip
+    taille : 2269894 o
+    sha256 : 2bb10875f4f162fe6e4481d18a3b566c5a7d9913d3c4273b58cffda711a3e39c
+    reference : release continuous du 2026-11-06T22:44:21Z
+
+  Empreintes confirmees contre le digest sha256 publie par l'API GitHub.
+
+2. Subnautica (Nitrox) - MIROIRE, priorite moyenne
+--------------------------------------------------
+Le tag 1.8.1.0 est immuable, mais le projet est porte par des benevoles et le
+template pointe directement cette archive. 23 Mo, donc peu couteux a garder.
+
+  Nitrox_1.8.1.0_linux_x64.zip
+    taille : 23231723 o
+    sha256 : 12411e27754831564cd1fc01ced830b4a15bce1a1c3963ffee391050af62113c
+    reference : release 1.8.1.0 du 2026-01-07T18:50:51Z
+
+  Non miroite : le runtime .NET 9, telecharge depuis le CDN Microsoft sur une
+  version epinglee dans le template. Le CDN de Microsoft ne disparait pas, et la
+  version exacte est inscrite dans le kvp de l'instance.
+
+3. Project Zomboid - NON MIROIRE
+--------------------------------
+Le jeu vient de SteamCMD, en connexion anonyme, depuis les serveurs de Valve :
+chaque instance peut le retelecharger a tout moment. Rien a conserver. La
+bibliotheque steamclient.so copiee par le template vient du SteamCMD d'AMP, pas
+d'une archive distante.
+
+4. Bannerlord Coop - NON MIROIRE
+--------------------------------
+Atelier Steam : immuable, app 261550, objet 3770450698. Steam le sert tant que
+le mod existe, et une version anterieure ne peut de toute facon pas etre
+reinstallee par SteamCMD de maniere fiable.
+
+5. Bannerlord Coop, variante CDN - NON MIROIRE, mais version consignee
+---------------------------------------------------------------------
+Les releases GitHub sont taguees (v0.1.7) donc immuables, mais l'archive serveur
+pese 4,5 Go : la mirroirer a chaque version n'a pas de sens pour un template
+qu'on garde en secours. A la place, noter dans l'instance la version utilisee et
+l'empreinte du manifeste de la release, ce qui suffit a retrouver l'objet tant
+que le depot existe.
+
+6. NightCoop Hub - MIROIRE
+--------------------------
+Voir /home/hermes/archives/nightcoop/MANIFEST.txt : deux builds clients (10 Mo
+chacun), les sources du hub au commit epingle par le template, et ENet. Les
+sources comptent autant que les binaires : sans elles, l'Update du template
+echoue si le depot amont disparait, puisqu'il telecharge depuis codeload.
+
+Quand refaire le miroir
+-----------------------
+- nouveau build du mod, ou nouvelle release d'un projet miroite ;
+- changement du commit epingle dans tools/nightcoop_hub_build.sh ;
+- avant de supprimer une instance dont la version ne se retrouve plus en ligne.
+
+Le miroir doit correspondre a ce que le template deploie. Un miroir en retard est
+pire qu'aucun miroir : il fait croire a une version qu'on ne peut pas utiliser.

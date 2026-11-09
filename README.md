@@ -428,3 +428,24 @@ Les empreintes des deux clients correspondent aux préfixes publiés par le proj
 À refaire quand : un nouveau build du mod sort, ou le commit du hub change dans
 `tools/nightcoop_hub_build.sh`. Le miroir doit toujours correspondre au template déployé, sinon il
 induit en erreur — un joueur avec l'ancien build ne rejoint pas une session.
+
+## Miroir des fichiers : ce qu'on garde et ce qu'on ne garde pas
+
+Tous les templates ne méritent pas un miroir. Le critère est la nature de la source : on conserve ce
+qui est **mutable ou éphémère**, on laisse ce qui est déjà immuable. Le détail complet, empreintes
+comprises, est dans `mirror-templates.txt` ; les fichiers sont dans pCloud, dossier `AMP3 Mirror`
+(sous-dossiers `nightcoop`, `rwmt`, `nitrox`), et en local sous `/home/hermes/archives/`.
+
+- **RWMT — mirroiré, priorité haute.** La release `continuous` a un tag **roulant** : ses deux
+  archives sont écrasées à chaque build. Un serveur installé hier ne peut plus être reproduit depuis
+  GitHub, et le client du joueur doit correspondre au serveur au bit près. C'est le seul cas où
+  perdre les fichiers rend un serveur impossible à reconstruire.
+- **Nitrox — mirroiré.** Tag immuable, mais projet bénévole et archive de 23 Mo pointée directement
+  par le template.
+- **NightCoop — mirroiré, sources comprises.** Sans les sources, l'Update échouerait si le dépôt
+  amont disparaissait.
+- **Project Zomboid — rien à garder.** SteamCMD, serveurs Valve, connexion anonyme : chaque instance
+  retélécharge à volonté.
+- **Bannerlord Coop — rien à garder.** Atelier Steam, immuable.
+- **Bannerlord CDN — version consignée, pas d'archive.** Releases taguées mais 4,5 Go par version :
+  on note le tag et l'empreinte du manifeste, et on retrouve l'objet tant que le dépôt existe.
