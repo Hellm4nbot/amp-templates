@@ -344,6 +344,23 @@ sans Wine, dans `cubecoders/ampbase:debian`.
 - Les mises à jour ne touchent jamais `settings.toml`, `save.zip` ni `Saved/` : un
   garde-fou refuse l'archive si elle en contient.
 
+### Prérequis système : le tampon de réception
+
+Le hub demande 4 Mo de tampon par socket et le noyau refuse par défaut : il journalise
+`! hub: the socket receive buffer is 416 KB, 4096 KB asked — the system caps it (net.core.rmem_max)`
+puis travaille avec ce qu'on lui donne. Un petit tampon fait perdre des paquets en relais quand
+ça s'agite, ce qui se traduit par des saccades côté joueurs. C'est un réglage d'hôte, donc hors de
+portée du template :
+
+```
+printf 'net.core.rmem_max = 8388608\n' > /etc/sysctl.d/90-nightcoop-hub.conf
+sysctl --system
+cat /proc/sys/net/core/rmem_max
+```
+
+La dernière commande doit afficher `8388608`. Sur ce serveur la valeur par défaut était de
+212 992 octets, et le fichier `60-amp3.conf` du paquet AMP ne doit pas être touché.
+
 ### Côté joueurs
 
 RimWorld avec le mod Multiplayer, **même build que le serveur** — une différence fait
