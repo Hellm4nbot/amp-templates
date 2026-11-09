@@ -347,3 +347,26 @@ deux lignes de bootstrap.
 - Si AMP affiche une erreur de chemin du type `DeploymentTemplates/--main/...` après un
   push, refetcher le dépôt, et au besoin supprimer le dossier du template dans
   `DeploymentTemplates` avant de refetcher.
+| Subnautica (Nitrox) AMP 3 | `subnautica-nitrox-amp3*` | copie de `subnautica2.kvp`, chemin du jeu sorti du réglage cassé |
+| NightCoop Hub (AMP 3) | `nightcoop-hub-amp3*` | créé ici : aucun binaire publié en amont, le template compile le hub depuis ses sources |
+
+## NightCoop Hub sur AMP 3 (Linux uniquement)
+
+Relais du mod NightCoop (coop pour Cyberpunk 2077). Il n'héberge aucun jeu : le monde reste la
+sauvegarde du joueur hôte, le hub distribue les codes de session et relaie le trafic quand aucun
+chemin direct ne s'ouvre, les liens hôte-invité restant chiffrés de bout en bout.
+
+Le projet amont ne publie **aucun binaire Linux**, seulement des sources avec un `Dockerfile`.
+L'étape de mise à jour compile donc le hub dans l'instance via `tools/nightcoop_hub_build.sh`
+(embarqué en base64 dans l'un des fichiers du template) : sources du hub au commit
+`6b694a6c86fd7c2b93743497ab3bd924553f25b8`, ENet au commit `5a9c537f`, et `g++` installé par
+l'étape elle-même puisque l'image `amp3base:debian` n'apporte aucun compilateur.
+
+- ports : **UDP 47800** (entrée, obligatoire), `47810` et `47811` pour les deux fils
+- réglages : `Shards` (2), `MaxClients` (512), `MaxGuests` (7, soit 8 joueurs avec l'hôte)
+- clé et empreinte : `data/hub-sign.key`, empreinte affichée au démarrage, à donner aux joueurs
+  avec l'adresse (`monhub.example.org#PEAJ-796J-9TBC-4BTZ`)
+- il faut une **IPv4 publique** et une redirection UDP : depuis un LAN, personne ne joint le hub
+
+Le détail — compilation reproductible, empreinte du binaire, réglages, côté joueurs — est dans la
+branche `amp3`, section « NightCoop Hub sur AMP 3 ».
