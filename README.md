@@ -4,49 +4,12 @@ Dépôt unique regroupant mes templates de modules génériques pour CubeCoders 
 Organisation à plat, comme `CubeCoders/AMPTemplates` et `Greelan/AMPTemplates` :
 un seul `manifest.json` à la racine, tous les fichiers de template au même niveau.
 
-## Branches
-
-| Branche | Panel visé | Différence |
-|---|---|---|
-| `main` | AMP 2 | image `cubecoders/ampbase`, compte Unix `amp` supposé |
-| `amp3` | AMP 3 | image `cubecoders/amp3base`, nom de compte Wine résolu à l'exécution |
-
-AMP 2 lit `Hellm4nbot/amp-templates:main`, AMP 3 lit `Hellm4nbot/amp-templates:amp3`.
-Les deux panels acceptent la forme `owner/repo:branche`, donc une seule base de code
-sert les deux, et `main` ne bouge pas tant qu'une instance AMP 2 tourne.
-
-Sur la branche `amp3`, deux adaptations seulement :
-
-- `Meta.SpecificDockerImage` passe de `cubecoders/ampbase` à `cubecoders/amp3base`,
-  à tag identique (`wine-stable`, `debian`).
-- Le préfixe Wine n'est plus cherché sous `drive_c/users/amp` en dur, mais sous
-  `drive_c/users/$(id -un …)`. AMP 3 ne garantit plus que le serveur tourne sous le
-  compte `amp` : en mode natif chaque shard reçoit son propre compte, et en conteneur
-  l'identité est décidée au lancement (`--userns=keep-id`).
-
 ## Templates
 
 | Template | Préfixe des fichiers | Source |
 |---|---|---|
 | Bannerlord Coop Dedicated Server | `bannerlord-coop*` | copie de `rhinotastic/bannerlord-coop-amp-template`, métadonnées adaptées |
 | RimWorld Multiplayer (RWMT) | `rwmt*` | créé ici, à partir du binaire `Server-beta.zip` |
-| Project Zomboid (AMP 3) | `project-zomboid-amp3*` | copie du template officiel `CubeCoders/AMPTemplates`, étape de copie de `steamclient.so` réécrite |
-| Subnautica (Nitrox) AMP 3 | `subnautica-nitrox-amp3*` | copie de `subnautica2.kvp` (DisplayName « Subnautica (Nitrox Mod) »), chemin du jeu sorti du réglage cassé |
-| NightCoop Hub (AMP 3) | `nightcoop-hub-amp3*` | créé ici : aucun binaire publié en amont, le template compile le hub depuis ses sources |
-
-## Project Zomboid sur AMP 3
-
-Le template officiel échoue sur l'étape « Copy Steamclient Files » avec
-`'bash' exited with code 1`. Il suppose que le SteamCMD d'AMP est posé à la racine
-de l'instance, donc que `linux32/steamclient.so` se trouve juste à côté du jeu :
-AMP 3 le range dans `.amp/steamcmd`, et envoie les erreurs de `cp` dans `/dev/null`,
-d'où un code 1 sans explication.
-
-L'étape est remplacée par un script qui cherche la bibliothèque dans la disposition
-AMP 2, puis dans `.amp/steamcmd`, puis par un `find` borné dans l'instance. Elle
-crée le dossier de destination au besoin et **sort toujours en code 0** : sans
-`steamclient.so` le serveur démarre quand même, seul le réseau Steam est dégradé.
-Ne jamais bloquer une mise à jour pour une bibliothèque optionnelle.
 
 ## Installation dans AMP
 
@@ -401,92 +364,29 @@ deux lignes de bootstrap.
 - Si AMP affiche une erreur de chemin du type `DeploymentTemplates/--main/...` après un
   push, refetcher le dépôt, et au besoin supprimer le dossier du template dans
   `DeploymentTemplates` avant de refetcher.
+| Subnautica (Nitrox) AMP 3 | `subnautica-nitrox-amp3*` | copie de `subnautica2.kvp`, chemin du jeu sorti du réglage cassé |
+| NightCoop Hub (AMP 3) | `nightcoop-hub-amp3*` | créé ici : aucun binaire publié en amont, le template compile le hub depuis ses sources |
 
-## Subnautica (Nitrox) sur AMP 3
+## NightCoop Hub sur AMP 3 (Linux uniquement)
 
-Le template officiel `subnautica2.kvp` porte le nom « Subnautica (Nitrox Mod) ». Il passe le
-chemin du jeu par le réglage `ClientFilesLocationMode`, dont la valeur est elle-même une
-variable : `{{$FullBaseDir}}Game`. AMP ne résout pas cette seconde couche, donc Nitrox reçoit
-la chaîne littérale et s'arrête sur :
+Relais du mod NightCoop (coop pour Cyberpunk 2077). Il n'héberge aucun jeu : le monde reste la
+sauvegarde du joueur hôte, le hub distribue les codes de session et relaie le trafic quand aucun
+chemin direct ne s'ouvre, les liens hôte-invité restant chiffrés de bout en bout.
 
-```
-EnvironmentFinder: Game installation directory '{$FullBaseDir}Game' is invalid
-Unhandled exception. System.IO.DirectoryNotFoundException: Could not find Subnautica installation.
-```
+Le projet amont ne publie **aucun binaire Linux**, seulement des sources avec un `Dockerfile`.
+L'étape de mise à jour compile donc le hub dans l'instance via `tools/nightcoop_hub_build.sh`
+(embarqué en base64 dans l'un des fichiers du template) : sources du hub au commit
+`6b694a6c86fd7c2b93743497ab3bd924553f25b8`, ENet au commit `5a9c537f`, et `g++` installé par
+l'étape elle-même puisque l'image `amp3base:debian` n'apporte aucun compilateur.
 
-L'emplacement lui-même était correct : l'étape SteamCMD installe bien le jeu dans
-`264710/Game`. Seule l'indirection par réglage cassait. Le chemin est donc écrit en dur dans
-`App.CommandLineArgs` et dans `SUBNAUTICA_INSTALLATION_PATH`, et les deux réglages devenus
-inutiles sont retirés du manifeste.
+- ports : **UDP 47800** (entrée, obligatoire), `47810` et `47811` pour les deux fils
+- réglages : `Shards` (2), `MaxClients` (512), `MaxGuests` (7, soit 8 joueurs avec l'hôte)
+- clé et empreinte : `data/hub-sign.key`, empreinte affichée au démarrage, à donner aux joueurs
+  avec l'adresse (`monhub.example.org#PEAJ-796J-9TBC-4BTZ`)
+- il faut une **IPv4 publique** et une redirection UDP : depuis un LAN, personne ne joint le hub
 
-Le serveur est le binaire **Linux x64 natif** publié par Nitrox, pas la version Windows sous
-Wine. Il faut en revanche le runtime .NET 9, installé par l'étape dédiée du template.
-
-Subnautica est un jeu payant : SteamCMD ne le télécharge qu'avec un compte qui le possède,
-d'où `SteamUpdateAnonymousLogin=False` et `SteamForceLoginPrompt=True`. Les identifiants se
-saisissent dans les réglages de l'instance, jamais dans le template.
-
-## NightCoop Hub sur AMP 3
-
-Point de rendez-vous du mod **NightCoop** (coop pour Cyberpunk 2077). Template à part dans le
-dépôt : ce serveur **n'héberge aucun jeu**. Le monde reste la sauvegarde du joueur hôte, sur son
-PC Windows ; le hub distribue les codes de session, indique à chaque joueur comment Internet le
-voit — ce qui permet à deux joueurs derrière une box d'ouvrir un chemin direct — et relaie les
-paquets quand aucun chemin direct ne s'ouvre. Les liens hôte-invité sont chiffrés de bout en bout
-(X25519, XChaCha20-Poly1305) : le hub ne voit que des enveloppes scellées.
-
-### Compilation, faute de binaire publié
-
-Le projet ne publie **aucun binaire Linux** : son dépôt ne contient que des sources, avec un
-`Dockerfile` et une recette de compilation. L'étape de mise à jour du template compile donc le hub
-dans l'instance, avec le script `tools/nightcoop_hub_build.sh` (embarqué en base64 dans
-`nightcoop-hub-amp3updates.json`, qui reste la copie exécutée).
-
-- sources du hub : commit `6b694a6c86fd7c2b93743497ab3bd924553f25b8`, en archive `codeload`
-- ENet : commit `5a9c537fd464b3c6d3c55e1d3bd47588faf71b42`, celui que le `Dockerfile` amont épingle
-- Monocypher 4.0.2 : déjà dans l'arborescence du dépôt amont
-- `g++` est installé par l'étape elle-même ; l'image `amp3base:debian` livre `git`, `curl` et
-  `tar` mais **aucun compilateur**
-- le binaire est lié avec `-static-libstdc++ -static-libgcc`, donc les sources et les objets sont
-  supprimés après la compilation
-
-Compilation vérifiée trois fois à l'identique, y compris depuis la commande exacte de l'étape
-AMP : binaire de 2 422 512 octets, `sha256 09c77f911392fe0eb83d2f6786ef37a3e94f3d647e58474999a063f714c3e738`.
-Le hub démarre, crée sa clé, affiche son empreinte et sort proprement sur SIGTERM.
-
-### Réglages et ports
-
-- `Shards` (2 par défaut) : un fil par cœur, chacun sur son propre port UDP. Un cœur sert environ
-  300 joueurs, donc deux suffisent largement ; au-delà de deux, ouvrir les ports suivants
-- `MaxClients` (512) : connexions acceptées par fil
-- `MaxGuests` (7) : invités par session, soit les 8 joueurs du mod avec l'hôte
-- **UDP 47800** est le port d'entrée, obligatoire ; `47810` et `47811` sont les ports des deux fils
-- l'hôte a besoin d'une **IPv4 publique** et d'une redirection UDP sur la box : depuis le LAN, un
-  hub n'est joignable par personne
-
-### La clé et l'empreinte
-
-La clé est l'identité du hub, créée au premier démarrage dans `data/hub-sign.key` (mode 0600) et
-conservée d'une mise à jour à l'autre. Son **empreinte à 16 caractères** s'affiche dans la console
-au démarrage :
-
-```
-hub: the fingerprint of this hub's key is PEAJ-796J-9TBC-4BTZ
-```
-
-C'est elle qu'on donne aux joueurs avec l'adresse, sous la forme
-`monhub.example.org#PEAJ-796J-9TBC-4BTZ`. Sans empreinte le jeu se connecte quand même, mais
-indique « chiffré, non vérifié » : il ne peut pas distinguer le hub d'un imposteur. Une clé perdue
-donne une nouvelle empreinte, à redistribuer.
-
-### Côté joueurs
-
-Chaque joueur installe le même build du mod que les autres. Côté hôte, le menu Coop → Serveur → …
-→ Ajouter un serveur perso, avec l'adresse et l'empreinte. L'hôte choisit ensuite une sauvegarde
-et le code de session s'affiche ; l'invité le colle dans Rejoindre par code.
-
-Le `Dockerfile` amont, lui, tourne en `network_mode: host` avec un conteneur en lecture seule : ce
-template fait l'équivalent en natif dans l'instance, sans Docker.
+Le détail — compilation reproductible, empreinte du binaire, réglages, côté joueurs — est dans la
+branche `amp3`, section « NightCoop Hub sur AMP 3 ».
 
 ### L'image doit fournir le compilateur
 
@@ -533,8 +433,9 @@ induit en erreur — un joueur avec l'ancien build ne rejoint pas une session.
 
 Tous les templates ne méritent pas un miroir. Le critère est la nature de la source : on conserve ce
 qui est **mutable ou éphémère**, on laisse ce qui est déjà immuable. Le détail complet, empreintes
-comprises, est dans `mirror-templates.txt` ; les fichiers sont dans pCloud, dossier `AMP3 Mirror`
-(sous-dossiers `nightcoop`, `rwmt`, `nitrox`), et en local sous `/home/hermes/archives/`.
+comprises, est dans `mirror-templates.txt` ; les fichiers sont dans les dépôts `amp-mirror` — GitHub
+`Hellm4nbot/amp-mirror`, Codeberg `hellm4nbot/amp-mirror` — branches `main` et `amp3`, avec une copie
+locale sous `/home/hermes/archives/`.
 
 - **RWMT — mirroiré, priorité haute.** La release `continuous` a un tag **roulant** : ses deux
   archives sont écrasées à chaque build. Un serveur installé hier ne peut plus être reproduit depuis
