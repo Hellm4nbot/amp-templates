@@ -1,23 +1,30 @@
 [
-    {
-        "Protocol": "TCP",
-        "Port": 6080,
-        "Ref": "NoVNCPort",
-        "Name": "Interface de l'outil (navigateur)",
-        "Description": "Port noVNC qui affiche la fenetre de l'outil Coodsz. AMP le publie ; ouvrir http://adresse:port/vnc.html. Le serveur VNC exige un mot de passe : il est genere au premier demarrage et affiche une seule fois dans la console de l'instance, puis conserve dans /home/amp/.coodsz-vnc.pass du conteneur."
-    },
-    {
-        "Protocol": "UDP",
-        "Port": 4200,
-        "Ref": "GamePort",
-        "Name": "Port de jeu Coop",
-        "Description": "Port UDP sur lequel les joueurs rejoignent la partie. A saisir a l'identique dans la fenetre de l'outil : AMP ne peut pas le lui imposer."
-    },
-    {
-        "Protocol": "Both",
-        "Port": 7210,
-        "Ref": "EnginePort",
-        "Name": "Port moteur",
-        "Description": "Port interne du moteur Bannerlord. Les joueurs ne s'y connectent jamais directement."
-    }
+ {
+  "Protocol": "TCP",
+  "Port": 8642,
+  "Ref": "NoVNCPort",
+  "Name": "Interface de l'outil (navigateur)",
+  "Description": "Port noVNC qui affiche la fenetre de l'outil Coodsz. AMP le publie ; ouvrir http://adresse:port/vnc.html. 8642 est choisi parce qu'AMP fige le port HOTE a la creation de l'instance : un numero courant comme 6080 entre en collision avec un service deja installe et l'instance meurt au premier demarrage sur « un port necessaire est deja utilise ». En cas de conflit, changer le port hote dans l'onglet Ports suffit, le conteneur garde celui-ci. Le serveur VNC exige un mot de passe : genere au premier demarrage, affiche a chaque demarrage dans la console de l'instance, ou impose par le reglage VNC Password."
+ },
+ {
+  "Protocol": "UDP",
+  "Port": 4200,
+  "Ref": "GamePort",
+  "Name": "Port de jeu Coop",
+  "Description": "Port UDP sur lequel les joueurs rejoignent la partie. A saisir a l'identique dans la fenetre de l'outil : AMP ne peut pas le lui imposer."
+ },
+ {
+  "Protocol": "UDP",
+  "Port": 4201,
+  "Ref": "GamePort2",
+  "Name": "Port de jeu Coop +1",
+  "Description": "Second port UDP du serveur Coop, toujours egal au port de jeu + 1. Redirige-le aussi si tu ouvres l'acces depuis l'exterieur."
+ },
+ {
+  "Protocol": "Both",
+  "Port": 7210,
+  "Ref": "EnginePort",
+  "Name": "Port moteur",
+  "Description": "Port interne du moteur Bannerlord. Les joueurs ne s'y connectent jamais directement."
+ }
 ]
