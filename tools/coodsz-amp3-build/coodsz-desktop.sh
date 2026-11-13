@@ -17,21 +17,52 @@ export DISPLAY=:99
 # Motif : x11vnc 0.9.17 de Debian 13, dans amp3base, acceptait le TCP mais ne
 # servait jamais le client (file d'ecoute pleine, aucune reponse RFB), y compris
 # en loopback ; noVNC restait bloque sur « En cours de connexion ».
-#   - COODSZ_VNC_PASSWORD a la priorite si fourni ;
-#   - sinon mot de passe genere une fois, conserve dans $HOME/.coodsz-vnc.pass
-#     ($HOME est un montage persistant prepare par le spire d'AMP 3).
+# Mot de passe, par ordre de priorite :
+#   1. reglage « VNC Password » du template (variable COODSZ_VNC_PASSWORD) ;
+#   2. celui conserve avec l'instance dans $HOME/.coodsz-vnc.pass ;
+#   3. sinon, genere maintenant et conserve.
+# Il est reaffiche a chaque demarrage, avec l'adresse de l'interface, pour que
+# l'operateur n'ait pas a fouiller le conteneur. Le panneau AMP est le seul a
+# voir cette console.
 VNPASS_FILE="${HOME:-/home/amp}/.coodsz-vnc.pass"
 RFB_FILE="${HOME:-/home/amp}/.coodsz-vnc.rfbauth"
+vncpw=""
+origine=""
+
 if [ -n "${COODSZ_VNC_PASSWORD:-}" ]; then
-    vncpw="$COODSZ_VNC_PASSWORD"
-elif [ -s "$VNPASS_FILE" ]; then
+    case "$COODSZ_VNC_PASSWORD" in
+        *'{{'*)
+            # AMP n'a pas substitue le reglage : ne pas prendre le jeton au mot.
+            log "reglage VNC Password non substitue, mot de passe genere a la place"
+            ;;
+        *)
+            vncpw="$COODSZ_VNC_PASSWORD"
+            origine="impose par le reglage VNC Password"
+            ;;
+    esac
+fi
+
+if [ -z "$vncpw" ] && [ -s "$VNPASS_FILE" ]; then
     vncpw="$(cat "$VNPASS_FILE")"
-else
+    origine="conserve avec l'instance (genere au premier demarrage)"
+fi
+
+if [ -z "$vncpw" ]; then
     vncpw="$(head -c 32 /dev/urandom | base64 | tr -d '/+=' | cut -c1-12)"
     printf '%s' "$vncpw" > "$VNPASS_FILE"
     chmod 600 "$VNPASS_FILE" 2>/dev/null
-    log "mot de passe VNC genere : $vncpw  (conserve dans $VNPASS_FILE)"
+    origine="genere maintenant, conserve dans $VNPASS_FILE"
 fi
+
+# Adresse de l'interface : AMP publie le port declare 6080 ; l'hote et le port
+# reel sont ceux de l'onglet Ports de l'instance.
+log "=============================================================="
+log " interface de l'outil : http://<adresse>:<port>/vnc.html"
+log "   <adresse> = machine qui heberge AMP ; <port> = port publie"
+log "   pour le port 6080 (onglet Ports de l'instance)."
+log " mot de passe VNC : $vncpw"
+log "   origine : $origine"
+log "=============================================================="
 
 if ! pgrep -x Xvnc >/dev/null 2>&1; then
     # Format de mot de passe TigerVNC (obfusque), ecrit par vncpasswd.

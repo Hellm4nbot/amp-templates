@@ -1,6 +1,6 @@
 Meta.DisplayName=Coodsz Coop Server Tool (interface graphique)
 Meta.Description=Outil Coodsz Coop and Friends dans son interface WPF d'origine, execute sous Wine et servi dans le navigateur par noVNC. AMP pilote le conteneur : demarrage, arret, ports, limites et mises a jour. Les reglages de l'outil (mods, port du serveur, carte) restent dans sa fenetre, accessible depuis l'onglet du port noVNC, protegee par un mot de passe VNC. Image : coodsz-amp:amp3, construite sur cubecoders/amp3base:debian.
-Meta.ConfigVersion=1
+Meta.ConfigVersion=2
 Meta.MinAMPVersion=3.0.0.0
 Meta.AppConfigId=8f2c61d4-3a75-4b19-9e04-5d71c8b6a2f0
 Meta.SpecificDockerImage=coodsz-amp:amp3
@@ -13,7 +13,7 @@ App.CommandLineArgs=
 App.WorkingDir=
 App.ExitMethod=SIGTERM
 App.ExitTimeout=30
-App.EnvironmentVariables={"DISPLAY":":99","WINEPREFIX":"{{$FullRootDir}}.wine","WINEDEBUG":"-all","SteamAppId":"261550"}
+App.EnvironmentVariables={"DISPLAY":":99","WINEPREFIX":"{{$FullRootDir}}.wine","WINEDEBUG":"-all","SteamAppId":"261550","COODSZ_VNC_PASSWORD":"{{VNCPassword}}"}
 App.Ports=@IncludeJson[coodszcoopports.json]
 App.UpdateSources=@IncludeJson[coodszcoopupdates.json]
 App.RunnableAsRoot=false
