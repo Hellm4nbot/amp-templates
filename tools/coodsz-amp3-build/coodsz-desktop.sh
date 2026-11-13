@@ -3,31 +3,20 @@
 #
 # L'entrypoint d'amp3base (/ampstart.sh) ne connait aucun crochet /ampstart.d :
 # il execute directement l'agent du shard. On l'enveloppe donc : ce script monte
-# l'ecran virtuel, le serveur VNC protege par mot de passe et noVNC, puis passe
-# la main a /ampstart.sh sans rien changer a son comportement.
+# le serveur X avec VNC integre et noVNC, puis passe la main a /ampstart.sh sans
+# rien changer a son comportement.
 set +e
 
 log() { echo "[Coodsz] $*"; }
 
 export DISPLAY=:99
 
-# --- 1. Ecran virtuel ---
-if ! pgrep -x Xvfb >/dev/null 2>&1; then
-    Xvfb :99 -screen 0 1280x900x24 >/tmp/xvfb.log 2>&1 &
-    sleep 2
-    log "Xvfb demarre sur :99"
-fi
-
-# --- 2. Gestionnaire de fenetres (barre de titre, fenetres de dialogue) ---
-if ! pgrep -x fluxbox >/dev/null 2>&1; then
-    fluxbox >/tmp/fluxbox.log 2>&1 &
-    sleep 1
-    log "fluxbox demarre"
-fi
-
-# --- 3. VNC, uniquement en local, servi par le navigateur ---
-# noVNC n'a aucune authentification propre et le port 6080 est publie : le mot
-# de passe est donc demande par le serveur VNC lui-meme, au premier affichage.
+# --- 1. Serveur X avec VNC integre (TigerVNC) ---
+# Xvnc remplace Xvfb + x11vnc : un seul processus, et l'authentification par mot
+# de passe est celle du serveur, sans couche intermediaire.
+# Motif : x11vnc 0.9.17 de Debian 13, dans amp3base, acceptait le TCP mais ne
+# servait jamais le client (file d'ecoute pleine, aucune reponse RFB), y compris
+# en loopback ; noVNC restait bloque sur « En cours de connexion ».
 #   - COODSZ_VNC_PASSWORD a la priorite si fourni ;
 #   - sinon mot de passe genere une fois, conserve dans $HOME/.coodsz-vnc.pass
 #     ($HOME est un montage persistant prepare par le spire d'AMP 3).
@@ -44,22 +33,29 @@ else
     log "mot de passe VNC genere : $vncpw  (conserve dans $VNPASS_FILE)"
 fi
 
-if ! pgrep -x x11vnc >/dev/null 2>&1; then
-    if ! x11vnc -storepasswd "$vncpw" "$RFB_FILE" >/dev/null 2>&1; then
-        log "ATTENTION : x11vnc -storepasswd a echoue"
-    fi
+if ! pgrep -x Xvnc >/dev/null 2>&1; then
+    # Format de mot de passe TigerVNC (obfusque), ecrit par vncpasswd.
+    printf '%s\n' "$vncpw" | vncpasswd -f > "$RFB_FILE" 2>/dev/null
     chmod 600 "$RFB_FILE" 2>/dev/null
-    x11vnc -display :99 -localhost -rfbport 5900 -rfbauth "$RFB_FILE" \
-           -forever -shared -quiet >/tmp/x11vnc.log 2>&1 &
-    sleep 1
-    if pgrep -x x11vnc >/dev/null 2>&1; then
-        log "x11vnc en ecoute locale sur 5900, authentification par mot de passe"
+    Xvnc :99 -geometry 1280x900 -depth 24 -rfbport 5900 \
+         -rfbauth "$RFB_FILE" -SecurityTypes VncAuth \
+         -AlwaysShared -desktop coodsz >/tmp/xvnc.log 2>&1 &
+    sleep 3
+    if pgrep -x Xvnc >/dev/null 2>&1; then
+        log "Xvnc en ecoute sur 5900, authentification par mot de passe"
     else
-        log "ATTENTION : x11vnc n'a pas demarre (voir /tmp/x11vnc.log)"
+        log "ATTENTION : Xvnc n'a pas demarre (voir /tmp/xvnc.log)"
     fi
 fi
 
-# --- 4. noVNC : le seul port que le conteneur publie ---
+# --- 2. Gestionnaire de fenetres (barre de titre, fenetres de dialogue) ---
+if ! pgrep -x fluxbox >/dev/null 2>&1; then
+    fluxbox >/tmp/fluxbox.log 2>&1 &
+    sleep 1
+    log "fluxbox demarre"
+fi
+
+# --- 3. noVNC : le seul port que le conteneur publie ---
 if ! pgrep -f websockify >/dev/null 2>&1; then
     websockify --web=/usr/share/novnc 6080 127.0.0.1:5900 >/tmp/websockify.log 2>&1 &
     sleep 1
@@ -70,7 +66,7 @@ if ! pgrep -f websockify >/dev/null 2>&1; then
     fi
 fi
 
-# --- 5. Transmettre DISPLAY a l'agent : /ampstart.sh nettoie l'environnement
+# --- 4. Transmettre DISPLAY a l'agent : /ampstart.sh nettoie l'environnement
 #        avec env -i et ne garde que ce qui est nomme dans AMP_ADDITIONAL_ENV_VARS.
 AMP_ADDITIONAL_ENV_VARS="${AMP_ADDITIONAL_ENV_VARS:-} DISPLAY"
 export AMP_ADDITIONAL_ENV_VARS

@@ -368,15 +368,20 @@ cycle de vie (démarrage, arrêt, ports, limites), tandis que les réglages de l
   d'entrypoint dans ce dossier).
 - **Pourquoi une enveloppe** : `/ampstart.sh` d'`amp3base` ne connaît aucun crochet
   `/ampstart.d` — contrairement à `ampbase` d'AMP 2 — et exécute directement l'agent du
-  shard. `coodsz-desktop.sh` monte donc Xvfb, fluxbox, x11vnc et noVNC, puis
+  shard. `coodsz-desktop.sh` monte donc le serveur X, fluxbox et noVNC, puis
   `exec /ampstart.sh`. `DISPLAY` remonte à l'agent par `AMP_ADDITIONAL_ENV_VARS`, seul
   mécanisme qui survit au `env -i` du démarrage.
+- **Serveur VNC : TigerVNC (`Xvnc`), pas Xvfb + x11vnc.** Dans `amp3base`, `x11vnc`
+  0.9.17 accepte le TCP mais ne sert jamais le client : la file d'écoute reste pleine
+  (`Recv-Q 1`), aucune réponse RFB n'est envoyée, y compris en loopback, et noVNC reste
+  bloqué sur « En cours de connexion ». `Xvnc` réunit serveur X et VNC dans un seul
+  processus, l'authentification étant celle du serveur.
 - **Mot de passe VNC obligatoire** : noVNC n'a aucune authentification propre et le port
-  6080 est publié. `x11vnc` démarre donc avec `-rfbauth` ; le mot de passe est généré au
-  premier démarrage, affiché **une seule fois** dans la console de l'instance
-  (`mot de passe VNC genere : …`), puis conservé dans `$HOME/.coodsz-vnc.pass` du
-  conteneur (`$HOME` est un montage persistant préparé par le spire). `COODSZ_VNC_PASSWORD`
-  permet de l'imposer à la place.
+  6080 est publié. `Xvnc` démarre avec `-rfbauth` et `-SecurityTypes VncAuth` ; le mot de
+  passe est généré au premier démarrage, affiché **une seule fois** dans la console de
+  l'instance (`mot de passe VNC genere : …`), puis conservé dans `$HOME/.coodsz-vnc.pass`
+  du conteneur (`$HOME` est un montage persistant préparé par le spire).
+  `COODSZ_VNC_PASSWORD` permet de l'imposer à la place.
 - **Ports** : 6080 TCP (interface), 4200 UDP (jeu), 7210 interne.
 - **Mise à jour** : `coodszcoop-update.sh` télécharge l'archive `Coodsz-Coop-Tools-…zip`
   de la dernière release GitHub et la contrôle contre le `digest` publié par l'API
@@ -389,9 +394,12 @@ cycle de vie (démarrage, arrêt, ports, limites), tandis que les réglages de l
   `DisableHWAcceleration` pour le rendu logiciel de WPF. Le préparer pendant la
   construction de l'image ne tient pas : les couches sont mises en cache et le préfixe
   appartiendrait au mauvais utilisateur.
-- **État** : la chaîne de démarrage du conteneur est vérifiée avec un agent factice
-  (Xvfb, x11vnc protégé par mot de passe, noVNC sur 6080, `DISPLAY=:99` transmis à
-  l'agent). Reste non vérifié : le lancement réel du serveur, qui exige le dossier
+- **État** : chaîne de démarrage vérifiée dans l'image, avec un agent factice —
+  `Xvnc` en écoute, noVNC joignable, `DISPLAY=:99` transmis à l'agent, et le serveur
+  annonce bien `RFB 003.008` puis le type de sécurité `2` (mot de passe) à travers
+  websockify. Contrôlé avec un vrai client VNC : sans mot de passe la connexion est
+  refusée, avec le mot de passe la capture du bureau X (fluxbox) aboutit.
+  Reste non vérifié : le lancement réel du serveur, qui exige le dossier
   `DedicatedServer` de l'atelier Steam et `steam_api64.dll` avec un compte possédant
   Bannerlord.
 

@@ -2,14 +2,17 @@ FROM cubecoders/amp3base:debian
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Wine + pile graphique virtuelle + polices.
+# Wine + serveur X/VNC integre + noVNC + polices.
 # wine32:i386 est indispensable : sans lui, regedit.exe manque dans syswow64 et
 # l'installation des polices echoue, ce qui casse WPF au demarrage.
+# TigerVNC (Xvnc) plutot que Xvfb + x11vnc : dans amp3base, x11vnc 0.9.17
+# acceptait le TCP sans jamais servir le client, ce qui bloquait noVNC.
 RUN dpkg --add-architecture i386 && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         wine wine64 wine32:i386 \
-        xvfb x11vnc novnc websockify fluxbox x11-utils xdotool \
+        tigervnc-standalone-server tigervnc-tools xfonts-base \
+        novnc websockify fluxbox x11-utils xdotool feh \
         fonts-liberation2 fonts-dejavu-core fonts-noto-core \
         cabextract p7zip-full unzip curl ca-certificates && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -21,7 +24,7 @@ RUN curl -fsSL https://raw.githubusercontent.com/Winetricks/winetricks/master/sr
     chmod +x /usr/local/bin/winetricks && \
     /usr/local/bin/winetricks --version 2>/dev/null | head -1
 
-# Enveloppe de l'entrypoint : ecran virtuel + noVNC, puis /ampstart.sh d'origine.
+# Enveloppe de l'entrypoint : serveur X/VNC + noVNC, puis /ampstart.sh d'origine.
 COPY coodsz-desktop.sh /coodsz-desktop.sh
 RUN chmod +x /coodsz-desktop.sh
 
