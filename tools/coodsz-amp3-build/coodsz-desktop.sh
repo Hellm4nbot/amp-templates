@@ -61,7 +61,7 @@ fi
 
 # --- 4. noVNC : le seul port que le conteneur publie ---
 if ! pgrep -f websockify >/dev/null 2>&1; then
-    websockify --web=/usr/share/novnc 6080 localhost:5900 >/tmp/websockify.log 2>&1 &
+    websockify --web=/usr/share/novnc 6080 127.0.0.1:5900 >/tmp/websockify.log 2>&1 &
     sleep 1
     if curl -fsS -o /dev/null http://127.0.0.1:6080/vnc.html; then
         log "noVNC sur 6080"
