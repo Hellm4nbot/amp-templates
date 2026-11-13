@@ -1,0 +1,23 @@
+[
+    {
+        "Protocol": "TCP",
+        "Port": 6080,
+        "Ref": "NoVNCPort",
+        "Name": "Interface de l'outil (navigateur)",
+        "Description": "Port noVNC qui affiche la fenetre de l'outil Coodsz. AMP le publie ; ouvrir http://adresse:port/vnc.html. Le serveur VNC exige un mot de passe : il est genere au premier demarrage et affiche une seule fois dans la console de l'instance, puis conserve dans /home/amp/.coodsz-vnc.pass du conteneur."
+    },
+    {
+        "Protocol": "UDP",
+        "Port": 4200,
+        "Ref": "GamePort",
+        "Name": "Port de jeu Coop",
+        "Description": "Port UDP sur lequel les joueurs rejoignent la partie. A saisir a l'identique dans la fenetre de l'outil : AMP ne peut pas le lui imposer."
+    },
+    {
+        "Protocol": "Both",
+        "Port": 7210,
+        "Ref": "EnginePort",
+        "Name": "Port moteur",
+        "Description": "Port interne du moteur Bannerlord. Les joueurs ne s'y connectent jamais directement."
+    }
+]

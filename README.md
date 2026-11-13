@@ -10,6 +10,7 @@ un seul `manifest.json` à la racine, tous les fichiers de template au même niv
 |---|---|---|
 | Bannerlord Coop Dedicated Server | `bannerlord-coop*` | copie de `rhinotastic/bannerlord-coop-amp-template`, métadonnées adaptées |
 | RimWorld Multiplayer (RWMT) | `rwmt*` | créé ici, à partir du binaire `Server-beta.zip` |
+| Coodsz Coop Server Tool (AMP 3) | `coodszcoop*` | créé ici : outil Windows WPF sous Wine, interface dans le navigateur par noVNC |
 
 ## Installation dans AMP
 
@@ -353,6 +354,46 @@ sur le routeur.
 Validé de bout en bout le 1er novembre 2026 sur AMP 2.8.0.4 : runtime 8.0.15 installé
 dans `rwmt/dotnet`, wrapper PTY fonctionnel, serveur en écoute, journal affichant les
 deux lignes de bootstrap.
+
+## Coodsz Coop Server Tool (AMP 3, interface graphique sous Wine)
+
+L'outil Coodsz n'existe que pour Windows, en WPF. Il tourne donc sous Wine dans un écran
+virtuel Xvfb, et son interface est servie dans le navigateur par noVNC : AMP pilote le
+cycle de vie (démarrage, arrêt, ports, limites), tandis que les réglages de l'outil
+(mods, carte, port de jeu) restent dans sa fenêtre.
+
+- **Image** : `coodsz-amp:amp3`, construite sur `cubecoders/amp3base:debian`. Elle n'est
+  publiée nulle part, à construire sur le serveur avec
+  `docker build -t coodsz-amp:amp3 tools/coodsz-amp3-build` (Dockerfile et enveloppe
+  d'entrypoint dans ce dossier).
+- **Pourquoi une enveloppe** : `/ampstart.sh` d'`amp3base` ne connaît aucun crochet
+  `/ampstart.d` — contrairement à `ampbase` d'AMP 2 — et exécute directement l'agent du
+  shard. `coodsz-desktop.sh` monte donc Xvfb, fluxbox, x11vnc et noVNC, puis
+  `exec /ampstart.sh`. `DISPLAY` remonte à l'agent par `AMP_ADDITIONAL_ENV_VARS`, seul
+  mécanisme qui survit au `env -i` du démarrage.
+- **Mot de passe VNC obligatoire** : noVNC n'a aucune authentification propre et le port
+  6080 est publié. `x11vnc` démarre donc avec `-rfbauth` ; le mot de passe est généré au
+  premier démarrage, affiché **une seule fois** dans la console de l'instance
+  (`mot de passe VNC genere : …`), puis conservé dans `$HOME/.coodsz-vnc.pass` du
+  conteneur (`$HOME` est un montage persistant préparé par le spire). `COODSZ_VNC_PASSWORD`
+  permet de l'imposer à la place.
+- **Ports** : 6080 TCP (interface), 4200 UDP (jeu), 7210 interne.
+- **Mise à jour** : `coodszcoop-update.sh` télécharge l'archive `Coodsz-Coop-Tools-…zip`
+  de la dernière release GitHub et la contrôle contre le `digest` publié par l'API
+  (repli : `SHA256SUMS.txt`). Aucun binaire dans ce dépôt ni dans l'image — la licence
+  interdit la redistribution et tout miroir. L'autre zip de la release
+  (`Coodsz-Coop-and-Friends`) ne sert qu'aux anciennes versions pour se mettre à jour
+  elles-mêmes : le prendre donnerait un paquet inadapté.
+- **Préfixe Wine** : `<racine de l'instance>.wine`, préparé au premier lancement par
+  `coodszcoop-start.sh` — `wineboot -i`, `winetricks corefonts` avec repli sur Liberation,
+  `DisableHWAcceleration` pour le rendu logiciel de WPF. Le préparer pendant la
+  construction de l'image ne tient pas : les couches sont mises en cache et le préfixe
+  appartiendrait au mauvais utilisateur.
+- **État** : la chaîne de démarrage du conteneur est vérifiée avec un agent factice
+  (Xvfb, x11vnc protégé par mot de passe, noVNC sur 6080, `DISPLAY=:99` transmis à
+  l'agent). Reste non vérifié : le lancement réel du serveur, qui exige le dossier
+  `DedicatedServer` de l'atelier Steam et `steam_api64.dll` avec un compte possédant
+  Bannerlord.
 
 ## Notes de maintenance
 
