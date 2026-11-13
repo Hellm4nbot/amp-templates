@@ -67,6 +67,21 @@ if [ ! -f "$STAMP" ]; then
 fi
 log "polices presentes : $(ls "$FD" 2>/dev/null | wc -l) fichiers"
 
+# --- 2b. Mot de passe et adresse de l'interface ---
+# L'entrypoint de l'image genere le mot de passe et l'ecrit dans $HOME, mais sa
+# sortie ne va que dans `podman logs` : la console AMP ne relaie que ce qu'ecrit
+# l'application. C'est donc ici qu'on le reaffiche, a chaque demarrage.
+PW_FILE="${HOME:-/home/amp}/.coodsz-vnc.pass"
+log "interface : http://<adresse>:8642/vnc.html (port publie pour l'interface, onglet Ports)"
+# Le fichier est la seule valeur sure : c'est lui que l'entrypoint a passe a
+# vncpasswd, donc c'est lui que Xvnc exige — que le mot de passe vienne du
+# reglage VNC Password, d'un demarrage precedent ou d'une generation.
+if [ -s "$PW_FILE" ]; then
+    log "mot de passe VNC : $(cat "$PW_FILE")"
+else
+    log "mot de passe VNC : introuvable dans $PW_FILE (regarde la console du conteneur : podman logs)"
+fi
+
 # --- 3. Registre : substitutions de polices et rendu WPF sans GPU ---
 for paire in "Segoe UI:Liberation Sans" "Arial:Liberation Sans" "Calibri:Liberation Sans" "Tahoma:Liberation Sans" "Times New Roman:Liberation Serif" "Courier New:Liberation Mono"; do
     nom=${paire%%:*}
