@@ -33,14 +33,22 @@ fi
 # Sans les vraies Arial/Times/Courier, WPF meurt sur MapUnresolvedCharacters.
 FD="$WINEPREFIX/drive_c/windows/Fonts"
 mkdir -p "$FD"
-if [ ! -f "$FD/arial.ttf" ]; then
+# Garde sur un temoin, jamais sur arial.ttf : le repli Liberation ecrit ce meme
+# fichier, donc un garde sur arial.ttf ferait sauter winetricks pour toujours
+# apres un premier echec, et WPF replanterait sans que rien ne le signale.
+STAMP="$WINEPREFIX/.corefonts-ok"
+if [ ! -f "$STAMP" ]; then
     if command -v winetricks >/dev/null 2>&1; then
         log "installation des corefonts (winetricks), cela prend une minute"
-        winetricks -q corefonts >/tmp/corefonts.log 2>&1
-        wineserver -w 2>/dev/null
+        if winetricks -q corefonts >/tmp/corefonts.log 2>&1; then
+            wineserver -w 2>/dev/null
+            [ -f "$FD/arial.ttf" ] && touch "$STAMP"
+        else
+            log "winetricks a echoue, voir /tmp/corefonts.log"
+        fi
     fi
 fi
-if [ ! -f "$FD/arial.ttf" ]; then
+if [ ! -f "$STAMP" ]; then
     # Repli : Liberation est metriquement compatible et suffit a WPF pour demarrer.
     LIB=/usr/share/fonts/truetype/liberation
     log "corefonts indisponibles, repli sur Liberation"
