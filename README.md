@@ -10,7 +10,7 @@ un seul `manifest.json` à la racine, tous les fichiers de template au même niv
 |---|---|---|
 | Bannerlord Coop Dedicated Server | `bannerlord-coop*` | copie de `rhinotastic/bannerlord-coop-amp-template`, métadonnées adaptées |
 | RimWorld Multiplayer (RWMT) | `rwmt*` | créé ici, à partir du binaire `Server-beta.zip` |
-| Coodsz Coop Server Tool (AMP 3) | `coodszcoop*` | créé ici : outil Windows WPF sous Wine, interface dans le navigateur par noVNC — détail dans la section du même nom sur la branche `amp3` |
+| Coodsz Coop Server Tool (AMP 3) | `coodszcoop*` | créé ici : outil Windows WPF sous Wine, interface dans le navigateur par noVNC |
 
 ## Installation dans AMP
 
@@ -354,6 +354,74 @@ sur le routeur.
 Validé de bout en bout le 1er novembre 2026 sur AMP 2.8.0.4 : runtime 8.0.15 installé
 dans `rwmt/dotnet`, wrapper PTY fonctionnel, serveur en écoute, journal affichant les
 deux lignes de bootstrap.
+
+## Coodsz Coop Server Tool (AMP 3, interface graphique sous Wine)
+
+L'outil Coodsz n'existe que pour Windows, en WPF. Il tourne donc sous Wine dans un écran
+virtuel Xvfb, et son interface est servie dans le navigateur par noVNC : AMP pilote le
+cycle de vie (démarrage, arrêt, ports, limites), tandis que les réglages de l'outil
+(mods, carte, port de jeu) restent dans sa fenêtre.
+
+- **Image** : `ghcr.io/hellm4nbot/coodsz-amp:amp3`, construite sur `cubecoders/amp3base:debian`
+  et publiée en **paquet privé**. AMP 3 tirant ses conteneurs avec podman, une image
+  seulement locale ne lui suffit pas (stockages séparés, le nom nu part sur Docker Hub et
+  échoue en `requested access to the resource is denied`) : une connexion au registre est
+  donc nécessaire une fois sur l'hôte AMP, avec un jeton `read:packages` —
+  `su - amp -c 'podman login ghcr.io -u Hellm4nbot'`. Reconstruction et publication :
+  `tools/coodsz-amp3-build/build.sh push` (Dockerfile et enveloppe d'entrypoint dans ce dossier).
+- **Pourquoi une enveloppe** : `/ampstart.sh` d'`amp3base` ne connaît aucun crochet
+  `/ampstart.d` — contrairement à `ampbase` d'AMP 2 — et exécute directement l'agent du
+  shard. `coodsz-desktop.sh` monte donc le serveur X, fluxbox et noVNC, puis
+  `exec /ampstart.sh`. `DISPLAY` remonte à l'agent par `AMP_ADDITIONAL_ENV_VARS`, seul
+  mécanisme qui survit au `env -i` du démarrage.
+- **Serveur VNC : TigerVNC (`Xvnc`), pas Xvfb + x11vnc.** Dans `amp3base`, `x11vnc`
+  0.9.17 accepte le TCP mais ne sert jamais le client : la file d'écoute reste pleine
+  (`Recv-Q 1`), aucune réponse RFB n'est envoyée, y compris en loopback, et noVNC reste
+  bloqué sur « En cours de connexion ». `Xvnc` réunit serveur X et VNC dans un seul
+  processus, l'authentification étant celle du serveur.
+- **Mot de passe VNC obligatoire** : noVNC n'a aucune authentification propre et le port
+  6080 est publié. `Xvnc` démarre avec `-rfbauth` et `-SecurityTypes VncAuth`. Trois sources,
+  dans cet ordre : le réglage **VNC Password** du template, sinon le mot de passe conservé
+  avec l'instance (`$HOME/.coodsz-vnc.pass`), sinon un mot de passe généré au premier
+  démarrage. Le réglage s'affiche et se modifie dans l'interface AMP ; laissé vide, le mot
+  de passe est généré et reste consultable dans la console.
+- **La console affiche l'accès à chaque démarrage** : adresse de l'interface
+  (`http://<adresse>:<port>/vnc.html`) puis mot de passe et son origine. Le port publié est
+  celui déclaré pour 6080 dans l'onglet Ports ; le conteneur ne le connaît pas, AMP le choisit.
+- **Ports** : 6080 TCP (interface), 4200 UDP (jeu), 7210 interne.
+- **Serveur dédié et mods d'atelier (SteamCMD)** : l'outil ne télécharge rien, et le
+  conteneur n'a ni Steam ni jeu. Une seconde étape d'Update récupère l'atelier `3770450698`
+  et les ateliers listés dans **Mods Workshop IDs**, avec le compte Steam des réglages
+  (mot de passe et code Steam Guard si le compte en exige un : utilisés une seule fois,
+  puis effacés — le jeton reste en cache dans l'instance). Elle assemble
+  `<instance>/server/DedicatedServer`, à désigner dans l'outil par **Set server folder** :
+  `Z:\AMP\coodszcoop\server\DedicatedServer`. Un dossier serveur déjà présent n'est **jamais**
+  écrasé (sauvegardes, mods et réglages de l'outil) ; pour repartir d'une copie neuve, le
+  supprimer puis relancer Update. Chaque mod est copié dans
+  `server/DedicatedServer/Modules/<nom>` depuis le dossier qui porte son `SubModule.xml`,
+  quel que soit le niveau d'imbrication ; l'étape est idempotente. Sans identifiants Steam,
+  l'étape est sautée et l'outil s'installe quand même.
+- **Ce qui n'est pas sur l'atelier** : TAOM (ModDB) et les mods Nexus se déposent à la main
+  dans `server/DedicatedServer/Modules/`, qui survit aux mises à jour.
+- **Mise à jour** : `coodszcoop-update.sh` télécharge l'archive `Coodsz-Coop-Tools-…zip`
+  de la dernière release GitHub et la contrôle contre le `digest` publié par l'API
+  (repli : `SHA256SUMS.txt`). Aucun binaire dans ce dépôt ni dans l'image — la licence
+  interdit la redistribution et tout miroir. L'autre zip de la release
+  (`Coodsz-Coop-and-Friends`) ne sert qu'aux anciennes versions pour se mettre à jour
+  elles-mêmes : le prendre donnerait un paquet inadapté.
+- **Préfixe Wine** : `<racine de l'instance>.wine`, préparé au premier lancement par
+  `coodszcoop-start.sh` — `wineboot -i`, `winetricks corefonts` avec repli sur Liberation,
+  `DisableHWAcceleration` pour le rendu logiciel de WPF. Le préparer pendant la
+  construction de l'image ne tient pas : les couches sont mises en cache et le préfixe
+  appartiendrait au mauvais utilisateur.
+- **État** : chaîne de démarrage vérifiée dans l'image, avec un agent factice —
+  `Xvnc` en écoute, noVNC joignable, `DISPLAY=:99` transmis à l'agent, et le serveur
+  annonce bien `RFB 003.008` puis le type de sécurité `2` (mot de passe) à travers
+  websockify. Contrôlé avec un vrai client VNC : sans mot de passe la connexion est
+  refusée, avec le mot de passe la capture du bureau X (fluxbox) aboutit.
+  Reste non vérifié : le lancement réel du serveur, qui exige le dossier
+  `DedicatedServer` de l'atelier Steam et `steam_api64.dll` avec un compte possédant
+  Bannerlord.
 
 ## Notes de maintenance
 
