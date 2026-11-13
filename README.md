@@ -431,6 +431,17 @@ cycle de vie (démarrage, arrêt, ports, limites), tandis que les réglages de l
   `server/DedicatedServer/Modules/<nom>` depuis le dossier qui porte son `SubModule.xml`,
   quel que soit le niveau d'imbrication ; l'étape est idempotente. Sans identifiants Steam,
   l'étape est sautée et l'outil s'installe quand même.
+- **Où l'outil garde ses réglages** : `%LOCALAPPDATA%\Coodsz\Coop\host.json` dans le
+  préfixe Wine, soit `.wine/drive_c/users/amp/AppData/Local/Coodsz/Coop/host.json`. Il contient
+  les profils (`CoopPort`, `EnginePort`, `CampaignMap`, `ModuleOrder`, `DisabledModules`), le
+  dossier serveur (`ServerExecutable`, ce que règle « Set server folder ») et l'acceptation de
+  la licence. Il survit aux redémarrages et aux Update, et se sauvegarde comme n'importe quel
+  fichier. Le script de démarrage y **préremplit `ServerExecutable`** avec
+  `Z:\AMP\coodszcoop\server\DedicatedServer\BannerlordCoopServer.exe` quand le chemin est vide
+  ou ne pointe plus sur rien — jamais quand l'exploitant a déjà choisi un chemin valide. Il ne
+  touche pas aux ports : AMP les attribue à la création de l'instance (4200 → 4202 chez nous),
+  donc soit on aligne l'onglet Ports sur les valeurs par défaut de l'outil (4200 / 7210), soit on
+  saisit les numéros d'AMP une seule fois dans la fenêtre, et `host.json` les conserve.
 - **Ce qui n'est pas sur l'atelier** : TAOM (ModDB) et les mods Nexus se déposent à la main
   dans `server/DedicatedServer/Modules/`, qui survit aux mises à jour.
 - **Scripts livrés par l'Update** : AMP ne copie pas les fichiers annexes d'un template dans

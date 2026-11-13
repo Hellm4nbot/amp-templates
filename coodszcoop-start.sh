@@ -91,6 +91,38 @@ done
 wine reg add "HKCU\\Software\\Microsoft\\Avalon.Graphics" /v DisableHWAcceleration \
     /t REG_DWORD /d 1 /f >/dev/null 2>&1
 
+# --- 3b. Dossier serveur prerempli dans host.json ---
+# L'outil garde ses reglages dans %LOCALAPPDATA%\Coodsz\Coop\host.json, et le
+# chemin du serveur dedie est la cle ServerExecutable (bouton « Set server
+# folder »). Le preremplir evite la boite de dialogue de fichiers sous Wine, qui
+# est penible en VNC. Rien n'est touche si l'operateur a deja choisi un chemin
+# valide, ni si le fichier n'existe pas encore (l'outil le cree a son premier
+# lancement : le preremplissage prend effet au demarrage suivant).
+SERVER_EXE="$ROOT/server/DedicatedServer/BannerlordCoopServer.exe"
+HOST_JSON="$WINEPREFIX/drive_c/users/$(id -un 2>/dev/null || echo amp)/AppData/Local/Coodsz/Coop/host.json"
+if [ -f "$SERVER_EXE" ] && [ -f "$HOST_JSON" ] && command -v python3 >/dev/null 2>&1; then
+    ZWIN="Z:$(printf '%s' "$SERVER_EXE" | tr '/' '\\\\')"
+    python3 - "$HOST_JSON" "$ZWIN" <<'PYSQL'
+import json, os, sys
+chemin, exe = sys.argv[1], sys.argv[2]
+try:
+    d = json.load(open(chemin))
+except Exception as e:
+    print("[coodsz] host.json illisible (%s) : laisse tel quel" % e)
+    raise SystemExit(0)
+actuel = d.get("ServerExecutable") or ""
+# Z: est la racine du conteneur : un chemin deja renseigne se verifie sur place.
+if actuel and os.path.exists(actuel.replace("Z:", "", 1).replace("\\", "/")):
+    print("[coodsz] dossier serveur deja renseigne : %s" % actuel)
+    raise SystemExit(0)
+d["ServerExecutable"] = exe
+tmp = chemin + ".tmp"
+json.dump(d, open(tmp, "w"), indent=2)
+os.replace(tmp, chemin)
+print("[coodsz] dossier serveur prerempli dans host.json : %s" % exe)
+PYSQL
+fi
+
 # --- 4. Lancement ---
 log "lancement de $EXE"
 cd "$(dirname "$EXE")" || exit 1
