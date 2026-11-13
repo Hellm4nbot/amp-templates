@@ -1,10 +1,18 @@
 [
     {
-        "UpdateStageName": "Telechargement depuis GitHub (empreinte verifiee)",
+        "UpdateStageName": "Outils Coodsz (release GitHub, empreinte verifiee)",
         "UpdateSourcePlatform": "Linux",
         "UpdateSource": "Executable",
         "UpdateSourceData": "/bin/bash",
         "UpdateSourceArgs": "-c \"bash '{{$FullRootDir}}coodszcoop-update.sh' '{{$FullRootDir}}'\"",
         "SkipOnFailure": false
+    },
+    {
+        "UpdateStageName": "Serveur dedie Coop et mods d'atelier (SteamCMD)",
+        "UpdateSourcePlatform": "Linux",
+        "UpdateSource": "Executable",
+        "UpdateSourceData": "/bin/bash",
+        "UpdateSourceArgs": "-c \"STEAM_USER='{{SteamUsername}}' STEAM_PASS='{{SteamPassword}}' STEAM_GUARD='{{SteamGuardCode}}' COOP_ITEM='{{CoopWorkshopItem}}' STEAM_MODS='{{ModsWorkshopIDs}}' bash '{{$FullRootDir}}coodszcoop-steam.sh' '{{$FullRootDir}}'\"",
+        "SkipOnFailure": true
     }
 ]

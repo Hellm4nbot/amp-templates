@@ -386,6 +386,20 @@ cycle de vie (démarrage, arrêt, ports, limites), tandis que les réglages de l
   (`http://<adresse>:<port>/vnc.html`) puis mot de passe et son origine. Le port publié est
   celui déclaré pour 6080 dans l'onglet Ports ; le conteneur ne le connaît pas, AMP le choisit.
 - **Ports** : 6080 TCP (interface), 4200 UDP (jeu), 7210 interne.
+- **Serveur dédié et mods d'atelier (SteamCMD)** : l'outil ne télécharge rien, et le
+  conteneur n'a ni Steam ni jeu. Une seconde étape d'Update récupère l'atelier `3770450698`
+  et les ateliers listés dans **Mods Workshop IDs**, avec le compte Steam des réglages
+  (mot de passe et code Steam Guard si le compte en exige un : utilisés une seule fois,
+  puis effacés — le jeton reste en cache dans l'instance). Elle assemble
+  `<instance>/server/DedicatedServer`, à désigner dans l'outil par **Set server folder** :
+  `Z:\AMP\coodszcoop\server\DedicatedServer`. Un dossier serveur déjà présent n'est **jamais**
+  écrasé (sauvegardes, mods et réglages de l'outil) ; pour repartir d'une copie neuve, le
+  supprimer puis relancer Update. Chaque mod est copié dans
+  `server/DedicatedServer/Modules/<nom>` depuis le dossier qui porte son `SubModule.xml`,
+  quel que soit le niveau d'imbrication ; l'étape est idempotente. Sans identifiants Steam,
+  l'étape est sautée et l'outil s'installe quand même.
+- **Ce qui n'est pas sur l'atelier** : TAOM (ModDB) et les mods Nexus se déposent à la main
+  dans `server/DedicatedServer/Modules/`, qui survit aux mises à jour.
 - **Mise à jour** : `coodszcoop-update.sh` télécharge l'archive `Coodsz-Coop-Tools-…zip`
   de la dernière release GitHub et la contrôle contre le `digest` publié par l'API
   (repli : `SHA256SUMS.txt`). Aucun binaire dans ce dépôt ni dans l'image — la licence
