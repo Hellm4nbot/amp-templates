@@ -362,10 +362,13 @@ virtuel Xvfb, et son interface est servie dans le navigateur par noVNC : AMP pil
 cycle de vie (démarrage, arrêt, ports, limites), tandis que les réglages de l'outil
 (mods, carte, port de jeu) restent dans sa fenêtre.
 
-- **Image** : `coodsz-amp:amp3`, construite sur `cubecoders/amp3base:debian`. Elle n'est
-  publiée nulle part, à construire sur le serveur avec
-  `docker build -t coodsz-amp:amp3 tools/coodsz-amp3-build` (Dockerfile et enveloppe
-  d'entrypoint dans ce dossier).
+- **Image** : `ghcr.io/hellm4nbot/coodsz-amp:amp3`, construite sur `cubecoders/amp3base:debian`
+  et publiée en **paquet privé**. AMP 3 tirant ses conteneurs avec podman, une image
+  seulement locale ne lui suffit pas (stockages séparés, le nom nu part sur Docker Hub et
+  échoue en `requested access to the resource is denied`) : une connexion au registre est
+  donc nécessaire une fois sur l'hôte AMP, avec un jeton `read:packages` —
+  `su - amp -c 'podman login ghcr.io -u Hellm4nbot'`. Reconstruction et publication :
+  `tools/coodsz-amp3-build/build.sh push` (Dockerfile et enveloppe d'entrypoint dans ce dossier).
 - **Pourquoi une enveloppe** : `/ampstart.sh` d'`amp3base` ne connaît aucun crochet
   `/ampstart.d` — contrairement à `ampbase` d'AMP 2 — et exécute directement l'agent du
   shard. `coodsz-desktop.sh` monte donc le serveur X, fluxbox et noVNC, puis

@@ -3,7 +3,18 @@
 Construction de l'image `coodsz-amp:amp3` utilisée par le template `coodszcoop`.
 
 ```sh
-docker build -t coodsz-amp:amp3 tools/coodsz-amp3-build
+tools/coodsz-amp3-build/build.sh        # construit coodsz-amp:amp3 + l'etiquette du registre
+tools/coodsz-amp3-build/build.sh push   # construit puis publie (registre prive)
+```
+
+Le `.kvp` désigne l'image par son nom de registre (`ghcr.io/hellm4nbot/coodsz-amp:amp3`),
+paquet **privé**. Pourquoi : AMP 3 tire ses conteneurs avec **podman**, dont le stockage
+est distinct de celui de docker ; une image seulement locale est invisible pour AMP, qui
+cherche alors le nom nu sur Docker Hub et échoue avec `requested access to the resource
+is denied`. Sur l'hôte AMP, une connexion au registre est donc nécessaire une fois :
+
+```sh
+su - amp -c 'podman login ghcr.io -u Hellm4nbot'   # jeton avec read:packages
 ```
 
 - `Dockerfile` — `cubecoders/amp3base:debian` + Wine 32/64, Xvfb, x11vnc, noVNC,
