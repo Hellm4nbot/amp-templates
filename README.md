@@ -379,16 +379,31 @@ cycle de vie (démarrage, arrêt, ports, limites), tandis que les réglages de l
   (`Recv-Q 1`), aucune réponse RFB n'est envoyée, y compris en loopback, et noVNC reste
   bloqué sur « En cours de connexion ». `Xvnc` réunit serveur X et VNC dans un seul
   processus, l'authentification étant celle du serveur.
-- **Mot de passe VNC obligatoire** : noVNC n'a aucune authentification propre et le port
-  6080 est publié. `Xvnc` démarre avec `-rfbauth` et `-SecurityTypes VncAuth`. Trois sources,
+- **Mot de passe VNC obligatoire** : noVNC n'a aucune authentification propre et le port de
+  l'interface est publié. `Xvnc` démarre avec `-rfbauth` et `-SecurityTypes VncAuth`. Trois sources,
   dans cet ordre : le réglage **VNC Password** du template, sinon le mot de passe conservé
   avec l'instance (`$HOME/.coodsz-vnc.pass`), sinon un mot de passe généré au premier
   démarrage. Le réglage s'affiche et se modifie dans l'interface AMP ; laissé vide, le mot
   de passe est généré et reste consultable dans la console.
 - **La console affiche l'accès à chaque démarrage** : adresse de l'interface
-  (`http://<adresse>:<port>/vnc.html`) puis mot de passe et son origine. Le port publié est
-  celui déclaré pour 6080 dans l'onglet Ports ; le conteneur ne le connaît pas, AMP le choisit.
-- **Ports** : 6080 TCP (interface), 4200 UDP (jeu), 7210 interne.
+  (`http://<adresse>:<port>/vnc.html`) puis mot de passe et son origine. Le conteneur écoute
+  le port déclaré (8642, via `COODSZ_WEB_PORT`) ; AMP publie en face le port hôte qu'il a
+  attribué à la création.
+- **Ports** : 8642 TCP (interface), 4200 et 4201 UDP (jeu et jeu+1), 7210 interne.
+  Le port de l'interface est **paramétrable** : `COODSZ_WEB_PORT` dans le `.kvp` et le numéro
+  déclaré dans `coodszcoopports.json` doivent rester identiques, le conteneur écoute ce que
+  le template déclare.
+- **Le port hôte est figé à la création de l'instance, et c'est la source de conflit la plus
+  fréquente.** AMP réserve le port déclaré comme port hôte au moment où l'instance est créée
+  et ne le renégocie jamais : si un autre service le tient (ici `ghostdesk` occupait 6080 en
+  `192.168.1.13:6080`), l'instance est créée sans rien dire puis meurt au premier Start sur
+  « Un port nécessaire à cette application est déjà utilisé ». D'où le défaut à 8642, peu
+  employé. En cas de collision, **change seulement le port hôte** dans l'onglet Ports : le
+  conteneur garde 8642 et l'outil ne s'aperçoit de rien. Identifier le détenteur avant de
+  toucher quoi que ce soit : `ss -ltnp | grep :<port>`, plus
+  `su - amp -c 'podman ps -a --format "{{.Names}} {{.Status}} {{.Ports}}"'` (instances AMP)
+  et `docker ps --format "{{.Names}} {{.Status}} {{.Ports}}"'` (conteneurs de test) — un
+  service démarré depuis des jours est celui de l'exploitant, on ne le supprime pas.
 - **Serveur dédié et mods d'atelier (SteamCMD)** : l'outil ne télécharge rien, et le
   conteneur n'a ni Steam ni jeu. Une seconde étape d'Update récupère l'atelier `3770450698`
   et les ateliers listés dans **Mods Workshop IDs**, avec le compte Steam des réglages
