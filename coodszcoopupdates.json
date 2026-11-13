@@ -4,7 +4,7 @@
         "UpdateSourcePlatform": "Linux",
         "UpdateSource": "Executable",
         "UpdateSourceData": "/bin/bash",
-        "UpdateSourceArgs": "-c \"bash '{{$FullRootDir}}coodszcoop-update.sh' '{{$FullRootDir}}'\"",
+        "UpdateSourceArgs": "-c \"cd \\\"{{$FullRootDir}}\\\" || exit 1; for f in coodszcoop-update.sh coodszcoop-steam.sh coodszcoop-start.sh; do curl -fsSL \\\"https://raw.githubusercontent.com/Hellm4nbot/amp-templates/main/$f\\\" -o \\\"$f\\\" || { echo \\\"telechargement de $f impossible\\\"; exit 1; }; chmod +x \\\"$f\\\"; done; bash ./coodszcoop-update.sh .\"",
         "SkipOnFailure": false
     },
     {
@@ -12,7 +12,7 @@
         "UpdateSourcePlatform": "Linux",
         "UpdateSource": "Executable",
         "UpdateSourceData": "/bin/bash",
-        "UpdateSourceArgs": "-c \"STEAM_USER='{{SteamUsername}}' STEAM_PASS='{{SteamPassword}}' STEAM_GUARD='{{SteamGuardCode}}' COOP_ITEM='{{CoopWorkshopItem}}' STEAM_MODS='{{ModsWorkshopIDs}}' bash '{{$FullRootDir}}coodszcoop-steam.sh' '{{$FullRootDir}}'\"",
+        "UpdateSourceArgs": "-c \"cd \\\"{{$FullRootDir}}\\\" || exit 1; STEAM_USER='{{SteamUsername}}' STEAM_PASS='{{SteamPassword}}' STEAM_GUARD='{{SteamGuardCode}}' COOP_ITEM='{{CoopWorkshopItem}}' STEAM_MODS='{{ModsWorkshopIDs}}' bash ./coodszcoop-steam.sh .\"",
         "SkipOnFailure": true
     }
 ]

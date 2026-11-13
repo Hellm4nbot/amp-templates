@@ -403,6 +403,12 @@ cycle de vie (démarrage, arrêt, ports, limites), tandis que les réglages de l
   l'étape est sautée et l'outil s'installe quand même.
 - **Ce qui n'est pas sur l'atelier** : TAOM (ModDB) et les mods Nexus se déposent à la main
   dans `server/DedicatedServer/Modules/`, qui survit aux mises à jour.
+- **Scripts livrés par l'Update** : AMP ne copie pas les fichiers annexes d'un template dans
+  l'instance — seuls le `.kvp` et les fichiers `@IncludeJson` sont lus. La première étape
+  récupère donc `coodszcoop-update.sh`, `coodszcoop-steam.sh` et `coodszcoop-start.sh` depuis
+  la branche `main` du dépôt avant de les exécuter ; c'est aussi ce qui rend
+  `coodszcoop-start.sh` disponible pour `App.ExecutableLinux`. Sans cette étape, l'Update
+  échoue en `No such file or directory` (code 127).
 - **Mise à jour** : `coodszcoop-update.sh` télécharge l'archive `Coodsz-Coop-Tools-…zip`
   de la dernière release GitHub et la contrôle contre le `digest` publié par l'API
   (repli : `SHA256SUMS.txt`). Aucun binaire dans ce dépôt ni dans l'image — la licence
