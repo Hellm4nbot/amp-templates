@@ -377,11 +377,14 @@ cycle de vie (démarrage, arrêt, ports, limites), tandis que les réglages de l
   bloqué sur « En cours de connexion ». `Xvnc` réunit serveur X et VNC dans un seul
   processus, l'authentification étant celle du serveur.
 - **Mot de passe VNC obligatoire** : noVNC n'a aucune authentification propre et le port
-  6080 est publié. `Xvnc` démarre avec `-rfbauth` et `-SecurityTypes VncAuth` ; le mot de
-  passe est généré au premier démarrage, affiché **une seule fois** dans la console de
-  l'instance (`mot de passe VNC genere : …`), puis conservé dans `$HOME/.coodsz-vnc.pass`
-  du conteneur (`$HOME` est un montage persistant préparé par le spire).
-  `COODSZ_VNC_PASSWORD` permet de l'imposer à la place.
+  6080 est publié. `Xvnc` démarre avec `-rfbauth` et `-SecurityTypes VncAuth`. Trois sources,
+  dans cet ordre : le réglage **VNC Password** du template, sinon le mot de passe conservé
+  avec l'instance (`$HOME/.coodsz-vnc.pass`), sinon un mot de passe généré au premier
+  démarrage. Le réglage s'affiche et se modifie dans l'interface AMP ; laissé vide, le mot
+  de passe est généré et reste consultable dans la console.
+- **La console affiche l'accès à chaque démarrage** : adresse de l'interface
+  (`http://<adresse>:<port>/vnc.html`) puis mot de passe et son origine. Le port publié est
+  celui déclaré pour 6080 dans l'onglet Ports ; le conteneur ne le connaît pas, AMP le choisit.
 - **Ports** : 6080 TCP (interface), 4200 UDP (jeu), 7210 interne.
 - **Mise à jour** : `coodszcoop-update.sh` télécharge l'archive `Coodsz-Coop-Tools-…zip`
   de la dernière release GitHub et la contrôle contre le `digest` publié par l'API

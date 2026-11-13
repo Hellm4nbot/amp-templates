@@ -1,0 +1,18 @@
+[
+ {
+  "DisplayName": "VNC Password",
+  "Category": "Coodsz:stadia_controller",
+  "Subcategory": "Interface:settings:1",
+  "Description": "Password the browser interface (noVNC) asks for before showing the tool. Leave it empty and one is generated at the first start: it is printed in the console together with the interface address, and kept with the instance so it stays the same afterwards. Set it here to pick your own: it is applied at every start, and stays visible in this field.",
+  "Keywords": "vnc,novnc,password,interface,security",
+  "FieldName": "VNCPassword",
+  "InputType": "password",
+  "ParamFieldName": "$.VNCPassword",
+  "IncludeInCommandLine": false,
+  "ExcludeFromImport": false,
+  "DefaultValue": "",
+  "Placeholder": "leave empty to generate one",
+  "Required": false,
+  "EnumValues": {}
+ }
+]
