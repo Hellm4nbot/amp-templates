@@ -10,6 +10,7 @@ un seul `manifest.json` à la racine, tous les fichiers de template au même niv
 |---|---|---|
 | Bannerlord Coop Dedicated Server | `bannerlord-coop*` | copie de `rhinotastic/bannerlord-coop-amp-template`, métadonnées adaptées |
 | RimWorld Multiplayer (RWMT) | `rwmt*` | créé ici, à partir du binaire `Server-beta.zip` |
+| Coodsz Coop Server Tool (AMP 3) | `coodszcoop*` | créé ici : outil Windows WPF sous Wine, interface dans le navigateur par noVNC — détail dans la section du même nom sur la branche `amp3` |
 
 ## Installation dans AMP
 
