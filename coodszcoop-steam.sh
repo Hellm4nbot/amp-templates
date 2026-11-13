@@ -35,9 +35,9 @@ LOG="$ROOT/steamcmd-last.log"
 log() { echo "[coodsz-steam] $*"; }
 
 if [ -z "$SUSER" ]; then
-    log "aucun compte Steam renseigne (reglage « Steam Username ») : etape ignoree."
-    log "les fichiers du serveur dedie ne seront pas recuperes."
-    exit 1
+    log "aucun compte Steam renseigne (reglage « Steam Username ») : etape ignoree, ce n'est pas une erreur."
+    log "les fichiers du serveur dedie ne sont pas recuperes ; renseigne le compte puis relance Update."
+    exit 0
 fi
 
 # --- 1. SteamCMD ---
