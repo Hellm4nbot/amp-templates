@@ -1,5 +1,5 @@
 #!/bin/bash
-# Etape de mise a jour du template Coodsz Coop (AMP 3).
+# Etape de mise a jour du template Coodsz (AMP 3).
 #
 # Telecharge la derniere release de l'outil depuis GitHub, verifie son empreinte,
 # puis remplace le contenu de <instance>/coodszcoop/app/.
@@ -9,40 +9,49 @@
 # on prend toujours l'archive officielle, et on la controle avec l'empreinte
 # publiee dans la release (champ digest de l'API, sinon SHA256SUMS.txt).
 #
-# Usage : coodszcoop-update.sh <racine de l'instance>
+# Usage : coodszcoop-update.sh <racine> [depot] [motif de l'archive]
+#   depot par defaut : Coodsz/Coodsz-Coop-and-Friends
+#   motif par defaut : ^Coodsz-Coop-Tools-.*\.zip$
+#   variante TAOM    : Coodsz/Coodsz-TAOM   ^Coodsz-TAOM-Tools-.*\.zip$
+# Les deux projets publient une archive « Tools » unique ; les archives par
+# programme ne servent qu'aux anciennes versions pour se mettre a jour.
 set -eu
 
 ROOT="${1:-.}"
+DEPOT="${2:-Coodsz/Coodsz-Coop-and-Friends}"
+MOTIF="${3:-^Coodsz-Coop-Tools-.*\\.zip$}"
+export MOTIF
+
 [ -d "$ROOT" ] || { echo "[coodsz] racine introuvable : $ROOT"; exit 1; }
 ROOT="$(cd "$ROOT" && pwd)"
 APP="$ROOT/app"
-API="https://api.github.com/repos/Coodsz/Coodsz-Coop-and-Friends/releases/latest"
+API="https://api.github.com/repos/$DEPOT/releases/latest"
 
 echo "[coodsz] racine : $ROOT"
+echo "[coodsz] depot  : $DEPOT"
 
 J="$(curl -fsSL "$API")" || { echo "[coodsz] GitHub injoignable"; exit 1; }
 
 TAG="$(printf '%s' "$J" | python3 -c 'import sys,json;print(json.load(sys.stdin).get("tag_name",""))')"
 [ -n "$TAG" ] || TAG="(inconnue)"
 
-# L'archive a prendre est celle des outils. L'autre zip de la release
-# (Coodsz-Coop-and-Friends) ne sert qu'aux anciennes versions pour se mettre a
-# jour elles-memes : la description de la release le dit explicitement.
 read -r URL SIZE <<EOF
 $(printf '%s' "$J" | python3 -c '
-import sys, json, re
+import os, sys, json, re
+m = re.compile(os.environ["MOTIF"])
 d = json.load(sys.stdin)
 for a in d.get("assets", []):
-    if re.match(r"^Coodsz-Coop-Tools-.*\.zip$", a["name"]):
+    if m.match(a["name"]):
         print(a["browser_download_url"], round(a["size"] / 1048576))
         break
 ')
 EOF
 SHA="$(printf '%s' "$J" | python3 -c '
-import sys, json, re
+import os, sys, json, re
+m = re.compile(os.environ["MOTIF"])
 d = json.load(sys.stdin)
 for a in d.get("assets", []):
-    if re.match(r"^Coodsz-Coop-Tools-.*\.zip$", a["name"]):
+    if m.match(a["name"]):
         print((a.get("digest") or "").replace("sha256:", ""))
         break
 ')"
@@ -55,7 +64,7 @@ for a in d.get("assets", []):
         break
 ')"
 
-[ -n "${URL:-}" ] || { echo "[coodsz] aucune archive Coodsz-Coop-Tools dans la release $TAG"; exit 1; }
+[ -n "${URL:-}" ] || { echo "[coodsz] aucune archive ne correspond a $MOTIF dans la release $TAG"; exit 1; }
 echo "[coodsz] version $TAG, archive ${SIZE:-?} Mo"
 
 # Sans digest dans l'API, on retombe sur le SHA256SUMS.txt publie dans la release.
@@ -84,11 +93,31 @@ fi
 
 mkdir -p "$APP"
 rm -rf "$APP"/*
-unzip -o -q "$Z" -d "$APP" || { echo "[coodsz] extraction impossible"; rm -f "$Z"; exit 1; }
-rm -f "$Z"
+
+# unzip renvoie 1 pour un simple avertissement, et cette archive en produit un
+# (« appears to use backslashes as path separators ») alors que l'extraction est
+# complete : seule la presence des programmes fait foi, pas le code de retour.
+set +e
+unzip -o -q "$Z" -d "$APP" 2>/tmp/coodsz-unzip.log
+RC=$?
+set -e
 
 EXE="$(find "$APP" -maxdepth 3 -name 'Coodsz Coop Server Tool.exe' | head -1)"
-[ -n "$EXE" ] || { echo "[coodsz] Coodsz Coop Server Tool.exe introuvable dans l'archive"; exit 1; }
+if [ -z "$EXE" ]; then
+    echo "[coodsz] extraction impossible (unzip code $RC)"
+    sed -n '1,5p' /tmp/coodsz-unzip.log 2>/dev/null
+    echo "[coodsz] contenu obtenu :"
+    find "$APP" -maxdepth 2 2>/dev/null | head -10
+    rm -f "$Z"
+    exit 1
+fi
+if [ "$RC" -gt 1 ]; then
+    echo "[coodsz] attention : unzip a signale le code $RC, programmes presents"
+fi
+rm -f "$Z"
+
+echo "[coodsz] programmes presents :"
+find "$APP" -maxdepth 3 -name '*.exe' -printf '  %P\n' 2>/dev/null
 
 printf '%s\n' "$TAG" > "$ROOT/.coodsz-version"
 echo "[coodsz] outil pret : $EXE (version $TAG)"
