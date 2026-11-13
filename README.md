@@ -387,20 +387,35 @@ cycle de vie (démarrage, arrêt, ports, limites), tandis que les réglages de l
   de passe est généré et reste consultable dans la console.
 - **La console affiche l'accès à chaque démarrage** : adresse de l'interface
   (`http://<adresse>:<port>/vnc.html`) puis mot de passe et son origine. Le conteneur écoute
-  le port déclaré (8642, via `COODSZ_WEB_PORT`) ; AMP publie en face le port hôte qu'il a
-  attribué à la création.
+  le port déclaré, 8642, en dur (voir la note sur les ports 1:1 ci-dessous).
 - **Ports** : 8642 TCP (interface), 4200 et 4201 UDP (jeu et jeu+1), 7210 interne.
   Le port de l'interface est **paramétrable** : `COODSZ_WEB_PORT` dans le `.kvp` et le numéro
   déclaré dans `coodszcoopports.json` doivent rester identiques, le conteneur écoute ce que
   le template déclare.
-- **Le port hôte est figé à la création de l'instance, et c'est la source de conflit la plus
-  fréquente.** AMP réserve le port déclaré comme port hôte au moment où l'instance est créée
-  et ne le renégocie jamais : si un autre service le tient (ici `ghostdesk` occupait 6080 en
-  `192.168.1.13:6080`), l'instance est créée sans rien dire puis meurt au premier Start sur
-  « Un port nécessaire à cette application est déjà utilisé ». D'où le défaut à 8642, peu
-  employé. En cas de collision, **change seulement le port hôte** dans l'onglet Ports : le
-  conteneur garde 8642 et l'outil ne s'aperçoit de rien. Identifier le détenteur avant de
-  toucher quoi que ce soit : `ss -ltnp | grep :<port>`, plus
+- **AMP 3 publie les ports 1:1, et c'est ce qui décide de tout.** Mesuré sur une instance
+  réelle (`podman port <id>`) : `6082/tcp -> 0.0.0.0:6082`, `7211/tcp -> 0.0.0.0:7211`,
+  `4202/udp -> 0.0.0.0:4202`. Le numéro de l'onglet Ports n'est donc pas un port hôte posé
+  devant un port conteneur distinct : c'est **le même des deux côtés**, et l'application doit
+  écouter exactement ce numéro. Deux conséquences :
+  - le port de l'interface est **fixé à 8642 dans l'image** (identique à
+    `coodszcoopports.json`). Le changer demande de reconstruire l'image, ce n'est pas un
+    réglage. Ne jamais faire dépendre ce port d'une variable d'environnement du template :
+    mesuré, `podman exec <id> printenv COODSZ_WEB_PORT` renvoie vide — les variables déclarées
+    dans le `.kvp` après la création de l'instance n'arrivent pas au conteneur, et l'entrée
+    retombait alors sur 6080 pendant qu'AMP publiait 8642 (connexion réinitialisée dans le
+    navigateur, port en écoute côté hôte) ;
+  - les ports de jeu et moteur doivent être **recopiés à la main** dans la fenêtre de l'outil
+    (Paramètres : Port UDP, Port du moteur) avec les numéros affichés dans l'onglet Ports —
+    AMP les décale pour éviter les collisions avec les autres instances (4200 devenu 4202,
+    7210 devenu 7211 dans notre cas).
+- **Une collision de port ne se règle pas en décalant le port hôte**, puisque les deux côtés
+  bougent ensemble : il faut soit un numéro libre pour le port déclaré (reconstruction de
+  l'image pour l'interface), soit — pour les ports de jeu — changer le numéro et le reporter
+  dans l'outil. Symptômes à distinguer : « Un port nécessaire à cette application est déjà
+  utilisé » = le numéro était pris au démarrage (`ghostdesk` tenait 6080 en
+  `192.168.1.13:6080`) ; `ERR_CONNECTION_RESET` ou un port qui écoute sans répondre =
+  l'application n'écoute pas le numéro publié. Identifier le détenteur avant de toucher quoi
+  que ce soit : `ss -ltnp | grep :<port>`, plus
   `su - amp -c 'podman ps -a --format "{{.Names}} {{.Status}} {{.Ports}}"'` (instances AMP)
   et `docker ps --format "{{.Names}} {{.Status}} {{.Ports}}"'` (conteneurs de test) — un
   service démarré depuis des jours est celui de l'exploitant, on ne le supprime pas.

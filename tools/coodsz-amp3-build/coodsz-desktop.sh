@@ -87,12 +87,14 @@ if ! pgrep -x fluxbox >/dev/null 2>&1; then
 fi
 
 # --- 3. noVNC : le seul port que le conteneur publie ---
-# Le numero vient de COODSZ_WEB_PORT, fixe par le template et declare a l'identique
-# dans <name>ports.json : AMP fige le port hote a la creation de l'instance, donc un
-# numero courant (6080) y entre en collision avec les services deja installes.
-WEBPORT="${COODSZ_WEB_PORT:-6080}"
+# AMP 3 publie les ports 1:1 (6082/tcp -> 0.0.0.0:6082) : le numero affiche dans
+# l'onglet Ports est a la fois le port hote et le port conteneur. Le conteneur doit
+# donc ecouter exactement le port declare, et ce numero ne peut pas descendre d'une
+# variable d'environnement que l'instance ne propage pas forcement : il est fixe ici
+# a 8642, identique a <name>ports.json. COODSZ_WEB_PORT ne sert que de surcharge.
+WEBPORT="${COODSZ_WEB_PORT:-8642}"
 case "$WEBPORT" in
-    ''|*'{{'*) WEBPORT=6080 ;;   # reglage non substitue : ne pas prendre le jeton au mot
+    ''|*'{{'*) WEBPORT=8642 ;;   # reglage non substitue : ne pas prendre le jeton au mot
 esac
 if ! pgrep -f websockify >/dev/null 2>&1; then
     websockify --web=/usr/share/novnc "$WEBPORT" 127.0.0.1:5900 >/tmp/websockify.log 2>&1 &
