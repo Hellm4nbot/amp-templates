@@ -391,9 +391,25 @@ if [ -z "$SAVE" ]; then
 fi
 printf '%s\n' "$SAVE" > "$ROOT/.coodsz-save" 2>/dev/null || true
 
+# La campagne demandee existe-t-elle deja sur le disque ? Le drapeau NewCampaign
+# de l'outil reste a true apres la creation du monde (mesure : campagne « test »
+# creee, drapeau toujours true), et le script de Coodsz refuse alors avec « A
+# server campaign named 'test' already exists ». On tranche donc sur le fichier :
+# presence de <nom>.sav dans l'un des deux dossiers de sauvegardes.
+UTILISATEUR_WINE="$(printf '%s' "$HOST_JSON" | sed 's#.*/drive_c/users/\([^/]*\)/.*#\1#')"
+SAVES_COOP="$WINEPREFIX/drive_c/users/$UTILISATEUR_WINE/Documents/Mount and Blade II Bannerlord/CoopData/DedicatedServer/Game Saves"
+SAVES_SRV="$ROOT/server/DedicatedServer/server-data/Game Saves"
+SAVE_DEJA=""
+if [ -f "$SAVES_COOP/$SAVE.sav" ] || [ -f "$SAVES_SRV/$SAVE.sav" ]; then
+    SAVE_DEJA="1"
+fi
+
 SAVEOPT="-SaveName"
-[ "$NEUF_HJ" = "1" ] && [ "$SAVE" = "$SAVE_HJ" ] && SAVEOPT="-NewSaveName"
-log "serveur Coop : sauvegarde=$SAVE (origine : $ORIGINE) port moteur=$PORT region=$REGION"
+if [ -z "$SAVE_DEJA" ] && [ "$NEUF_HJ" = "1" ] && [ "$SAVE" = "$SAVE_HJ" ]; then
+    SAVEOPT="-NewSaveName"
+fi
+log "serveur Coop : sauvegarde=$SAVE ($([ -n "$SAVE_DEJA" ] && echo 'deja sur le disque, chargement' || echo 'nouvelle campagne')) origine : $ORIGINE"
+log "serveur Coop : port moteur=$PORT region=$REGION"
 
 # 5e. Serveur au premier plan sous un pty : c'est la seule facon de faire
 # demarrer ConsoleHost, et donc PowerShell 7 sous Wine.
