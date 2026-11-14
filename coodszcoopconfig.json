@@ -48,6 +48,22 @@
   "EnumValues": {}
  },
  {
+  "DisplayName": "Save Name",
+  "Category": "Coodsz:stadia_controller",
+  "Subcategory": "Interface:settings:1",
+  "Description": "Name of the campaign save the template loads when it starts the server (the -SaveName argument of the Coodsz start script). Set it once here and an Update will no longer force you to pick the save again in the tool: the tool empties SaveName in its host.json whenever its files are re-extracted, while this setting lives with the instance. Leave empty to use the tool's active profile, or the save used at the previous start.",
+  "Keywords": "save,campaign,name,world",
+  "FieldName": "SaveName",
+  "InputType": "text",
+  "ParamFieldName": "$.SaveName",
+  "IncludeInCommandLine": false,
+  "ExcludeFromImport": false,
+  "DefaultValue": "",
+  "Placeholder": "test",
+  "Required": false,
+  "EnumValues": {}
+ },
+ {
   "DisplayName": "Steam Username",
   "Category": "Coodsz:stadia_controller",
   "Subcategory": "Steam Workshop:cloud_download:2",

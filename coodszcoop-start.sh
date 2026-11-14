@@ -329,14 +329,39 @@ neuf = "1" if p.get("NewCampaign") else ""
 print("%s|%s|%s|%s" % (save, p.get("EnginePort") or 7210, p.get("Region") or "EU", neuf))
 PY
 )"
-SAVE="${PROFIL%%|*}"; RESTE="${PROFIL#*|}"
+SAVE_HJ="${PROFIL%%|*}"; RESTE="${PROFIL#*|}"
 PORT="${RESTE%%|*}"; RESTE="${RESTE#*|}"
-REGION="${RESTE%%|*}"; NEUF="${RESTE#*|}"
-[ -n "$SAVE" ] || { log "aucune sauvegarde choisie dans le profil : serveur non lance"; log "choisis une sauvegarde et une carte dans l'outil, puis redemarre"; exec wine "$EXE"; }
+REGION="${RESTE%%|*}"; NEUF_HJ="${RESTE#*|}"
+
+# 5b-bis. D'ou vient la sauvegarde a charger, par ordre de fiabilite :
+# 1. le reglage Save Name (il vit avec l'instance, pas avec l'outil) ;
+# 2. le profil actif de host.json ;
+# 3. la memoire du dernier demarrage reussi, ecrite ici.
+# L'outil vide SaveName dans host.json a chaque remise de ses fichiers (mesure :
+# quatre profils, tous a vide, apres un Update) ; sans ces deux replis, un Update
+# oblige a rechoisir la sauvegarde a la main a chaque fois.
+SAVE=""; ORIGINE=""
+case "${COODSZ_SAVE_NAME:-}" in
+    ""|*"{{"*) : ;;
+    *) SAVE="${COODSZ_SAVE_NAME}"; ORIGINE="reglage Save Name" ;;
+esac
+if [ -z "$SAVE" ] && [ -n "$SAVE_HJ" ]; then
+    SAVE="$SAVE_HJ"; ORIGINE="profil actif de l'outil"
+fi
+if [ -z "$SAVE" ] && [ -s "$ROOT/.coodsz-save" ]; then
+    SAVE="$(head -1 "$ROOT/.coodsz-save" | tr -d '\r\n')"
+    ORIGINE="dernier demarrage enregistre"
+fi
+if [ -z "$SAVE" ]; then
+    log "aucune sauvegarde connue : serveur non lance"
+    log "choisis une sauvegarde dans l'outil, ou renseigne le reglage Save Name"
+    exec wine "$EXE"
+fi
+printf '%s\n' "$SAVE" > "$ROOT/.coodsz-save" 2>/dev/null || true
 
 SAVEOPT="-SaveName"
-[ "$NEUF" = "1" ] && SAVEOPT="-NewSaveName"
-log "serveur Coop : profil=$SAVE (neuf=${NEUF:-0}) port moteur=$PORT region=$REGION"
+[ "$NEUF_HJ" = "1" ] && [ "$SAVE" = "$SAVE_HJ" ] && SAVEOPT="-NewSaveName"
+log "serveur Coop : sauvegarde=$SAVE (origine : $ORIGINE) port moteur=$PORT region=$REGION"
 
 # 5c. Outil en tache de fond, puis serveur au premier plan avec un pty.
 # python3 fournit le pty : c'est la seule facon de faire demarrer ConsoleHost.
