@@ -225,7 +225,23 @@ if modifie:
 PYSQL
 fi
 
-# --- 4. Lancement ---
+# --- 3c. Diagnostic du dossier serveur ---
+# Un serveur qui demarre puis sort avec le code 0 ne dit rien dans la console de
+# l'outil : on imprime donc ici, a chaque demarrage, ce sans quoi il ne peut pas
+# tourner. Trois lignes courtes, lisibles dans la console AMP.
+DS="$ROOT/server/DedicatedServer"
+if [ -d "$DS" ]; then
+    api="absent"
+    [ -f "$DS/steam_api64.dll" ] && api="present"
+    nb_mods=$(find "$DS/Modules" -maxdepth 2 -name 'SubModule.xml' 2>/dev/null | wc -l)
+    log "verif : steam_api64.dll $api, $nb_mods modules, exe $([ -f "$DS/BannerlordCoopServer.exe" ] && echo present || echo ABSENT)"
+    if command -v wine >/dev/null 2>&1; then
+        dv="$(WINEPREFIX="$WINEPREFIX" wine cmd /c dotnet --list-runtimes 2>/dev/null | tr -d '\r' | grep -oE 'Microsoft\.NETCore\.App [0-9.]+' | sort -u | tr '\n' ' ')"
+        log "verif : runtimes .NET sous Wine : ${dv:-aucun}"
+    fi
+    dernier="$(find "$DS" "$WINEPREFIX/drive_c/users" -name '*.log' -newermt '-2 days' 2>/dev/null | head -3 | tr '\n' ' ')"
+    [ -n "$dernier" ] && log "verif : journaux recents : $dernier"
+fi
 log "lancement de $EXE"
 cd "$(dirname "$EXE")" || exit 1
 exec wine "$EXE"
