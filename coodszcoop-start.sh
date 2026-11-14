@@ -210,7 +210,20 @@ else:
 # 2. Carte de campagne : sans elle, « Demarrer le serveur » refuse de partir.
 # Le module Sandbox fournit la carte Vanilla ; on ne remplit que les profils qui
 # n'ont rien choisi, un choix explicite de l'operateur n'est jamais ecrase.
-carte_ok = any(os.path.isdir(os.path.join(base, "Sandbox")) for base in (modules, modules_engine))
+def dossier_module(nom, bases):
+    """Trouve un module sans tenir compte de la casse : TaleWorlds ecrit SandBox
+    (majuscule au B) alors que l'outil affiche Sandbox, et Linux distingue."""
+    for base in bases:
+        try:
+            entrees = os.listdir(base)
+        except Exception:
+            continue
+        for e in entrees:
+            if e.lower() == nom.lower() and os.path.isdir(os.path.join(base, e)):
+                return os.path.join(base, e)
+    return None
+
+carte_ok = dossier_module("sandbox", (modules, modules_engine)) is not None
 remplis = []
 for profil in d.get("Profiles") or []:
     if not (profil.get("CampaignMap") or "").strip():
@@ -239,7 +252,9 @@ if [ -d "$DS" ]; then
     api="absent"
     [ -n "$(find "$DS" -maxdepth 3 -name 'steam_api64.dll' 2>/dev/null | head -1)" ] && api="present"
     nb_mods=$(find "$DS/Modules" "$DS/engine/Modules" -maxdepth 3 -name 'SubModule.xml' 2>/dev/null | wc -l)
+    noms_mods="$(find "$DS/Modules" "$DS/engine/Modules" -maxdepth 3 -name 'SubModule.xml' 2>/dev/null | sed 's#/[^/]*$##; s#.*/##' | sort -u | tr '\n' ' ')"
     log "verif : steam_api64.dll $api, $nb_mods modules, exe $([ -f "$DS/BannerlordCoopServer.exe" ] && echo present || echo ABSENT)"
+    [ -n "$noms_mods" ] && log "verif : modules presents : $noms_mods"
     # Le runtime .NET utile est celui que le serveur embarque : engine/dotnet/dotnet.exe.
     # Interroger « dotnet » tout court ne prouve rien (absent du prefixe).
     if [ -f "$DS/engine/dotnet/dotnet.exe" ] && command -v wine >/dev/null 2>&1; then
