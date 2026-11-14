@@ -314,7 +314,39 @@ if [ ! -f "$PWSH_DIR/pwsh.exe" ]; then
     log "PowerShell 7 en place : $PWSH_WIN"
 fi
 
-# 5b. Parametres du profil actif, lus dans host.json
+# 5b. Outil en tache de fond — avant toute lecture de host.json, parce que c'est
+# lui qui reecrit ce fichier a son demarrage : mesure sur l'instance, SaveName
+# vide juste apres un Update, rempli des que l'outil tourne. Lire avant lui, c'est
+# lire un etat perime et refuser de demarrer alors qu'une sauvegarde existe.
+wine "$EXE" >/tmp/coodsz-tool.log 2>&1 &
+TOOL_PID=$!
+trap 'kill "$TOOL_PID" 2>/dev/null' EXIT INT TERM
+log "outil lance en tache de fond (journal : /tmp/coodsz-tool.log)"
+
+# 5c. Attente du choix de sauvegarde, 40 s au plus.
+lit_save_actif() {
+    python3 - "$HOST_JSON" <<'PYSAVE'
+import json, sys
+try:
+    d = json.load(open(sys.argv[1]))
+except Exception:
+    print("")
+    raise SystemExit(0)
+nom = d.get("ActiveProfile") or ""
+p = next((x for x in (d.get("Profiles") or []) if x.get("Name") == nom), {})
+print((p.get("SaveName") or "").strip())
+PYSAVE
+}
+attente=0
+while [ "$attente" -lt 20 ]; do
+    [ -n "$(lit_save_actif)" ] && break
+    kill -0 "$TOOL_PID" 2>/dev/null || break
+    sleep 2
+    attente=$((attente + 1))
+done
+[ "$attente" -gt 0 ] && log "sauvegarde disponible apres $((attente * 2)) s d'attente"
+
+# 5d. Parametres du profil actif, lus dans host.json
 PS1_WIN="Z:$(printf '%s' "$ROOT/server/DedicatedServer/Coodsz-Start-ModdedServer.ps1" | tr '/' '\\')"
 PROFIL="$(python3 - "$HOST_JSON" <<'PY'
 import json, sys
@@ -363,12 +395,8 @@ SAVEOPT="-SaveName"
 [ "$NEUF_HJ" = "1" ] && [ "$SAVE" = "$SAVE_HJ" ] && SAVEOPT="-NewSaveName"
 log "serveur Coop : sauvegarde=$SAVE (origine : $ORIGINE) port moteur=$PORT region=$REGION"
 
-# 5c. Outil en tache de fond, puis serveur au premier plan avec un pty.
-# python3 fournit le pty : c'est la seule facon de faire demarrer ConsoleHost.
-wine "$EXE" >/tmp/coodsz-tool.log 2>&1 &
-TOOL_PID=$!
-trap 'kill "$TOOL_PID" 2>/dev/null' EXIT INT TERM
-log "outil lance en tache de fond (journal : /tmp/coodsz-tool.log)"
+# 5e. Serveur au premier plan sous un pty : c'est la seule facon de faire
+# demarrer ConsoleHost, et donc PowerShell 7 sous Wine.
 # Licence du serveur Coop : sans DS_ACCEPT_EULA le serveur demande « Accept the
 # EULA? [y/N] » au premier demarrage. Le template repond a la place de
 # l'exploitant : c'est sa propre instance, et l'outil a deja fait accepter ses
