@@ -278,11 +278,12 @@ cd "$(dirname "$EXE")" || exit 1
 # nous-memes, avec un pty, tout en laissant l'outil comme interface.
 # Active par defaut : c'est le seul moyen d'avoir un serveur qui tourne, le
 # bouton de l'outil ne pouvant pas aboutir sous Wine.
-# Desactive par un reglage (Server Autostart = off), une variable d'environnement
-# ou un simple fichier a la racine de l'instance — ces deux dernieres voies ne
-# dependent pas d'un Fetch qui reappliquerait la definition.
+# Seules deux choses l'empechent, et elles sont explicites : la valeur « 0 » ou le
+# fichier disable-server-autostart. Toute autre valeur laisse le serveur demarrer,
+# y compris « False » — un AMP qui a la definition en cache passe la case decochee
+# sous cette forme, et la prendre pour un arret rendait la correction inoperante.
 case "${COODSZ_SERVER_AUTOSTART:-1}" in
-    0|false|False|non|Non|no|No) AUTOSTART=0 ;;
+    0) AUTOSTART=0 ;;
     *) AUTOSTART=1 ;;
 esac
 if [ -f "$ROOT/disable-server-autostart" ]; then
@@ -291,8 +292,10 @@ if [ -f "$ROOT/disable-server-autostart" ]; then
 fi
 
 if [ "$AUTOSTART" != "1" ]; then
+    log "autostart desactive : l'outil seul est lance"
     exec wine "$EXE"
 fi
+log "autostart actif : le serveur Coop sera lance par le template"
 
 # 5a. PowerShell 7 dans le prefixe (une seule fois, ~110 Mo)
 PWSH_DIR="$WINEPREFIX/drive_c/pwsh"
