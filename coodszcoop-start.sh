@@ -128,9 +128,33 @@ if [ "$origine" = "reglage VNC Password" ] && [ "$vncpw" != "$(cat "$PW_FILE" 2>
     sleep 1
 fi
 
+# Adresse a afficher : celle que l'operateur ouvrira reellement. Le conteneur ne
+# peut pas deviner le nom de domaine servi par un reverse proxy, d'ou le reglage
+# « Public Address » ; a defaut on prend l'adresse liee a la route par defaut,
+# qui est celle de la machine sur le LAN.
+HOST_AFFICHE=""
+case "${COODSZ_PUBLIC_HOST:-}" in
+    ''|*'{{'*) ;;                       # vide, ou jeton non substitue
+    *) HOST_AFFICHE="$COODSZ_PUBLIC_HOST" ;;
+esac
+if [ -z "$HOST_AFFICHE" ]; then
+    HOST_AFFICHE="$(ip -4 route get 1.1.1.1 2>/dev/null | sed -n 's/.* src \([0-9.]*\).*/\1/p' | head -1)"
+fi
+if [ -z "$HOST_AFFICHE" ]; then
+    # Repli sans iproute2 : premiere IPv4 non locale de la machine.
+    HOST_AFFICHE="$(hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$' | grep -v '^127\.' | head -1)"
+fi
+[ -z "$HOST_AFFICHE" ] && HOST_AFFICHE="$(hostname 2>/dev/null || echo localhost)"
+
+# Port de l'interface : celui de l'onglet Ports. AMP 3 publie 1:1, et l'image
+# ecoute 8642 en dur ; la variable ne sert que si le template en declare un autre.
+WEBPORT="${COODSZ_WEB_PORT:-8642}"
+case "$WEBPORT" in ''|*'{{'*) WEBPORT=8642 ;; esac
+
 log "=============================================================="
-log " interface de l'outil : http://<adresse>:8642/vnc.html"
-log "   <adresse> = machine qui heberge AMP ; 8642 = port TCP de l'onglet Ports"
+log " interface de l'outil : http://$HOST_AFFICHE:$WEBPORT/vnc.html"
+log "   $WEBPORT = port TCP de l'onglet Ports de l'instance"
+log "   autre adresse a afficher (domaine, IP publique) : reglage \"Public Address\""
 log " mot de passe VNC : $vncpw"
 log "   origine : $origine"
 log "=============================================================="
