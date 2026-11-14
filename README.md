@@ -452,6 +452,21 @@ cycle de vie (démarrage, arrêt, ports, limites), tandis que les réglages de l
   des profils qui n'ont rien choisi, **et seulement si** le module `Sandbox` — celui qui fournit
   cette carte — est présent dans `server/DedicatedServer/Modules`. Un choix explicite de
   l'exploitant n'est jamais écrasé, ce qui laisse la place à TAOM ou à une autre carte.
+- **Le bouton « Démarrer le serveur » de l'outil ne fonctionne pas sous Wine, d'où le réglage
+  Server Autostart.** L'outil lance `ServerExecutable` avec des arguments PowerShell
+  (`-NoLogo -NoProfile -ExecutionPolicy Bypass -File Coodsz-Start-ModdedServer.ps1`) : il attend
+  donc un **interpréteur PowerShell**, pas le serveur. Mesuré : PowerShell 7 sous Wine ne
+  démarre que si on lui donne un **pseudo-terminal** — sans console, `ConsoleHost` lève une
+  `NullReferenceException` et le processus sort en code 0 en 55 ms sans rien faire. Comme
+  l'outil redirige les flux de ses enfants, son bouton ne peut pas aboutir ici : il affiche
+  « Le processus du serveur s'est fermé avec le code 0 » et rien ne tourne. Le `powershell.exe`
+  du préfixe est le stub vide de Wine, sans effet.
+  Avec **Server Autostart** activé, le template : installe PowerShell 7 dans le préfixe
+  (une fois, ~110 Mo), lit `EnginePort`, `Region` et la sauvegarde du profil actif dans
+  `host.json`, lance l'outil en tâche de fond pour l'interface, puis exécute
+  `Coodsz-Start-ModdedServer.ps1` au premier plan sous un pty (`python3 pty.fork`) — sa sortie
+  arrive donc dans la console AMP. Sans sauvegarde choisie, il s'arrête en le disant au lieu de
+  lancer un serveur sans monde.
 - **Où l'outil garde ses réglages** : `%LOCALAPPDATA%\Coodsz\Coop\host.json` dans le
   préfixe Wine, soit `.wine/drive_c/users/amp/AppData/Local/Coodsz/Coop/host.json`. Il contient
   les profils (`CoopPort`, `EnginePort`, `CampaignMap`, `ModuleOrder`, `DisabledModules`), le
