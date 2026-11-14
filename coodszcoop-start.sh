@@ -177,26 +177,51 @@ wine reg add "HKCU\\Software\\Microsoft\\Avalon.Graphics" /v DisableHWAccelerati
 # lancement : le preremplissage prend effet au demarrage suivant).
 SERVER_EXE="$ROOT/server/DedicatedServer/BannerlordCoopServer.exe"
 HOST_JSON="$WINEPREFIX/drive_c/users/$(id -un 2>/dev/null || echo amp)/AppData/Local/Coodsz/Coop/host.json"
+MODULES="$ROOT/server/DedicatedServer/Modules"
 if [ -f "$SERVER_EXE" ] && [ -f "$HOST_JSON" ] && command -v python3 >/dev/null 2>&1; then
     ZWIN="Z:$(printf '%s' "$SERVER_EXE" | tr '/' '\\\\')"
-    python3 - "$HOST_JSON" "$ZWIN" <<'PYSQL'
+    python3 - "$HOST_JSON" "$ZWIN" "$MODULES" <<'PYSQL'
 import json, os, sys
-chemin, exe = sys.argv[1], sys.argv[2]
+chemin, exe, modules = sys.argv[1], sys.argv[2], sys.argv[3]
+
 try:
     d = json.load(open(chemin))
 except Exception as e:
     print("[coodsz] host.json illisible (%s) : laisse tel quel" % e)
     raise SystemExit(0)
+
+modifie = False
+
+# 1. Dossier serveur : « Set server folder », evite la boite de dialogue sous Wine.
 actuel = d.get("ServerExecutable") or ""
 # Z: est la racine du conteneur : un chemin deja renseigne se verifie sur place.
 if actuel and os.path.exists(actuel.replace("Z:", "", 1).replace("\\", "/")):
     print("[coodsz] dossier serveur deja renseigne : %s" % actuel)
-    raise SystemExit(0)
-d["ServerExecutable"] = exe
-tmp = chemin + ".tmp"
-json.dump(d, open(tmp, "w"), indent=2)
-os.replace(tmp, chemin)
-print("[coodsz] dossier serveur prerempli dans host.json : %s" % exe)
+else:
+    d["ServerExecutable"] = exe
+    modifie = True
+    print("[coodsz] dossier serveur prerempli dans host.json : %s" % exe)
+
+# 2. Carte de campagne : sans elle, « Demarrer le serveur » refuse de partir.
+# Le module Sandbox fournit la carte Vanilla ; on ne remplit que les profils qui
+# n'ont rien choisi, un choix explicite de l'operateur n'est jamais ecrase.
+carte_ok = os.path.isdir(os.path.join(modules, "Sandbox"))
+remplis = []
+for profil in d.get("Profiles") or []:
+    if not (profil.get("CampaignMap") or "").strip():
+        if carte_ok:
+            profil["CampaignMap"] = "Vanilla"
+            remplis.append(profil.get("Name") or "?")
+if remplis:
+    modifie = True
+    print("[coodsz] carte de campagne reglee sur Vanilla : %s" % ", ".join(remplis))
+elif not carte_ok:
+    print("[coodsz] module Sandbox absent de %s : carte de campagne non reglee" % modules)
+
+if modifie:
+    tmp = chemin + ".tmp"
+    json.dump(d, open(tmp, "w"), indent=2)
+    os.replace(tmp, chemin)
 PYSQL
 fi
 

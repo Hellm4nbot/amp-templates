@@ -445,6 +445,13 @@ cycle de vie (démarrage, arrêt, ports, limites), tandis que les réglages de l
   `server/DedicatedServer/Modules/<nom>` depuis le dossier qui porte son `SubModule.xml`,
   quel que soit le niveau d'imbrication ; l'étape est idempotente. Sans identifiants Steam,
   l'étape est sautée et l'outil s'installe quand même.
+- **La carte de campagne est préremplie sur `Vanilla`.** Sans elle, « Démarrer le serveur »
+  refuse de partir avec « Choisissez d'abord une carte de campagne. » (le profil `Default`
+  naît avec `CampaignMap` vide, alors que le profil d'usine « Working stable mods for Coop
+  0.1.6 - Vanilla campaign Map » a `Vanilla`). Le script de démarrage remplit donc `CampaignMap`
+  des profils qui n'ont rien choisi, **et seulement si** le module `Sandbox` — celui qui fournit
+  cette carte — est présent dans `server/DedicatedServer/Modules`. Un choix explicite de
+  l'exploitant n'est jamais écrasé, ce qui laisse la place à TAOM ou à une autre carte.
 - **Où l'outil garde ses réglages** : `%LOCALAPPDATA%\Coodsz\Coop\host.json` dans le
   préfixe Wine, soit `.wine/drive_c/users/amp/AppData/Local/Coodsz/Coop/host.json`. Il contient
   les profils (`CoopPort`, `EnginePort`, `CampaignMap`, `ModuleOrder`, `DisabledModules`), le
