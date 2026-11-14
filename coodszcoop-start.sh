@@ -67,20 +67,73 @@ if [ ! -f "$STAMP" ]; then
 fi
 log "polices presentes : $(ls "$FD" 2>/dev/null | wc -l) fichiers"
 
-# --- 2b. Mot de passe et adresse de l'interface ---
-# L'entrypoint de l'image genere le mot de passe et l'ecrit dans $HOME, mais sa
-# sortie ne va que dans `podman logs` : la console AMP ne relaie que ce qu'ecrit
-# l'application. C'est donc ici qu'on le reaffiche, a chaque demarrage.
-PW_FILE="${HOME:-/home/amp}/.coodsz-vnc.pass"
-log "interface : http://<adresse>:8642/vnc.html (port publie pour l'interface, onglet Ports)"
-# Le fichier est la seule valeur sure : c'est lui que l'entrypoint a passe a
-# vncpasswd, donc c'est lui que Xvnc exige — que le mot de passe vienne du
-# reglage VNC Password, d'un demarrage precedent ou d'une generation.
-if [ -s "$PW_FILE" ]; then
-    log "mot de passe VNC : $(cat "$PW_FILE")"
-else
-    log "mot de passe VNC : introuvable dans $PW_FILE (regarde la console du conteneur : podman logs)"
+# --- 2b. Mot de passe VNC : appliquer le reglage du panneau, et l'afficher ---
+# L'entrypoint de l'image (PID 1) ne recoit pas les variables du template : il
+# choisit le mot de passe sans jamais voir le reglage « VNC Password ». Ici elles
+# arrivent, puisque c'est l'agent AMP qui nous lance avec App.EnvironmentVariables.
+# Donc : quand le reglage est renseigne, on reecrit le fichier d'authentification
+# et on redemarre Xvnc — necessaire, Xvnc ne lit son rfbauth qu'au demarrage.
+# Sans reglage, on ne touche a rien : le mot de passe de l'entrypoint, conserve
+# avec l'instance, reste en vigueur.
+VNC_HOME="${HOME:-/home/amp}"
+PW_FILE="$VNC_HOME/.coodsz-vnc.pass"
+RFB_FILE="$VNC_HOME/.coodsz-vnc.rfbauth"
+vncpw=""
+origine=""
+
+case "${COODSZ_VNC_PASSWORD:-}" in
+    ''|*'{{'*)
+        # vide, ou jeton que AMP n'a pas substitue : ne pas le prendre au mot
+        ;;
+    *)
+        vncpw="$COODSZ_VNC_PASSWORD"
+        origine="reglage VNC Password"
+        ;;
+esac
+
+if [ -z "$vncpw" ]; then
+    if [ -s "$PW_FILE" ]; then
+        vncpw="$(cat "$PW_FILE")"
+        origine="conserve avec l'instance"
+    else
+        vncpw="$(head -c 32 /dev/urandom | base64 | tr -d '/+=' | cut -c1-12)"
+        printf '%s' "$vncpw" > "$PW_FILE"
+        chmod 600 "$PW_FILE" 2>/dev/null
+        origine="genere maintenant, conserve dans $PW_FILE"
+    fi
 fi
+
+# Fiabilite d'abord : si le redemarrage de Xvnc ne prend pas, on le signale et on
+# laisse le mot de passe precedent plutot que d'annoncer un mot de passe faux.
+if [ "$origine" = "reglage VNC Password" ] && [ "$vncpw" != "$(cat "$PW_FILE" 2>/dev/null || true)" ]; then
+    log "reglage VNC Password different de celui en vigueur : redemarrage de Xvnc"
+    pkill -x fluxbox 2>/dev/null
+    pkill -x Xvnc 2>/dev/null
+    for _ in $(seq 1 20); do pgrep -x Xvnc >/dev/null 2>&1 || break; sleep 0.5; done
+    rm -f /tmp/.X99-lock /tmp/.X11-unix/X99 2>/dev/null
+    printf '%s\n' "$vncpw" | vncpasswd -f > "$RFB_FILE" 2>/dev/null
+    chmod 600 "$RFB_FILE" 2>/dev/null
+    Xvnc :99 -geometry 1280x900 -depth 24 -rfbport 5900 \
+         -rfbauth "$RFB_FILE" -SecurityTypes VncAuth \
+         -AlwaysShared -desktop coodsz >/tmp/xvnc.log 2>&1 &
+    sleep 3
+    if pgrep -x Xvnc >/dev/null 2>&1; then
+        log "Xvnc redemarre : le reglage VNC Password est applique"
+    else
+        log "ATTENTION : Xvnc n'a pas redemarre (voir /tmp/xvnc.log) — mot de passe inchange"
+        vncpw="$(cat "$PW_FILE" 2>/dev/null || echo '?')"
+        origine="precedent, le redemarrage de Xvnc a echoue"
+    fi
+    fluxbox >/tmp/fluxbox.log 2>&1 &
+    sleep 1
+fi
+
+log "=============================================================="
+log " interface de l'outil : http://<adresse>:8642/vnc.html"
+log "   <adresse> = machine qui heberge AMP ; 8642 = port TCP de l'onglet Ports"
+log " mot de passe VNC : $vncpw"
+log "   origine : $origine"
+log "=============================================================="
 
 # --- 3. Registre : substitutions de polices et rendu WPF sans GPU ---
 for paire in "Segoe UI:Liberation Sans" "Arial:Liberation Sans" "Calibri:Liberation Sans" "Tahoma:Liberation Sans" "Times New Roman:Liberation Serif" "Courier New:Liberation Mono"; do

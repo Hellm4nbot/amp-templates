@@ -383,8 +383,17 @@ cycle de vie (démarrage, arrêt, ports, limites), tandis que les réglages de l
   l'interface est publié. `Xvnc` démarre avec `-rfbauth` et `-SecurityTypes VncAuth`. Trois sources,
   dans cet ordre : le réglage **VNC Password** du template, sinon le mot de passe conservé
   avec l'instance (`$HOME/.coodsz-vnc.pass`), sinon un mot de passe généré au premier
-  démarrage. Le réglage s'affiche et se modifie dans l'interface AMP ; laissé vide, le mot
-  de passe est généré et reste consultable dans la console.
+  démarrage.
+- **Le réglage VNC Password n'est appliqué que par le script de démarrage, pas par l'image.**
+  L'entrypoint (PID 1 du conteneur) ne reçoit **pas** les variables du template — mesuré,
+  `podman exec … printenv COODSZ_WEB_PORT` renvoie vide — alors que l'application, lancée par
+  l'agent AMP, les reçoit. Le mot de passe choisi par l'entrypoint ignore donc le panneau.
+  Le script de démarrage compare les deux : si le réglage est renseigné et diffère du mot de
+  passe en vigueur, il réécrit le `-rfbauth` et **redémarre Xvnc** (Xvnc ne lit son fichier
+  d'authentification qu'au démarrage), puis relance fluxbox. Si le redémarrage échoue, il le
+  dit et annonce l'ancien mot de passe plutôt qu'un mot de passe faux. Sans réglage, rien
+  n'est touché. Prix de ce fonctionnement : **un redémarrage** de l'écran virtuel, donc un
+  changement de mot de passe prend effet au démarrage suivant, pas à chaud.
 - **La console affiche l'accès à chaque démarrage** : adresse de l'interface
   (`http://<adresse>:<port>/vnc.html`) puis mot de passe et son origine. Le conteneur écoute
   le port déclaré, 8642, en dur (voir la note sur les ports 1:1 ci-dessous).
