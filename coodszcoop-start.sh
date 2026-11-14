@@ -177,12 +177,17 @@ wine reg add "HKCU\\Software\\Microsoft\\Avalon.Graphics" /v DisableHWAccelerati
 # lancement : le preremplissage prend effet au demarrage suivant).
 SERVER_EXE="$ROOT/server/DedicatedServer/BannerlordCoopServer.exe"
 HOST_JSON="$WINEPREFIX/drive_c/users/$(id -un 2>/dev/null || echo amp)/AppData/Local/Coodsz/Coop/host.json"
+# Les modules vivent a deux endroits selon l'age de l'installation : Modules/ a la
+# racine du serveur (copie d'origine, souvent vide) et engine/Modules (la ou
+# l'outil range les modules qu'il gere). Ne regarder que le premier fait croire a
+# tort que le module Sandbox manque.
 MODULES="$ROOT/server/DedicatedServer/Modules"
+MODULES_ENGINE="$ROOT/server/DedicatedServer/engine/Modules"
 if [ -f "$SERVER_EXE" ] && [ -f "$HOST_JSON" ] && command -v python3 >/dev/null 2>&1; then
     ZWIN="Z:$(printf '%s' "$SERVER_EXE" | tr '/' '\\\\')"
-    python3 - "$HOST_JSON" "$ZWIN" "$MODULES" <<'PYSQL'
+    python3 - "$HOST_JSON" "$ZWIN" "$MODULES" "$MODULES_ENGINE" <<'PYSQL'
 import json, os, sys
-chemin, exe, modules = sys.argv[1], sys.argv[2], sys.argv[3]
+chemin, exe, modules, modules_engine = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 
 try:
     d = json.load(open(chemin))
@@ -205,7 +210,7 @@ else:
 # 2. Carte de campagne : sans elle, « Demarrer le serveur » refuse de partir.
 # Le module Sandbox fournit la carte Vanilla ; on ne remplit que les profils qui
 # n'ont rien choisi, un choix explicite de l'operateur n'est jamais ecrase.
-carte_ok = os.path.isdir(os.path.join(modules, "Sandbox"))
+carte_ok = any(os.path.isdir(os.path.join(base, "Sandbox")) for base in (modules, modules_engine))
 remplis = []
 for profil in d.get("Profiles") or []:
     if not (profil.get("CampaignMap") or "").strip():
@@ -216,7 +221,7 @@ if remplis:
     modifie = True
     print("[coodsz] carte de campagne reglee sur Vanilla : %s" % ", ".join(remplis))
 elif not carte_ok:
-    print("[coodsz] module Sandbox absent de %s : carte de campagne non reglee" % modules)
+    print("[coodsz] module Sandbox introuvable (Modules et engine/Modules) : carte non reglee")
 
 if modifie:
     tmp = chemin + ".tmp"
@@ -232,12 +237,16 @@ fi
 DS="$ROOT/server/DedicatedServer"
 if [ -d "$DS" ]; then
     api="absent"
-    [ -f "$DS/steam_api64.dll" ] && api="present"
-    nb_mods=$(find "$DS/Modules" -maxdepth 2 -name 'SubModule.xml' 2>/dev/null | wc -l)
+    [ -n "$(find "$DS" -maxdepth 3 -name 'steam_api64.dll' 2>/dev/null | head -1)" ] && api="present"
+    nb_mods=$(find "$DS/Modules" "$DS/engine/Modules" -maxdepth 3 -name 'SubModule.xml' 2>/dev/null | wc -l)
     log "verif : steam_api64.dll $api, $nb_mods modules, exe $([ -f "$DS/BannerlordCoopServer.exe" ] && echo present || echo ABSENT)"
-    if command -v wine >/dev/null 2>&1; then
-        dv="$(WINEPREFIX="$WINEPREFIX" wine cmd /c dotnet --list-runtimes 2>/dev/null | tr -d '\r' | grep -oE 'Microsoft\.NETCore\.App [0-9.]+' | sort -u | tr '\n' ' ')"
-        log "verif : runtimes .NET sous Wine : ${dv:-aucun}"
+    # Le runtime .NET utile est celui que le serveur embarque : engine/dotnet/dotnet.exe.
+    # Interroger « dotnet » tout court ne prouve rien (absent du prefixe).
+    if [ -f "$DS/engine/dotnet/dotnet.exe" ] && command -v wine >/dev/null 2>&1; then
+        dv="$(WINEPREFIX="$WINEPREFIX" wine "$DS/engine/dotnet/dotnet.exe" --list-runtimes 2>/dev/null | tr -d '\r' | grep -oE 'Microsoft\.NETCore\.App [0-9.]+' | sort -u | tr '\n' ' ')"
+        log "verif : runtime .NET embarque : ${dv:-aucun}"
+    else
+        log "verif : runtime .NET embarque absent (engine/dotnet/dotnet.exe)"
     fi
     dernier="$(find "$DS" "$WINEPREFIX/drive_c/users" -name '*.log' -newermt '-2 days' 2>/dev/null | head -3 | tr '\n' ' ')"
     [ -n "$dernier" ] && log "verif : journaux recents : $dernier"
