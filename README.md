@@ -394,9 +394,14 @@ cycle de vie (démarrage, arrêt, ports, limites), tandis que les réglages de l
   dit et annonce l'ancien mot de passe plutôt qu'un mot de passe faux. Sans réglage, rien
   n'est touché. Prix de ce fonctionnement : **un redémarrage** de l'écran virtuel, donc un
   changement de mot de passe prend effet au démarrage suivant, pas à chaud.
-- **La console affiche l'accès à chaque démarrage** : adresse de l'interface
-  (`http://<adresse>:<port>/vnc.html`) puis mot de passe et son origine. Le conteneur écoute
-  le port déclaré, 8642, en dur (voir la note sur les ports 1:1 ci-dessous).
+- **La console affiche l'accès complet à chaque démarrage** — une URL réellement cliquable,
+  pas un gabarit : `http://192.168.1.13:8642/vnc.html`, puis le mot de passe et son origine.
+  L'adresse vient du réglage **Public Address** quand il est renseigné (nom de domaine du
+  reverse proxy, IP publique), sinon de l'adresse liée à la route par défaut (celle de la
+  machine sur le LAN), sinon de `hostname -I`, sinon du nom d'hôte. Le conteneur ne peut pas
+  deviner un nom de domaine : c'est le seul cas où le réglage sert. Le port affiché est
+  `COODSZ_WEB_PORT` (8642 par défaut), identique au port TCP de l'onglet Ports ; l'image
+  écoute 8642 en dur (voir la note sur les ports 1:1 ci-dessous).
 - **Ports** : 8642 TCP (interface), 4200 et 4201 UDP (jeu et jeu+1), 7210 interne.
   Le port de l'interface est **paramétrable** : `COODSZ_WEB_PORT` dans le `.kvp` et le numéro
   déclaré dans `coodszcoopports.json` doivent rester identiques, le conteneur écoute ce que

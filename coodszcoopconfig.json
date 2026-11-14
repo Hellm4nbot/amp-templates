@@ -16,6 +16,22 @@
   "EnumValues": {}
  },
  {
+  "DisplayName": "Public Address",
+  "Category": "Coodsz:stadia_controller",
+  "Subcategory": "Interface:settings:1",
+  "Description": "Address the interface line should show: a domain name served by your reverse proxy, or your public IP, i.e. what your players will actually type. Leave it empty and the machine's own address on the local network is detected and used. It only changes the text printed in the console - the interface itself listens on the port declared in the Ports tab.",
+  "Keywords": "address,domain,url,public,interface",
+  "FieldName": "PublicAddress",
+  "InputType": "text",
+  "ParamFieldName": "$.PublicAddress",
+  "IncludeInCommandLine": false,
+  "ExcludeFromImport": false,
+  "DefaultValue": "",
+  "Placeholder": "leave empty to detect the local address",
+  "Required": false,
+  "EnumValues": {}
+ },
+ {
   "DisplayName": "Steam Username",
   "Category": "Coodsz:stadia_controller",
   "Subcategory": "Steam Workshop:cloud_download:2",
