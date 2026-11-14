@@ -52,16 +52,45 @@ if [ ! -x "$SC/steamcmd.sh" ]; then
 fi
 
 # --- 2. Connexion ---
+# Steam ne garde pas forcement sa session : un jeton peut etre revoque (mot de
+# passe change, appareils deauthorises, changement de machine). Sans mot de passe
+# renseigne, SteamCMD ne peut alors que repondre « Cached credentials not found ».
+# On dit donc lequel des deux cas on est, avant de tenter quoi que ce soit.
+jeton() {
+    if ls "$HOME_SC"/Steam/ssfn* >/dev/null 2>&1 || [ -f "$HOME_SC/Steam/config/config.vdf" ]; then
+        echo present
+    else
+        echo absent
+    fi
+}
+AVANT="$(jeton)"
 if [ -n "$SPASS" ]; then
     set -- +login "$SUSER" "$SPASS" ${SGUARD:-}
+elif [ "$AVANT" = "present" ]; then
+    set -- +login "$SUSER"
+    log "jeton Steam en cache : present, connexion sans mot de passe"
 else
     set -- +login "$SUSER"
+    log "jeton Steam en cache : ABSENT et aucun mot de passe renseigne :"
+    log "  Steam va repondre « Cached credentials not found »."
+    log "  Renseigne « Steam Password » (et un code Steam Guard frais) puis relance Update."
+    log "  Ce n'est pas une panne du template : Steam a invalide la session (mot de passe"
+    log "  change, appareil deauthorise, ou jeton expire)."
 fi
 
 log "connexion Steam et telechargement de l'atelier $ITEM"
 HOME="$HOME_SC" "$SC/steamcmd.sh" "$@" \
     +workshop_download_item 261550 "$ITEM" validate \
     +quit 2>&1 | tee "$LOG"
+
+# Ce que Steam a retenu de la connexion : sans jeton ecrit, le prochain Update
+# redemandera le mot de passe, et c'est utile a savoir tout de suite.
+APRES="$(jeton)"
+if [ "$APRES" = "present" ] && [ "$AVANT" = "absent" ]; then
+    log "jeton Steam ecrit : les prochains Update se passeront du mot de passe"
+elif [ "$APRES" = "absent" ] && [ -n "$SPASS" ]; then
+    log "ATTENTION : connexion tentee mais aucun jeton ecrit — le mot de passe sera redemande"
+fi
 
 CONTENT="$HOME_SC/Steam/steamapps/workshop/content/261550"
 EXE="$(find "$CONTENT/$ITEM" -maxdepth 3 -name 'BannerlordCoopServer.exe' 2>/dev/null | head -1)"
