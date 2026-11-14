@@ -32,6 +32,22 @@
   "EnumValues": {}
  },
  {
+  "DisplayName": "Server Autostart",
+  "Category": "Coodsz:stadia_controller",
+  "Subcategory": "Interface:settings:1",
+  "Description": "Start the Coop server together with this instance, instead of using the tool's own Start button. Needed because that button launches the server through PowerShell, and PowerShell 7 under Wine only runs with a console - which the tool does not give it, so the button fails silently. When this is on, the template installs PowerShell 7 in the Wine prefix once (~110 MB), reads the active profile's save and engine port, starts the tool in the background and runs the server in the foreground, so its output appears in the AMP console. The tool stays available in the browser for mods, saves and settings.",
+  "Keywords": "autostart,server,start,powershell",
+  "FieldName": "ServerAutostart",
+  "InputType": "checkbox",
+  "ParamFieldName": "$.ServerAutostart",
+  "IncludeInCommandLine": false,
+  "ExcludeFromImport": false,
+  "DefaultValue": false,
+  "Placeholder": "",
+  "Required": false,
+  "EnumValues": {}
+ },
+ {
   "DisplayName": "Steam Username",
   "Category": "Coodsz:stadia_controller",
   "Subcategory": "Steam Workshop:cloud_download:2",

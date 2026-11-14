@@ -244,4 +244,90 @@ if [ -d "$DS" ]; then
 fi
 log "lancement de $EXE"
 cd "$(dirname "$EXE")" || exit 1
-exec wine "$EXE"
+
+# --- 5. Lancement du serveur Coop par le template (option) ---
+# Pourquoi ce detour : le bouton « Demarrer le serveur » de l'outil lance
+# ServerExecutable avec des arguments PowerShell. Or PowerShell 7 sous Wine exige
+# une console : sans pty, ConsoleHost leve une NullReferenceException et le
+# process sort en code 0 en 55 ms, sans rien faire (mesure). L'outil redirigeant
+# les flux, son bouton ne peut pas fonctionner ici. On lance donc le serveur
+# nous-memes, avec un pty, tout en laissant l'outil comme interface.
+# Desactive par defaut : sans le reglage, rien ne change.
+case "${COODSZ_SERVER_AUTOSTART:-0}" in
+    1|true|True|oui|Oui|yes|Yes) AUTOSTART=1 ;;
+    *) AUTOSTART=0 ;;
+esac
+
+if [ "$AUTOSTART" != "1" ]; then
+    exec wine "$EXE"
+fi
+
+# 5a. PowerShell 7 dans le prefixe (une seule fois, ~110 Mo)
+PWSH_DIR="$WINEPREFIX/drive_c/pwsh"
+PWSH_WIN='C:\pwsh\pwsh.exe'
+if [ ! -f "$PWSH_DIR/pwsh.exe" ]; then
+    ZIP="$ROOT/pwsh-win-x64.zip"
+    if [ ! -s "$ZIP" ]; then
+        log "installation de PowerShell 7 dans le prefixe (110 Mo, une fois)"
+        curl -fsSL -o "$ZIP" \
+            https://github.com/PowerShell/PowerShell/releases/download/v7.4.6/PowerShell-7.4.6-win-x64.zip \
+            || { log "telechargement de PowerShell echoue : server non lance"; exec wine "$EXE"; }
+    fi
+    mkdir -p "$PWSH_DIR"
+    python3 -c 'import sys, zipfile; zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])' "$ZIP" "$PWSH_DIR" \
+        || { log "extraction de PowerShell echouee : serveur non lance"; exec wine "$EXE"; }
+    log "PowerShell 7 en place : $PWSH_WIN"
+fi
+
+# 5b. Parametres du profil actif, lus dans host.json
+PS1_WIN="Z:$(printf '%s' "$ROOT/server/DedicatedServer/Coodsz-Start-ModdedServer.ps1" | tr '/' '\\')"
+PROFIL="$(python3 - "$HOST_JSON" <<'PY'
+import json, sys
+try:
+    d = json.load(open(sys.argv[1]))
+except Exception:
+    print("|7210|EU|"); raise SystemExit(0)
+nom = d.get("ActiveProfile") or ""
+p = next((x for x in (d.get("Profiles") or []) if x.get("Name") == nom), {})
+save = (p.get("SaveName") or "").strip()
+neuf = "1" if p.get("NewCampaign") else ""
+print("%s|%s|%s|%s" % (save, p.get("EnginePort") or 7210, p.get("Region") or "EU", neuf))
+PY
+)"
+SAVE="${PROFIL%%|*}"; RESTE="${PROFIL#*|}"
+PORT="${RESTE%%|*}"; RESTE="${RESTE#*|}"
+REGION="${RESTE%%|*}"; NEUF="${RESTE#*|}"
+[ -n "$SAVE" ] || { log "aucune sauvegarde choisie dans le profil : serveur non lance"; log "choisis une sauvegarde et une carte dans l'outil, puis redemarre"; exec wine "$EXE"; }
+
+SAVEOPT="-SaveName"
+[ "$NEUF" = "1" ] && SAVEOPT="-NewSaveName"
+log "serveur Coop : profil=$SAVE (neuf=${NEUF:-0}) port moteur=$PORT region=$REGION"
+
+# 5c. Outil en tache de fond, puis serveur au premier plan avec un pty.
+# python3 fournit le pty : c'est la seule facon de faire demarrer ConsoleHost.
+wine "$EXE" >/tmp/coodsz-tool.log 2>&1 &
+TOOL_PID=$!
+trap 'kill "$TOOL_PID" 2>/dev/null' EXIT INT TERM
+log "outil lance en tache de fond (journal : /tmp/coodsz-tool.log)"
+exec python3 - wine "$PWSH_WIN" -NoProfile -ExecutionPolicy Bypass -File "$PS1_WIN" \
+    -NoPrompt -Port "$PORT" -Region "$REGION" "$SAVEOPT" "$SAVE" <<'PYP'
+import os, pty, sys
+args = sys.argv[1:]
+pid, fd = pty.fork()
+if pid == 0:
+    try:
+        os.execvp(args[0], args)
+    finally:
+        os._exit(127)
+while True:
+    try:
+        data = os.read(fd, 8192)
+    except OSError:
+        break
+    if not data:
+        break
+    sys.stdout.write(data.decode("utf-8", "replace"))
+    sys.stdout.flush()
+_, st = os.waitpid(pid, 0)
+sys.exit(os.waitstatus_to_exitcode(st))
+PYP
