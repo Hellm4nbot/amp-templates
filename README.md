@@ -461,7 +461,11 @@ cycle de vie (démarrage, arrêt, ports, limites), tandis que les réglages de l
   l'outil redirige les flux de ses enfants, son bouton ne peut pas aboutir ici : il affiche
   « Le processus du serveur s'est fermé avec le code 0 » et rien ne tourne. Le `powershell.exe`
   du préfixe est le stub vide de Wine, sans effet.
-  Avec **Server Autostart** activé, le template : installe PowerShell 7 dans le préfixe
+  **Le serveur est donc lancé par le template, par défaut.** Le réglage **Server Autostart**
+  permet de revenir en arrière ; il n'est pas nécessaire de l'activer. Sans Fetch (définition
+  déjà en place), deux voies équivalentes : créer un fichier vide
+  `disable-server-autostart` à la racine de l'instance, ou définir
+  `COODSZ_SERVER_AUTOSTART=0`. Activé, le template : installe PowerShell 7 dans le préfixe
   (une fois, ~110 Mo), lit `EnginePort`, `Region` et la sauvegarde du profil actif dans
   `host.json`, lance l'outil en tâche de fond pour l'interface, puis exécute
   `Coodsz-Start-ModdedServer.ps1` au premier plan sous un pty (`python3 pty.fork`) — sa sortie
