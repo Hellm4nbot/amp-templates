@@ -252,11 +252,19 @@ cd "$(dirname "$EXE")" || exit 1
 # process sort en code 0 en 55 ms, sans rien faire (mesure). L'outil redirigeant
 # les flux, son bouton ne peut pas fonctionner ici. On lance donc le serveur
 # nous-memes, avec un pty, tout en laissant l'outil comme interface.
-# Desactive par defaut : sans le reglage, rien ne change.
-case "${COODSZ_SERVER_AUTOSTART:-0}" in
-    1|true|True|oui|Oui|yes|Yes) AUTOSTART=1 ;;
-    *) AUTOSTART=0 ;;
+# Active par defaut : c'est le seul moyen d'avoir un serveur qui tourne, le
+# bouton de l'outil ne pouvant pas aboutir sous Wine.
+# Desactive par un reglage (Server Autostart = off), une variable d'environnement
+# ou un simple fichier a la racine de l'instance — ces deux dernieres voies ne
+# dependent pas d'un Fetch qui reappliquerait la definition.
+case "${COODSZ_SERVER_AUTOSTART:-1}" in
+    0|false|False|non|Non|no|No) AUTOSTART=0 ;;
+    *) AUTOSTART=1 ;;
 esac
+if [ -f "$ROOT/disable-server-autostart" ]; then
+    AUTOSTART=0
+    log "serveur non lance : fichier disable-server-autostart present"
+fi
 
 if [ "$AUTOSTART" != "1" ]; then
     exec wine "$EXE"
