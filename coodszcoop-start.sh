@@ -344,9 +344,16 @@ wine "$EXE" >/tmp/coodsz-tool.log 2>&1 &
 TOOL_PID=$!
 trap 'kill "$TOOL_PID" 2>/dev/null' EXIT INT TERM
 log "outil lance en tache de fond (journal : /tmp/coodsz-tool.log)"
+# Licence du serveur Coop : sans DS_ACCEPT_EULA le serveur demande « Accept the
+# EULA? [y/N] » au premier demarrage. Le template repond a la place de
+# l'exploitant : c'est sa propre instance, et l'outil a deja fait accepter ses
+# conditions. Une fois acceptee, le serveur ecrit eula=true dans son dossier de
+# donnees et ne redemande plus. Pour refuser : retirer cette ligne.
+export DS_ACCEPT_EULA=true
 exec python3 - wine "$PWSH_WIN" -NoProfile -ExecutionPolicy Bypass -File "$PS1_WIN" \
     -NoPrompt -Port "$PORT" -Region "$REGION" "$SAVEOPT" "$SAVE" <<'PYP'
-import os, pty, sys
+import os, pty, select, sys
+
 args = sys.argv[1:]
 pid, fd = pty.fork()
 if pid == 0:
@@ -354,15 +361,35 @@ if pid == 0:
         os.execvp(args[0], args)
     finally:
         os._exit(127)
-while True:
-    try:
-        data = os.read(fd, 8192)
-    except OSError:
-        break
-    if not data:
-        break
-    sys.stdout.write(data.decode("utf-8", "replace"))
-    sys.stdout.flush()
+
+# Sortie du serveur vers la console, et saisie de la console vers le serveur :
+# sans ce second sens, une invite (« Accept the EULA? [y/N] ») bloquerait le
+# demarrage sans qu'on puisse y repondre depuis AMP.
+os.set_blocking(fd, False)
+entrees = [fd, 0]
+while entrees:
+    lisibles, _, _ = select.select(entrees, [], [])
+    for source in lisibles:
+        if source == fd:
+            try:
+                data = os.read(fd, 8192)
+            except OSError:
+                data = b""
+            if not data:
+                entrees.remove(fd)
+                continue
+            sys.stdout.write(data.decode("utf-8", "replace"))
+            sys.stdout.flush()
+        else:
+            frappe = os.read(0, 1024)
+            if not frappe:
+                entrees.remove(0)
+                continue
+            try:
+                os.write(fd, frappe)
+            except OSError:
+                entrees.remove(0)
+
 _, st = os.waitpid(pid, 0)
 sys.exit(os.waitstatus_to_exitcode(st))
 PYP
