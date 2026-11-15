@@ -1,3 +1,7 @@
+# Coodsz Coop — template AMP 3 (EN SUSPENS)
+
+> **Statut au 14 novembre 2026 : en suspens.** L'exploitant a préféré garder le serveur Coop classique, qui fonctionne. Rien n'est supprimé : tout ce qui suit décrit un montage qui va jusqu'au lancement du serveur, avec deux points durs connus et documentés en fin de fichier (ports à aligner sur 4200/4201/7210, et Fetch d'AMP capricieux).
+
 # Hellm4n — templates AMP
 
 Dépôt unique regroupant mes templates de modules génériques pour CubeCoders AMP.
