@@ -130,40 +130,48 @@ fi
 # --- 3. Assemblage du dossier serveur ---
 mkdir -p "$SRV"
 DS_SRC="$(dirname "$EXE")"
-# Une copie interrompue laissait un dossier present mais vide, et le controle
-# « deja present » la figeait : le serveur ne pouvait plus demarrer, faute du
-# script PowerShell et du bootstrap. On verifie donc le contenu, pas l'existence.
+# Deux fichiers de ce dossier ne viennent PAS du paquet d'atelier :
+# Coodsz-Start-ModdedServer.ps1 et BannerlordCoop.RuntimeBootstrap.dll sont ecrits
+# par l'outil Coodsz lui-meme (aucun .ps1 dans l'atelier 3770450698, verifie). Les
+# reclamer faisait echouer chaque mise a jour. On ne controle donc que ce que le
+# paquet fournit reellement, et on complete le reste depuis lui.
 MANQUANTS=""
-for f in BannerlordCoopServer.exe Coodsz-Start-ModdedServer.ps1 BannerlordCoop.RuntimeBootstrap.dll; do
-    [ -f "$SRV/DedicatedServer/$f" ] || MANQUANTS="$MANQUANTS $f"
+for f in BannerlordCoopServer.exe engine/Modules engine/dotnet/dotnet.exe; do
+    if [ -d "$DS_SRC/$f" ] || [ -f "$DS_SRC/$f" ]; then
+        [ -e "$SRV/DedicatedServer/$f" ] || MANQUANTS="$MANQUANTS $f"
+    fi
 done
-[ -d "$SRV/DedicatedServer/engine/Modules" ] || MANQUANTS="$MANQUANTS engine/Modules"
-if [ -z "$MANQUANTS" ]; then
+if [ -d "$SRV/DedicatedServer" ] && [ -z "$MANQUANTS" ]; then
     log "dossier serveur complet : laisse tel quel (sauvegardes, mods et reglages de l'outil)"
 else
-    log "dossier serveur incomplet (manque:$MANQUANTS)"
+    log "dossier serveur incomplet (manque:${MANQUANTS:- tout})"
     NEUF=0
     [ -d "$SRV/DedicatedServer" ] || NEUF=1
     mkdir -p "$SRV/DedicatedServer"
     if [ "$NEUF" = "1" ]; then
         # Premiere installation : copie complete, sinon les fichiers non testes
-        # (licences, autres scripts, DLL du paquet) manqueraient.
+        # (licences, dossier engine, ressources chromium) manqueraient.
         log "  premiere installation : copie complete du paquet"
         cp -a "$DS_SRC/." "$SRV/DedicatedServer/" || { log "copie du serveur echouee"; exit 1; }
-    fi
-    # On ne copie QUE ce qui manque : recopier les 2 a 3 Go du paquet pour deux
-    # fichiers absents faisait durer chaque Update plusieurs minutes. Un dossier
-    # est fusionne (cp -a dir/. dest/), un fichier copie tel quel ; rien n'est
-    # efface, donc les mods et les fichiers de l'outil survivent.
-    for manque in $([ "$NEUF" = "1" ] && echo "" || echo "$MANQUANTS"); do
-        if [ -d "$DS_SRC/$manque" ]; then
-            mkdir -p "$SRV/DedicatedServer/$manque"
-            cp -a "$DS_SRC/$manque/." "$SRV/DedicatedServer/$manque/" || { log "copie de $manque echouee"; exit 1; }
-        else
+    else
+        # Dossier existant : on ne copie que les entrees absentes, sans jamais
+        # effacer ce que l'operateur a ajoute (mods d'atelier, fichiers de l'outil).
+        for entree in "$DS_SRC"/*; do
+            nom="$(basename "$entree")"
+            [ -e "$SRV/DedicatedServer/$nom" ] && continue
+            cp -a "$entree" "$SRV/DedicatedServer/$nom" || { log "copie de $nom echouee"; exit 1; }
+            log "  $nom copie depuis le paquet"
+        done
+        # Les manques imbriques (engine/Modules, engine/dotnet) ne sont pas des
+        # entrees de premier niveau : le dossier parent existe deja, donc la boucle
+        # ci-dessus les ignore. On les copie nommement.
+        for manque in $MANQUANTS; do
+            [ -e "$SRV/DedicatedServer/$manque" ] && continue
+            mkdir -p "$(dirname "$SRV/DedicatedServer/$manque")"
             cp -a "$DS_SRC/$manque" "$SRV/DedicatedServer/$manque" || { log "copie de $manque echouee"; exit 1; }
-        fi
-        log "  $manque copie depuis le paquet"
-    done
+            log "  $manque copie depuis le paquet"
+        done
+    fi
 fi
 
 # --- 4. Mods d'atelier ---
