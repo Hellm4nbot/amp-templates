@@ -207,7 +207,10 @@ fi
 
 HOST_JSON="$(find "${WINEPREFIX:-${ROOT}.wine}/drive_c/users" -maxdepth 6 \
     -path '*AppData/Local/Coodsz/Coop/host.json' 2>/dev/null | head -1)"
-if [ -n "$HOST_JSON" ] && grep -qi 'DedicatedServer.BannerlordCoopServer.exe' "$HOST_JSON" 2>/dev/null; then
+# Le fichier contient des barres echappees (Z:\\amp\\...\\DedicatedServer\\BannerlordCoopServer.exe) :
+# un motif a un seul caractere generique entre les deux ne matchait pas, et le
+# message demandait de refaire un reglage deja fait.
+if [ -n "$HOST_JSON" ] && grep -qiF 'BannerlordCoopServer.exe' "$HOST_JSON" 2>/dev/null; then
     log "dossier serveur deja renseigne dans l'outil : rien a faire dans « Set server folder »"
 else
     log "=============================================================="
