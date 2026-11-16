@@ -689,7 +689,12 @@ export DS_ACCEPT_EULA=true
 # panne PowerShell.
 if [ ! -f "$ROOT/server/DedicatedServer/Coodsz-Start-ModdedServer.ps1" ]; then
     log "Coodsz-Start-ModdedServer.ps1 absent de $ROOT/server/DedicatedServer"
-    log "  le paquet d'atelier le fournit : relance l Update (il complete le dossier), puis Start"
+    log "  ce script n'est pas dans le paquet d'atelier : c'est l'outil qui l'ecrit quand on"
+    log "  clique une fois sur « Demarrer le serveur » dans son interface."
+    log "  clic unique a faire dans l'interface de l'outil :"
+    log "    http://$HOST_AFFICHE:$WEBPORT/vnc.html"
+    log "  l'outil signalera ensuite une erreur PowerShell : c'est normal sous Wine, le script"
+    log "  sera ecrit. Relance Start ici, le template prendra le relais."
     exit 1
 fi
 exec python3 - wine "$PWSH_WIN" -NoProfile -ExecutionPolicy Bypass -File "$PS1_WIN" \
