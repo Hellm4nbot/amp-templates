@@ -38,14 +38,16 @@ le dire : au mieux le serveur refuse de démarrer, au pire il démarre sur un mo
 *Correction proposée* : deux réglages (`GameVersion`, `CoopBuild`), lus dans `release-info.txt`, et
 un message bloquant explicite en cas d'écart.
 
-**R4 — pas de panneau de connexion.** `Meta.EndpointURIFormat` est vide : pas d'IP publique, pas de
-bouton « Se connecter ». Ce n'est pas un risque de casse, c'est une absence — et l'adresse
-d'autoconnexion du client Coop permettrait de la combler.
+**R4 — pas de bouton « Se connecter », et c'est justifié.** Vérifié dans l'API d'AMP 3 (3.0.1,
+`webapi.json`) : les adresses publique et locale de chaque port sont **toujours** remontées, avec leur
+origine et ce qui bloque éventuellement ; `EndpointURIFormat` ne fait qu'y ajouter un URI client, et
+vaut `null` quand le template n'en déclare pas. Or le mod Coop n'enregistre aucun schéma d'URL : un
+`steam://connect/…` serait un bouton mort. Le panneau existe donc sans nous, et le complément utile
+est ailleurs — dire comment on s'en sert.
 
 **R5 — `AcceptEula` par défaut à `false`.** Une instance neuve démarre sur une question posée en
 console ; `App.HasWriteableConsole=True` permet d'y répondre, mais un opérateur distant verra un
-serveur « qui ne démarre pas ». Passer le défaut à `true`, la licence restant consultable dans le
-paquet.
+serveur « qui ne démarre pas ».
 
 **R6 — pas de mods, par construction.** Le template lance le **lanceur**, dont la liste de modules
 est figée. Ce n'est pas un défaut pour la production actuelle (le serveur est vanilla), mais il faut
@@ -83,6 +85,8 @@ trois réglages de version.
 | R2 | l'initialisation écrit le port du panneau (`GAMEPORT`) au lieu de la constante 4200 |
 | R3 | deux réglages, `Game version` (1.4.8) et `Coop build` (0.1.7), comparés à `release-info.txt` après chaque update ; écart signalé, et refus si `BlockOnVersionMismatch` est à Yes |
 | R7 | contrôle que le deuxième port publié vaut bien le premier + 1, sinon avertissement explicite |
+| R5 | `Accept the licence on start` passe à **Yes** par défaut : une instance neuve devient joignable sans personne devant la console ; le réglage à No laisse le serveur poser la question |
+| R4 | pas d'URI client (le mod Coop n'enregistre aucun schéma : ce serait un bouton mort), mais un bloc **COMMENT JOUER** en fin d'update : adresse et port à donner, paire UDP à ouvrir, versions client exigées |
 
 Vérifié sur huit scénarios : JSONC valide avec campagne (fichier intact), JSON cassé avec campagne
 (refus, fichier conservé), JSON cassé sans campagne (réinitialisation au port du panneau, ancien
