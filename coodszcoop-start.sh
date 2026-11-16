@@ -446,6 +446,27 @@ if isinstance(conf, dict) and jeu and str(conf.get("port")) != str(jeu):
     conf["port"] = int(jeu)
     ecrit(conf_p, conf)
     print("[coodsz] port du serveur aligne : %s -> %s (server-config.json)" % (ancien, jeu))
+elif not isinstance(conf, dict) and jeu:
+    # Premier demarrage : le mod creerait ce fichier avec le port 4200 par defaut,
+    # alors que le panneau publie autre chose, et le serveur serait injoignable
+    # jusqu au demarrage suivant. On le cree donc avec le bon port.
+    try:
+        os.makedirs(os.path.dirname(conf_p), exist_ok=True)
+        with open(conf_p, "w", encoding="utf-8") as f:
+            f.write("{\n"
+                    "  // Ecrit par le template AMP : le serveur doit ecouter le port que le\n"
+                    "  // panneau publie (AMP 3 publie les ports en 1:1). Le mod complete ce\n"
+                    "  // fichier au premier demarrage et le garde ensuite.\n"
+                    '  "saveName": %s,\n'
+                    '  "autosaveMinutes": 5,\n'
+                    '  "password": "",\n'
+                    '  "port": %s,\n'
+                    '  "logFile": true,\n'
+                    '  "steam": false,\n'
+                    "}\n" % (json.dumps(os.environ.get("COODSZ_SAVE_NAME", "") or "saveauto1"), jeu))
+        print("[coodsz] server-config.json absent : cree avec le port %s" % jeu)
+    except Exception as e:
+        print("[coodsz] impossible de creer server-config.json : %s" % e)
 PYA
     if [ -n "$PANNEAU_JEU2" ] && [ -n "$PANNEAU_JEU" ] && [ "$PANNEAU_JEU2" != "$((PANNEAU_JEU + 1))" ]; then
         log "ATTENTION : le deuxieme port publie est $PANNEAU_JEU2, le serveur utilisera $((PANNEAU_JEU + 1))."
