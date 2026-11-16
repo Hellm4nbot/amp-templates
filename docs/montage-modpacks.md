@@ -323,3 +323,46 @@ D'où deux ajouts au modèle de pack :
 À noter aussi, dans leur approche : ils téléchargent BLSE et les dépendances (Harmony, ButterLib,
 UIExtenderEx, MCM) depuis les **releases GitHub officielles**, et jamais les mods de contenu. C'est
 exactement la distinction `cdn` / `local` de nos packs — et la même raison : la licence.
+
+## 15. Ce que le dépôt officiel apporte (BannerlordCoop, branche `master`)
+
+Quatre éléments de `deploy/` et de la racine, relevés le 16 novembre 2026 :
+
+**1. `mod-config.default.json` — la structure officielle, et un piège.** Les réglages de campagne
+sont **imbriqués** (`difficulty.playerReceivedDamage`, `modOptions.…`), pas plats, et le fichier est
+du JSONC commenté. Le commentaire officiel dit ceci, qui compte plus que tout le reste : *« Left
+unset on a HEADLESS server (dedicated/container), this defaults to Realistic — the headless profile
+would otherwise push quarter damage to every joining player. »* Un serveur dédié à qui on ne dit
+rien applique donc **Realistic** aux dégâts subis par les joueurs. C'est le genre de valeur par
+défaut qui change le jeu sans que personne ne l'ait choisie : elle doit figurer explicitement dans
+le `settingsProfile` d'un pack, jamais être laissée vide par omission.
+
+Notre template CDN mappe déjà correctement l'imbrication (`$.difficulty.*`, `$.modOptions.*`,
+43 réglages sur 52) — vérifié sur `bannerlord-coop-cdnconfig.json`. Rien à corriger, mais à
+reprendre tel quel.
+
+**2. Pas de serveur Linux natif.** Le `Dockerfile` du dépôt officiel part de
+`mcr.microsoft.com/dotnet/sdk:6.0-alpine` et sert uniquement à **compiler les assemblages**
+(`DockerPrepare.ps1` copie `TaleWorlds*.dll`, `SandBox*.dll` dans `DockerAssembliesTemp`) : ce n'est
+pas une image de serveur. Wine reste donc obligatoire — notre architecture est la bonne, et il n'y a
+pas de version native à espérer à court terme.
+
+**3. Les ports officiels.** `deploy/Server Instructions.md` demande de rediriger **4200-4201 UDP**,
+et rien d'autre. Cela confirme le choix des ports du template, et l'inutilité de publier 4202/7211.
+
+**4. Le monde d'un overhaul doit être créé ailleurs — et ça concerne TAOM.** Le serveur crée un
+monde en copiant le modèle que Coop livre ; un overhaul comme RBM — et très probablement TAOM —
+n'installe son monde qu'**au moment de la création de la campagne**. La procédure documentée par
+`bannerlord-coop-server-manager` est donc :
+
+1. côté joueur, activer exactement les modules du serveur, dans son ordre, et régler les mods comme
+   le serveur les aura (pour RBM : RBM Campaign activé) ;
+2. créer une campagne **Sandbox** (jamais Story Mode : le serveur ne sait pas charger une campagne
+   Story Mode), aller jusqu'à la carte, sauvegarder sous le nom voulu ;
+3. copier le `.sav` dans `Game Saves/` du serveur — le `.json` est écrit à la première sauvegarde
+   du serveur.
+
+D'où une exigence pour le pack TAOM : le template doit accepter une **sauvegarde préparée**, déposée
+dans un dossier du pack (`modpacks/taom/saves/`), et refuser de « créer un monde » avec un overhaul
+qui ne sait pas s'initialiser ainsi. C'est une différence de nature avec le pack `coop`, et elle
+mérite d'être visible dans la documentation du pack, pas découverte au premier démarrage.
