@@ -701,6 +701,29 @@ fi
 log "serveur Coop : sauvegarde=$SAVE ($([ -n "$SAVE_DEJA" ] && echo 'deja sur le disque, chargement' || echo 'nouvelle campagne')) origine : $ORIGINE"
 log "serveur Coop : port moteur=$PORT region=$REGION"
 
+# Adresse et ports a donner aux joueurs. Le mod Coop n'enregistre aucun schema
+# d'URL (pas de Meta.EndpointURIFormat possible), donc ce bandeau est la seule
+# source : il doit sortir AVANT le passage au pty, sinon il n'apparait jamais.
+JEU="${COODSZ_GAME_PORT:-4204}"
+JEU_PLUS="${COODSZ_GAME_PORT2:-}"
+case "$JEU" in ''|*'{{'*) JEU=4204 ;; esac
+case "$JEU_PLUS" in ''|*'{{'*) JEU_PLUS="" ;; esac
+log "=============================================================="
+log " COMMENT JOUER"
+log "  adresse a donner aux joueurs : $HOST_AFFICHE:$JEU"
+log "    reseau local pour les joueurs chez vous, adresse publique pour les autres"
+log "    elle se saisit dans l ecran de connexion du client Coop"
+if [ -n "$JEU_PLUS" ]; then
+    log "  ports a ouvrir sur le routeur : $JEU et $JEU_PLUS, en UDP, vers cette machine"
+else
+    log "  port a ouvrir sur le routeur : $JEU en UDP, vers cette machine"
+    log "  ATTENTION : le second port de jeu n est pas publie par l instance"
+fi
+log "  port moteur $PORT : interne, ne sert pas aux joueurs"
+log "  cote joueur : Bannerlord 1.4.8 et le client Coop du meme build${COOP_SHA:+ (commit $(printf '%s' "$COOP_SHA" | cut -c1-8))}"
+log "  monde : $SAVE ($([ -n "$SAVE_DEJA" ] && echo 'chargement' || echo 'creation au premier demarrage'))"
+log "=============================================================="
+
 # 5e. Serveur au premier plan sous un pty : c'est la seule facon de faire
 # demarrer ConsoleHost, et donc PowerShell 7 sous Wine.
 # Licence du serveur Coop : sans DS_ACCEPT_EULA le serveur demande « Accept the
