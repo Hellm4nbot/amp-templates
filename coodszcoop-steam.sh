@@ -146,8 +146,14 @@ fi
 log "modules en place dans $MODS_DIR :"
 ls -1 "$MODS_DIR" 2>/dev/null | sed 's/^/  /' || true
 
-log "=============================================================="
-log " a indiquer dans l'outil Coodsz, bouton « Set server folder » :"
-log "   Z:\\AMP\\coodszcoop\\server\\DedicatedServer"
-log "   (BannerlordCoopServer.exe est dans ce dossier)"
-log "=============================================================="
+HOST_JSON="$(find "${WINEPREFIX:-${ROOT}.wine}/drive_c/users" -maxdepth 6 \
+    -path '*AppData/Local/Coodsz/Coop/host.json' 2>/dev/null | head -1)"
+if [ -n "$HOST_JSON" ] && grep -qi 'DedicatedServer.BannerlordCoopServer.exe' "$HOST_JSON" 2>/dev/null; then
+    log "dossier serveur deja renseigne dans l'outil : rien a faire dans « Set server folder »"
+else
+    log "=============================================================="
+    log " a indiquer dans l'outil Coodsz, bouton « Set server folder » :"
+    log "   Z:\\AMP\\coodszcoop\\server\\DedicatedServer"
+    log "   (BannerlordCoopServer.exe est dans ce dossier)"
+    log "=============================================================="
+fi
