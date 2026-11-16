@@ -185,19 +185,25 @@ Le template à interface WPF reste **en suspens** (voir le bandeau du README). I
 dépendance de cette proposition : la seule chose qu'on en réutilise est le savoir-faire — atelier
 SteamCMD, préservation des modules, gestion des sauvegardes — déjà présent dans le template CDN.
 
-## 12. Veille — changelogs Coop du 11 au 15 novembre 2026
+## 12. Veille — changelogs Coop du 7 au 15 novembre 2026
 
-Relevé des nightly changelogs (développement entre `55a2371` et `c01b576`), filtré sur ce qui
+Relevé des nightly changelogs (développement entre `e365e24` et `c01b576`), filtré sur ce qui
 touche le montage :
 
 | Constat | Effet sur le template |
 |---|---|
-| **Nouvelle clé `allowClientTimeControls`** (15/11) — « Hosts can now stop players from pausing or changing the game speed » | à exposer comme réglage et à écrire dans `server-config.json` ; c'est le type de changement qu'on veut voir arriver sans casser |
-| **War Sails** (14/11) : plus de crash en rejoignant une grosse campagne War Sails | Coop avance sur le DLC ; un pack TAOM doit malgré tout garder `NavalDLC` décoché (TAOM refuse). À garder en tête pour un futur pack « War Sails » |
-| **« Revenue Farming is now available »** (12/11) | probable nouvelle option MCM → nouvelle clé de `mod-config.json` à cartographier |
-| Rien sur le layout du paquet atelier, les arguments de lancement, ni le format de `server-config.json` / `mod-config.json` | la surface dont dépend le template n'a pas bougé en cinq jours |
-| 181 à 205 corrections par semaine, nightlies réservées à des rôles Discord, atelier Steam en retard jusqu'à la release | le template, qui passe par l'atelier, ne voit **que des releases** : le churn nightly ne nous atteint pas directement. Ce qui justifie d'autant plus de figer `coopBuild` |
+| **Nouvelle clé `allowClientTimeControls`** (15/11) — « Hosts can now stop players from pausing or changing the game speed » | à exposer comme réglage et à écrire dans `server-config.json` |
+| **« Added a server setting to prefer specific players as battle host »** (11/11) | deuxième clé nouvelle en une semaine ; son nom n'est pas donné, à identifier sur une instance avant de l'exposer |
+| **« The nightly build was missing its War Sails modules »** (8/11) | War Sails arrive sous forme de **modules supplémentaires** : exactement ce que le manifeste `modules` d'un pack sait décrire. Un pack « War Sails » serait donc `modules: [...] + NavalDLC`, et non un réglage |
+| **Adresse d'autoconnexion** (9/11) : « the client log staying empty when the game is started with an autoconnect address » | le client Coop accepte une **adresse d'autoconnexion** : c'est la bonne matière pour `Meta.EndpointURIFormat` (le panneau « Se connecter »), bien meilleure que le `steam://connect` du template Coodsz |
+| **Sauvegardes autoritaires serveur** (7/11) : Save/Save As/Load retirés du menu client « since the server saves the campaign » | confirme que `SaveName` et `Game Saves/` sont la seule vérité ; notre gestion reste côté serveur |
+| **« A save with a party left in an army it already left no longer stops the server from starting »** (11/11) | un monde peut être la cause d'un refus de démarrage : le template doit remonter le message du serveur tel quel et laisser les sauvegardes précédentes intactes (déjà fait par l'étape de backup) |
+| **Journaux plus petits sur les sessions longues** (11/11) | moins de pression sur `/var` ; on peut conserver les journaux sans inquiétude |
+| 102 à 205 corrections par semaine, puis 102 sur les derniers jours | rythme qui redescend — signe de stabilisation avant la bascule 1.5.7 |
+| **Rien** sur le layout du paquet atelier, les arguments de lancement, ni le format de `server-config.json` / `mod-config.json` | la surface dont dépend le template n'a pas bougé en neuf jours |
+| Nightlies réservées à des rôles Discord, atelier Steam en retard jusqu'à la release | le template, qui passe par l'atelier, ne voit **que des releases** : le churn nightly ne nous atteint pas directement, ce qui justifie de figer `coopBuild` |
 
-Conclusion : la dépendance utile est plus étroite qu'elle n'en a l'air, et les deux seuls points à
-suivre activement sont **les clés de `server-config.json`** et **la carte des options MCM**, dont
-dépend le `settingsProfile` de chaque pack.
+Conclusion : la dépendance utile est plus étroite qu'elle n'en a l'air. Les points à suivre
+activement sont **les clés de `server-config.json`** (deux nouvelles en une semaine), **la carte des
+options MCM** dont dépend le `settingsProfile`, et **la liste des modules livrés** avec le paquet —
+puisqu'un DLC ou un overhaul arrivent tous les deux sous cette forme.
