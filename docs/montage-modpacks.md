@@ -120,17 +120,39 @@ reprochait à l'outil Coodsz.
   pourquoi — un monde vanilla ne s'ouvre pas avec TAOM, comme les sauvegardes 1.4.8 ne s'ouvrent
   pas en 1.5.7.
 
-## 6. Le point à mesurer avant d'écrire le reste
+## 6. L'ordre de chargement — résolu (16 novembre 2026)
 
-**Comment imposer l'ordre de chargement au serveur headless.** Trois pistes, à départager par
-l'expérience sur l'instance existante :
+**Mesuré et documenté par le projet `PlodyIce/bannerlordcoop-server-manager` (MIT), qui fait tourner
+des serveurs Coop moddés :** `BannerlordCoopServer.exe` n'est qu'un lanceur. Il démarre le moteur
+avec une **liste de modules figée** et n'offre aucun moyen d'y ajouter quoi que ce soit. Pour
+servir avec des mods, on n'utilise donc pas le lanceur — on démarre le moteur exactement comme lui,
+modules en plus :
 
-1. le fichier que lit le serveur Coop (`modded-server-modules.txt` / `modded-server-selection.json`) ;
-2. l'ordre des `DependedModules` dans les `SubModule.xml` ;
-3. un argument de `BannerlordCoopServer.exe`.
+```
+cwd  engine\bin\Win64_Shipping_Server
+     engine\dotnet\dotnet.exe TaleWorlds.Starter.DotNetCore.dll
+         _MODULES_*Native*SandBoxCore*Sandbox*Coop*DedicatedServer.Windows*_MODULES_
+         /dedicatedcustomserver 7210 EU 0
 
-Une heure de mesure avec un module factice et le journal du serveur tranche. Tant que ce point
-n'est pas réglé, tout le reste serait speculative.
+env  DOTNET_ROOT=Z:\server\engine\dotnet
+     DOTNET_MULTILEVEL_LOOKUP=0
+     BANNERLORD_USER_DIR=Z:\data
+     COOP_DATA_DIR=C:\users\coop\Documents\Mount and Blade II Bannerlord\CoopData
+```
+
+L'ordre de chargement, c'est **la liste `_MODULES_*A*B*C*_MODULES_`** de la ligne de commande. Le
+manifeste d'un pack se traduit donc littéralement en cette chaîne : pas de fichier annexe, pas de
+`DependedModules` à bricoler, pas d'argument caché. C'est la réponse à la question qui bloquait
+tout le reste.
+
+Conséquence sur le template : dès qu'un pack contient autre chose que le socle Coop, c'est le
+**moteur** qu'on lance, pas `BannerlordCoopServer.exe`. Ce que le lanceur faisait en plus — un
+journal par lancement, l'initialisation du dossier de données — se fait dans le script de démarrage.
+Le reste (licence, contrôle de somme Coop, `server-config.json`, console `save` / `players` /
+`stop`, sauvegarde de fermeture) est dans le moteur et continue de fonctionner.
+
+Ce qui reste à vérifier de notre côté, et qui se mesure en une fois sur l'instance existante : que
+le moteur démarre bien ainsi sous **notre** préfixe Wine, avec notre chemin d'installation.
 
 ## 7. Découpage
 
@@ -221,3 +243,40 @@ Conclusion : la dépendance utile est plus étroite qu'elle n'en a l'air. Les po
 activement sont **les clés de `server-config.json`** (deux nouvelles en une semaine), **la carte des
 options MCM** dont dépend le `settingsProfile`, et **la liste des modules livrés** avec le paquet —
 puisqu'un DLC ou un overhaul arrivent tous les deux sous cette forme.
+
+## 13. Référence externe : `PlodyIce/bannerlordcoop-server-manager` (MIT)
+
+Un gestionnaire de serveur Coop écrit en shell, qui fait tourner des serveurs moddés et documente
+ses mesures. On ne l'installe pas — sa pile est un Docker Compose qui gère lui-même Wine et
+SteamCMD, là où AMP fait déjà ce travail — mais **on en reprend les conclusions**, qui sont
+exactement le mode d'emploi d'un serveur Coop moddé. Ce qui compte pour un pack :
+
+**Ce qu'un mod exige sur un serveur dédié** (mesuré par eux, mod par mod) :
+
+1. **une copie serveur de son manifeste** — les frameworks restent dans la liste parce que le
+   contrôle d'entrée Coop les compare ; Harmony et UIExtenderEx n'y chargent aucun code ;
+2. **un hôte de démarrage** (*startup hook*) qui résout les bibliothèques d'interface depuis le
+   module Coop, parce que le moteur charge Coop **après** les mods — sinon « assembly not found » ;
+3. **les bibliothèques que le serveur n'a pas** : `StoryMode` et `CustomBattle` du jeu (~3,6 Go de
+   dépôt Steam, réduits à ~1 Mo de DLL) — RBM appelle CustomBattle à chaque tick, Diplomacy
+   StoryMode au chargement. TAOM les liste dans son ordre de chargement, ce qui aide ;
+4. **le runtime Windows Desktop de Microsoft** pour ButterLib — et TAOM embarque ButterLib dans
+   `TAOM.Dependencies` ;
+5. **le build adapté à la version du jeu** : un serveur dédié rapporte `i-1.-1.-1.-1` comme version,
+   donc les mods BUTR prennent le build le plus récent au lieu du bon. Il faut retirer les builds
+   plus récents que le jeu du serveur ;
+6. **`/no_watchdog`** : sans écran, le premier avertissement d'un mod fait planter le programme de
+   surveillance et le serveur avec lui. RBM avertit à chaque démarrage ; TAOM avertira.
+
+**Trois pièges à retenir pour le template :**
+
+- `server-config.json` est du **JSONC** (commentaires et virgules finales) : `jq` ne sait pas le
+  lire, et le modifier au motif régulier est la façon de perdre une campagne. On le **génère**.
+- La liste de modules du lanceur est figée : tout pack non trivial impose de lancer le moteur
+  directement (voir §6).
+- Les mods gardent des fichiers propres qu'il faut rendre inscriptibles : `Configs/` du jeu,
+  `server-data/` à côté du serveur, et le dossier de réglages que CoopModPatch attend.
+
+Leur catalogue de mods testés (CoopModPatch, Diplomacy, RBM, CC's Banners, Enable Achievement) ne
+contient **pas TAOM** : personne n'a encore fait tourner un overhaul de cette taille sur un serveur
+Coop, ce qui confirme le statut « non supporté » et l'intérêt de la vérification avant démarrage.
