@@ -708,11 +708,26 @@ JEU="${COODSZ_GAME_PORT:-4204}"
 JEU_PLUS="${COODSZ_GAME_PORT2:-}"
 case "$JEU" in ''|*'{{'*) JEU=4204 ;; esac
 case "$JEU_PLUS" in ''|*'{{'*) JEU_PLUS="" ;; esac
+# Deux adresses, comme le panneau d'AMP les presente : celle du reseau local pour
+# les joueurs chez soi, celle d'Internet pour les autres. L'une n'a pas de sens
+# sans l'autre, et l'operateur ne doit pas avoir a deviner laquelle donner.
+LAN="$(ip -4 route get 1.1.1.1 2>/dev/null | sed -n 's/.* src \([0-9.]*\).*/\1/p' | head -1)"
+if [ -z "$LAN" ]; then
+    LAN="$(hostname -I 2>/dev/null | tr ' ' '\n' | grep -E '^[0-9]+\.' | grep -v '^127\.' | head -1)"
+fi
+PUB="$HOST_AFFICHE"
+if [ -z "${COODSZ_PUBLIC_HOST:-}" ] || [ "$PUB" = "$LAN" ]; then
+    # Reglage vide, ou rempli avec l'adresse locale : on demande l'IP publique,
+    # sans en faire une dependance (timeout court, repli silencieux).
+    PUB="$(curl -fsS --max-time 4 https://api.ipify.org 2>/dev/null || true)"
+fi
 log "=============================================================="
 log " COMMENT JOUER"
-log "  adresse a donner aux joueurs : $HOST_AFFICHE:$JEU"
-log "    reseau local pour les joueurs chez vous, adresse publique pour les autres"
-log "    elle se saisit dans l ecran de connexion du client Coop"
+if [ -n "$PUB" ] && [ "$PUB" != "$LAN" ]; then
+    log "  Internet        $PUB:$JEU"
+fi
+log "  Ce reseau       ${LAN:-$HOST_AFFICHE}:$JEU"
+log "    meme port, meme serveur : l adresse se saisit dans l ecran de connexion du client Coop"
 if [ -n "$JEU_PLUS" ]; then
     log "  ports a ouvrir sur le routeur : $JEU et $JEU_PLUS, en UDP, vers cette machine"
 else
