@@ -50,6 +50,17 @@ validé. Le template refuse de démarrer si le build installé diffère, sauf `S
 que le mod Coop bouge vite (nightlies) et qu'un pack validé sur `0.1.7` n'est pas validé sur
 `0.1.9`.
 
+Une entrée de `modules` est soit une chaîne (elle ne fixe que l'ordre), soit un objet qui porte sa
+propre vérification quand la version déclarée n'est pas fiable :
+
+```json
+{ "id": "ROT_Map", "verify": { "mode": "sha256", "file": "ROT.dll", "sha256": "…" } }
+```
+
+Les modes sont `version` (par défaut, lecture du `SubModule.xml`), `sha256`, et `marker` (présence
+d'une chaîne dans un fichier). Voir §14 pour la raison : certains builds estampillent la version du
+jeu à la place de la leur.
+
 Trois natures de source, et c'est la clé de la robustesse :
 
 - `workshop` — récupéré par SteamCMD depuis l'objet 3770450698 (le socle Coop) ;
@@ -280,3 +291,35 @@ exactement le mode d'emploi d'un serveur Coop moddé. Ce qui compte pour un pack
 Leur catalogue de mods testés (CoopModPatch, Diplomacy, RBM, CC's Banners, Enable Achievement) ne
 contient **pas TAOM** : personne n'a encore fait tourner un overhaul de cette taille sur un serveur
 Coop, ce qui confirme le statut « non supporté » et l'intérêt de la vérification avant démarrage.
+
+## 14. Realm of Thrones : ce que `rot-coop-installer` apprend (et ce qu'il ne dit pas)
+
+Dépôt `Blazzer10200/rot-coop-installer` (juillet 2026, PowerShell, outil Windows destiné aux
+joueurs). **Attention au vocabulaire : son « co-op » est `Bannerlord Together` 0.4.1.4**, un autre
+mod que le `Bannerlord Coop` de ce projet. Son profil vérifié est `Realm of Thrones 7.1 +
+Bannerlord Together` sur Bannerlord **1.3.15**, War Sails décoché.
+
+Trois conséquences pour nous :
+
+1. **RoT est en retard sur notre version de jeu.** RoT 7.1 est décrit comme « le dernier build non
+   War Sails pour 1.3.15 » — alors que le Coop tourne en 1.4.8. Un pack RoT suppose donc que RoT
+   publie pour la version du Coop : c'est une contrainte côté mod, pas côté template. À vérifier au
+   moment du pack, pas avant.
+2. **Les modules RoT se décrivent très bien dans un manifeste** : `ROT-Core`, `ROT-Content`,
+   `ROT_Map`, `ROT-Dragon`, avec un piège de nommage (le dossier livré `ROT-Map` doit être renommé
+   `ROT_Map`, qui est son identifiant interne — sinon le module n'est pas vu).
+3. **La version déclarée peut mentir.** Leur relevé est net : ce build de RoT estampille la version
+   **du jeu** dans son `SubModule.xml` au lieu de la sienne. Une vérification qui ne lit que les
+   versions déclarées validerait donc un mauvais build.
+
+D'où deux ajouts au modèle de pack :
+
+- chaque module porte une **méthode de vérification** : `version` (SubModule.xml) quand elle est
+  fiable, sinon `sha256` d'un fichier, ou `marker` (présence d'une chaîne dans une DLL) ;
+- le template sait **exporter le manifeste côté joueurs** — la liste des modules et de leurs
+  versions, à comparer telle quelle. C'est la version serveur de leur option « match with a friend »,
+  et ça règle le premier échec de connexion Coop : un client dont l'ensemble de modules diffère.
+
+À noter aussi, dans leur approche : ils téléchargent BLSE et les dépendances (Harmony, ButterLib,
+UIExtenderEx, MCM) depuis les **releases GitHub officielles**, et jamais les mods de contenu. C'est
+exactement la distinction `cdn` / `local` de nos packs — et la même raison : la licence.
