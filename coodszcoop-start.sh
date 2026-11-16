@@ -768,8 +768,15 @@ if [ ! -f "$PS1_LOCAL" ]; then
     done
     log "script de lancement ecrit par l'outil : demarrage du serveur"
 fi
-exec python3 - wine "$PWSH_WIN" -NoProfile -ExecutionPolicy Bypass -File "$PS1_WIN" \
-    -NoPrompt -Port "$PORT" -Region "$REGION" "$SAVEOPT" "$SAVE" <<'PYP'
+# 5f. Superviseur. Le serveur Coop est un ENFANT du conteneur, pas son processus
+# principal : quand il s'arrete (bouton « Arreter » de l'outil, fin de partie,
+# plantage), le conteneur doit survivre, sinon X/VNC et l'outil meurent avec lui et
+# l'operateur ne peut plus rien regler. Mesure avant ce correctif : arreter le
+# serveur depuis l'outil fermait noVNC et tout s'arretait.
+# Le programme pty est ecrit sur disque puis execute, pour que l'entree standard du
+# serveur reste celle du conteneur et non le source du script.
+PTY_PY="$ROOT/.coodsz-serveur-pty.py"
+cat > "$PTY_PY" <<'PYP'
 import os, pty, select, sys
 
 args = sys.argv[1:]
@@ -811,3 +818,43 @@ while entrees:
 _, st = os.waitpid(pid, 0)
 sys.exit(os.waitstatus_to_exitcode(st))
 PYP
+chmod 700 "$PTY_PY" 2>/dev/null || true
+
+lance_serveur() {
+    python3 "$PTY_PY" wine "$PWSH_WIN" -NoProfile -ExecutionPolicy Bypass -File "$PS1_WIN" \
+        -NoPrompt -Port "$PORT" -Region "$REGION" "$SAVEOPT" "$SAVE"
+}
+
+# Deux signaux de relance acceptes :
+#  - l'outil reecrit son script de lancement (nouvelle empreinte) quand on clique
+#    sur « Demarrer le serveur » ;
+#  - le fichier .coodsz-relancer, pour relancer sans passer par l'interface.
+empreinte_script() {
+    stat -c '%Y-%s' "$PS1_LOCAL" 2>/dev/null || echo absent
+}
+
+AVANT="$(empreinte_script)"
+while :; do
+    log "serveur Coop : demarrage (port moteur $PORT, monde $SAVE)"
+    lance_serveur
+    CODE=$?
+    log "=============================================================="
+    log " serveur Coop arrete (code $CODE) : l instance et l outil restent en marche"
+    log "  regle ce que tu veux dans l'outil, puis relance le serveur :"
+    log "    bouton « Demarrer le serveur » dans l'outil, ou Stop/Start de l instance"
+    log "  le template relance des que l'outil reecrit son script de lancement"
+    log "=============================================================="
+    while :; do
+        sleep 3
+        if [ -f "$ROOT/.coodsz-relancer" ]; then
+            rm -f "$ROOT/.coodsz-relancer"
+            log "relance demandee (.coodsz-relancer)"
+            break
+        fi
+        if [ "$(empreinte_script)" != "$AVANT" ]; then
+            log "script de lancement reecrit par l'outil : relance du serveur"
+            break
+        fi
+    done
+    AVANT="$(empreinte_script)"
+done
