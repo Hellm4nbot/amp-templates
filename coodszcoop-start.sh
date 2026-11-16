@@ -690,8 +690,12 @@ if [ -f "$SAVES_COOP/$SAVE.sav" ] || [ -f "$SAVES_SRV/$SAVE.sav" ]; then
     SAVE_DEJA="1"
 fi
 
+# Decision prise sur le disque seulement. La condition ajoutait « NewCampaign = true
+# dans host.json » : notre squelette de host.json l'ecrit a false, donc la premiere
+# campagne partait en -SaveName et le script repondait
+#   Save 'save' was not found or is incompatible with the selected module set
 SAVEOPT="-SaveName"
-if [ -z "$SAVE_DEJA" ] && [ "$NEUF_HJ" = "1" ] && [ "$SAVE" = "$SAVE_HJ" ]; then
+if [ -z "$SAVE_DEJA" ]; then
     SAVEOPT="-NewSaveName"
 fi
 log "serveur Coop : sauvegarde=$SAVE ($([ -n "$SAVE_DEJA" ] && echo 'deja sur le disque, chargement' || echo 'nouvelle campagne')) origine : $ORIGINE"
