@@ -74,6 +74,26 @@ La **carte de campagne** n'est plus un réglage : elle découle du pack (le modu
 `Sandbox` fournit la carte). C'est une simplification, pas une régression — c'est exactement ce que
 l'outil Coodsz devait préserver à la main dans `host.json`.
 
+**La surface de réglages dépend du pack — c'est la réponse à l'inquiétude TAOM.** Les ~40 réglages
+`mc_*` de `mod-config.json` (difficulté de recrutement, vitesse de carte, taille de bataille…) sont
+les options de la **campagne vanilla de Coop** : sous TAOM, elles ne portent pas toutes, parce que
+TAOM remplace la campagne et ses propres options vivent dans son MCM. Un pack déclare donc
+`settingsProfile`, et le template n'écrit **que les clés que ce profil connaît** :
+
+```json
+"settingsProfile": "taom",
+"settings": {
+  "supported": ["saveName", "autosaveMinutes", "password", "port", "steam",
+                "allowClientTimeControls", "logFile"],
+  "ignored":   ["mc_recruitmentDifficulty", "mc_playerMapMovementSpeed", "*"]
+}
+```
+
+Au démarrage, le template imprime ce qu'il a écrit et ce qu'il a ignoré, avec la raison. Mieux vaut
+un montage qui annonce « 7 réglages applicables sur 40, les autres relèvent du MCM de TAOM » qu'un
+panneau qui affiche des réglages sans effet — c'est précisément le mensonge d'interface qu'on
+reprochait à l'outil Coodsz.
+
 ## 4. Chaîne d'assemblage (étape Update, puis Start)
 
 1. Socle : SteamCMD → `engine/Modules` (repli CDN si l'atelier refuse).
@@ -164,3 +184,20 @@ gameplay — ne concerne pas le montage.
 Le template à interface WPF reste **en suspens** (voir le bandeau du README). Il n'est pas une
 dépendance de cette proposition : la seule chose qu'on en réutilise est le savoir-faire — atelier
 SteamCMD, préservation des modules, gestion des sauvegardes — déjà présent dans le template CDN.
+
+## 12. Veille — changelogs Coop du 11 au 15 novembre 2026
+
+Relevé des nightly changelogs (développement entre `55a2371` et `c01b576`), filtré sur ce qui
+touche le montage :
+
+| Constat | Effet sur le template |
+|---|---|
+| **Nouvelle clé `allowClientTimeControls`** (15/11) — « Hosts can now stop players from pausing or changing the game speed » | à exposer comme réglage et à écrire dans `server-config.json` ; c'est le type de changement qu'on veut voir arriver sans casser |
+| **War Sails** (14/11) : plus de crash en rejoignant une grosse campagne War Sails | Coop avance sur le DLC ; un pack TAOM doit malgré tout garder `NavalDLC` décoché (TAOM refuse). À garder en tête pour un futur pack « War Sails » |
+| **« Revenue Farming is now available »** (12/11) | probable nouvelle option MCM → nouvelle clé de `mod-config.json` à cartographier |
+| Rien sur le layout du paquet atelier, les arguments de lancement, ni le format de `server-config.json` / `mod-config.json` | la surface dont dépend le template n'a pas bougé en cinq jours |
+| 181 à 205 corrections par semaine, nightlies réservées à des rôles Discord, atelier Steam en retard jusqu'à la release | le template, qui passe par l'atelier, ne voit **que des releases** : le churn nightly ne nous atteint pas directement. Ce qui justifie d'autant plus de figer `coopBuild` |
+
+Conclusion : la dépendance utile est plus étroite qu'elle n'en a l'air, et les deux seuls points à
+suivre activement sont **les clés de `server-config.json`** et **la carte des options MCM**, dont
+dépend le `settingsProfile` de chaque pack.
