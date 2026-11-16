@@ -105,7 +105,7 @@ if [ "$APRES" = "present" ] && [ "$AVANT" = "absent" ]; then
     log "jeton Steam ecrit : les prochains Update se passeront du mot de passe"
 elif [ "$APRES" = "absent" ] && [ -n "$SPASS" ]; then
     log "aucune session enregistree par SteamCMD : le mot de passe sera redemande au prochain update"
-    log "  (mesure : aucun fichier sfn* n'est ecrit dans ce conteneur, quelle que soit la connexion)"
+    log "  (mesure : aucun fichier ssfn* n'est ecrit dans ce conteneur, quelle que soit la connexion)"
 fi
 
 CONTENT="$HOME_SC/Steam/steamapps/workshop/content/261550"
@@ -142,12 +142,28 @@ if [ -z "$MANQUANTS" ]; then
     log "dossier serveur complet : laisse tel quel (sauvegardes, mods et reglages de l'outil)"
 else
     log "dossier serveur incomplet (manque:$MANQUANTS)"
-    log "  copie des fichiers du paquet depuis $DS_SRC"
+    NEUF=0
+    [ -d "$SRV/DedicatedServer" ] || NEUF=1
     mkdir -p "$SRV/DedicatedServer"
-    # cp -a source/. destination/ : complete sans effacer ce que l'operateur a
-    # ajoute (mods d'atelier, fichiers de l'outil). Les sauvegardes ne sont pas
-    # ici : elles vivent dans CoopData/DedicatedServer.
-    cp -a "$DS_SRC/." "$SRV/DedicatedServer/" || { log "copie du serveur echouee"; exit 1; }
+    if [ "$NEUF" = "1" ]; then
+        # Premiere installation : copie complete, sinon les fichiers non testes
+        # (licences, autres scripts, DLL du paquet) manqueraient.
+        log "  premiere installation : copie complete du paquet"
+        cp -a "$DS_SRC/." "$SRV/DedicatedServer/" || { log "copie du serveur echouee"; exit 1; }
+    fi
+    # On ne copie QUE ce qui manque : recopier les 2 a 3 Go du paquet pour deux
+    # fichiers absents faisait durer chaque Update plusieurs minutes. Un dossier
+    # est fusionne (cp -a dir/. dest/), un fichier copie tel quel ; rien n'est
+    # efface, donc les mods et les fichiers de l'outil survivent.
+    for manque in $([ "$NEUF" = "1" ] && echo "" || echo "$MANQUANTS"); do
+        if [ -d "$DS_SRC/$manque" ]; then
+            mkdir -p "$SRV/DedicatedServer/$manque"
+            cp -a "$DS_SRC/$manque/." "$SRV/DedicatedServer/$manque/" || { log "copie de $manque echouee"; exit 1; }
+        else
+            cp -a "$DS_SRC/$manque" "$SRV/DedicatedServer/$manque" || { log "copie de $manque echouee"; exit 1; }
+        fi
+        log "  $manque copie depuis le paquet"
+    done
 fi
 
 # --- 4. Mods d'atelier ---
