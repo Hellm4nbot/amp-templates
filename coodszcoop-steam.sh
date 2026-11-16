@@ -104,7 +104,8 @@ APRES="$(jeton)"
 if [ "$APRES" = "present" ] && [ "$AVANT" = "absent" ]; then
     log "jeton Steam ecrit : les prochains Update se passeront du mot de passe"
 elif [ "$APRES" = "absent" ] && [ -n "$SPASS" ]; then
-    log "ATTENTION : connexion tentee mais aucun jeton ecrit — le mot de passe sera redemande"
+    log "aucune session enregistree par SteamCMD : le mot de passe sera redemande au prochain update"
+    log "  (mesure : aucun fichier sfn* n'est ecrit dans ce conteneur, quelle que soit la connexion)"
 fi
 
 CONTENT="$HOME_SC/Steam/steamapps/workshop/content/261550"
@@ -165,8 +166,16 @@ EOF
     done
 fi
 
-log "modules en place dans $MODS_DIR :"
-ls -1 "$MODS_DIR" 2>/dev/null | sed 's/^/  /' || true
+# $MODS_DIR ne recoit que les mods d'atelier supplementaires : les modules du
+# serveur lui-meme vivent dans engine/Modules, copies avec le paquet. Afficher un
+# dossier vide sans le dire laissait croire que rien n'avait ete installe.
+SUPPL="$(ls -1 "$MODS_DIR" 2>/dev/null)"
+if [ -n "$SUPPL" ]; then
+    log "mods d'atelier supplementaires dans $MODS_DIR :"
+    printf '%s\n' "$SUPPL" | sed 's/^/  /'
+else
+    log "aucun mod d'atelier supplementaire : les modules du serveur sont dans engine/Modules"
+fi
 
 HOST_JSON="$(find "${WINEPREFIX:-${ROOT}.wine}/drive_c/users" -maxdepth 6 \
     -path '*AppData/Local/Coodsz/Coop/host.json' 2>/dev/null | head -1)"
