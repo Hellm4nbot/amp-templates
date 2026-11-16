@@ -28,6 +28,7 @@ Ce que le CDN fallback apporte déjà, et qu'on garde tel quel :
   "id": "coop-taom",
   "displayName": "Coop + TAOM",
   "gameVersion": "1.4.8",
+  "coopBuild": "0.1.7",
   "base": "coop",
   "modules": [
     "TAOM.Dependencies", "Native", "SandBoxCore", "Sandbox", "StoryMode",
@@ -43,6 +44,11 @@ Ce que le CDN fallback apporte déjà, et qu'on garde tel quel :
   "notes": "Montage non supporté par les équipes TAOM et Coop."
 }
 ```
+
+`coopBuild` n'est pas décoratif : il épingle la version du mod Coop avec laquelle le pack a été
+validé. Le template refuse de démarrer si le build installé diffère, sauf `SkipModuleCheck` — parce
+que le mod Coop bouge vite (nightlies) et qu'un pack validé sur `0.1.7` n'est pas validé sur
+`0.1.9`.
 
 Trois natures de source, et c'est la clé de la robustesse :
 
@@ -133,3 +139,28 @@ Un montage = une instance AMP. Le panneau affiche le pack, la version de jeu, l'
 et les réglages de jeu ; le bouton Update réassemble et vérifie ; le bouton Start refuse de mentir.
 Pour tester trois montages côte à côte, trois instances — les 18 Go de TAOM étant partagés par un
 dossier `modpacks/` commun.
+
+## 10. Suivre les évolutions du mod Coop (nightlies)
+
+Le mod Coop bouge vite. La réponse n'est pas de courir après chaque build, c'est de **figer des
+paires validées** et de rendre le mouvement visible :
+
+- chaque pack porte `coopBuild` et `gameVersion` ; le template compare avec ce qui est installé et
+  refuse de démarrer en cas d'écart, avec un message qui dit quoi faire ;
+- `packs/` devient la matrice de compatibilité du projet : `coop` sur `0.1.7 / 1.4.8`,
+  `coop-taom` sur `0.1.7 / 1.4.8 + TAOM v2.4.1`, et demain les variantes 1.5.7 ;
+- un changement de build côté atelier ne casse donc rien : il **bloque** avec une explication, et
+  la mise à jour d'un manifeste est une décision, pas un effet de bord.
+
+Ce qu'il faut surveiller dans les changelogs, parce que c'est ce qui touche le template et non le
+jeu : le layout du paquet atelier (`engine/`, `engine/Modules/`, nom de l'exécutable), les
+arguments de lancement et la façon dont le serveur prend sa liste de modules, le format de
+`server-config.json` / `mod-config.json`, les migrations de sauvegarde, les noms de release du CDN,
+et toute mention de TAOM ou de Realm of Thrones côté Coop. Le reste — équilibrage, corrections de
+gameplay — ne concerne pas le montage.
+
+## 11. Statut du chantier Coodsz
+
+Le template à interface WPF reste **en suspens** (voir le bandeau du README). Il n'est pas une
+dépendance de cette proposition : la seule chose qu'on en réutilise est le savoir-faire — atelier
+SteamCMD, préservation des modules, gestion des sauvegardes — déjà présent dans le template CDN.
