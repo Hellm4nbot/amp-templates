@@ -183,6 +183,63 @@ HOST_JSON="$WINEPREFIX/drive_c/users/$(id -un 2>/dev/null || echo amp)/AppData/L
 # tort que le module Sandbox manque.
 MODULES="$ROOT/server/DedicatedServer/Modules"
 MODULES_ENGINE="$ROOT/server/DedicatedServer/engine/Modules"
+
+# 3b-0. Premiere instance, prefixe neuf : l'outil n'a pas encore ecrit host.json.
+# Sans ce squelette, il s'ouvre avec un dossier serveur vide (erreur rouge
+# « DedicatedServer.exe missing »), ses propres ports (4200/7210) et notre
+# alignement n'a rien a corriger. On ecrit donc l'ossature AVANT de le lancer :
+# il la relit, la complete, et garde les valeurs du panneau.
+if [ -f "$SERVER_EXE" ] && [ ! -f "$HOST_JSON" ] && command -v python3 >/dev/null 2>&1; then
+    mkdir -p "$(dirname "$HOST_JSON")" 2>/dev/null
+    ZWIN="Z:$(printf '%s' "$SERVER_EXE" | tr '/' '\\')"
+    python3 - "$HOST_JSON" "$ZWIN" "${COODSZ_GAME_PORT:-4200}" "${COODSZ_ENGINE_PORT:-7210}" <<'PYSEED'
+import json
+import sys
+
+chemin, exe, jeu, moteur = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+profil = {
+    "Name": "Default",
+    "SaveName": "",
+    "NewCampaign": False,
+    "EnginePort": int(moteur),
+    "CoopPort": int(jeu),
+    "Region": "EU",
+    "SteamLobbyName": "",
+    "ServerAddress": "",
+    "CampaignMap": "Vanilla",
+    "Password": None,
+    "AutosaveMinutes": 5,
+    "McmFolder": "",
+    "PlayersOwnSettings": [],
+    "Locked": False,
+    "ModuleOrder": ["Native", "DedicatedServer.Windows", "SandBoxCore", "SandBox", "Coop"],
+    "DisabledModules": [],
+    "Rbm": None,
+    "RestartOnCrash": False,
+}
+squelette = {
+    "GamePath": "",
+    "ServerExecutable": exe,
+    "AccessMode": "Banlist",
+    "ActiveProfile": "Default",
+    "AcceptedEulaSha256": "",
+    "OpenRouterPort": True,
+    "SteamLobbyAutoOn": False,
+    "StreamerMode": False,
+    "AutoRestartSaved": False,
+    "Broadcasts": [],
+    "FavouriteCheats": [],
+    "RecentCommands": [],
+    "Profiles": [profil],
+}
+try:
+    with open(chemin, "w", encoding="utf-8", newline="\r\n") as f:
+        json.dump(squelette, f, indent=2, ensure_ascii=False)
+    print("[coodsz] host.json absent : squelette ecrit (dossier serveur, ports %s/%s)" % (jeu, moteur))
+except Exception as e:
+    print("[coodsz] impossible d ecrire host.json : %s" % e)
+PYSEED
+fi
 if [ -f "$SERVER_EXE" ] && [ -f "$HOST_JSON" ] && command -v python3 >/dev/null 2>&1; then
     ZWIN="Z:$(printf '%s' "$SERVER_EXE" | tr '/' '\\\\')"
     python3 - "$HOST_JSON" "$ZWIN" "$MODULES" "$MODULES_ENGINE" <<'PYSQL'
