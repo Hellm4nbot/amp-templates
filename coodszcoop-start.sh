@@ -280,6 +280,114 @@ if [ -f "$REL_INFO" ]; then
     esac
 fi
 CFG_SERVEUR="$WINEPREFIX/drive_c/users/$(printf '%s' "$HOST_JSON" | sed 's#.*/drive_c/users/\([^/]*\)/.*#\1#')/Documents/Mount and Blade II Bannerlord/CoopData/DedicatedServer/server-config.json"
+
+# --- 3e. Ports : aligner l'outil et le serveur sur ce que le panneau publie ---
+# AMP 3 publie les ports en 1:1 : le numero du panneau doit etre celui que le
+# serveur ecoute. L'outil garde les siens dans host.json (profil actif) et le
+# serveur dans server-config.json. Sans cet alignement, un serveur qui affiche
+# SERVING reste injoignable parce qu'il ecoute a cote de la publication. On ecrit
+# AVANT de lancer l'outil : il relit host.json a son demarrage et ecraserait
+# sinon nos valeurs.
+PANNEAU_JEU="${COODSZ_GAME_PORT:-}"
+PANNEAU_JEU2="${COODSZ_GAME_PORT2:-}"
+PANNEAU_MOTEUR="${COODSZ_ENGINE_PORT:-}"
+if [ -n "$PANNEAU_JEU" ] || [ -n "$PANNEAU_MOTEUR" ]; then
+    python3 - "$HOST_JSON" "$CFG_SERVEUR" "$PANNEAU_JEU" "$PANNEAU_MOTEUR" <<'PYA'
+import json
+import os
+import re
+import shutil
+import sys
+import time
+
+hote_p, conf_p, jeu, moteur = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+horo = time.strftime("%Y%m%d-%H%M")
+
+
+def sans_commentaires(texte):
+    sortie, i, chaine, echappe = [], 0, False, False
+    while i < len(texte):
+        c = texte[i]
+        if chaine:
+            sortie.append(c)
+            if echappe:
+                echappe = False
+            elif c == "\\":
+                echappe = True
+            elif c == '"':
+                chaine = False
+        elif c == '"':
+            chaine = True
+            sortie.append(c)
+        elif c in "/" and i + 1 < len(texte) and texte[i + 1] == "/":
+            while i < len(texte) and texte[i] != "\n":
+                i += 1
+            continue
+        else:
+            sortie.append(c)
+        i += 1
+    return "".join(sortie)
+
+
+def charge(p):
+    try:
+        return json.load(open(p, encoding="utf-8-sig"))
+    except Exception:
+        try:
+            t = sans_commentaires(open(p, encoding="utf-8-sig").read())
+            t = re.sub(r",\s*([}\]])", r"\1", t)
+            return json.loads(t)
+        except Exception:
+            return None
+
+
+def ecrit(p, d):
+    shutil.copy2(p, "%s.ports-%s.bak" % (p, horo))
+    with open(p, "w", encoding="utf-8", newline="\r\n") as f:
+        json.dump(d, f, indent=2, ensure_ascii=False)
+
+
+hote = charge(hote_p)
+if isinstance(hote, dict):
+    nom = hote.get("ActiveProfile") or ""
+    profil = next((x for x in (hote.get("Profiles") or []) if x.get("Name") == nom), None)
+    if profil is None:
+        print("[coodsz] host.json : profil actif introuvable, ports non alignes")
+    else:
+        avant = (profil.get("CoopPort"), profil.get("EnginePort"))
+        neuf = False
+        if jeu and str(profil.get("CoopPort")) != str(jeu):
+            profil["CoopPort"] = int(jeu)
+            neuf = True
+        if moteur and str(profil.get("EnginePort")) != str(moteur):
+            profil["EnginePort"] = int(moteur)
+            neuf = True
+        if neuf:
+            ecrit(hote_p, hote)
+            print("[coodsz] ports de l'outil alignes sur le panneau : jeu %s -> %s, moteur %s -> %s"
+                  % (avant[0], profil.get("CoopPort"), avant[1], profil.get("EnginePort")))
+        else:
+            print("[coodsz] ports de l'outil deja conformes : jeu %s, moteur %s"
+                  % (profil.get("CoopPort"), profil.get("EnginePort")))
+else:
+    print("[coodsz] host.json illisible : l'outil gardera ses propres ports")
+
+conf = charge(conf_p)
+if isinstance(conf, dict) and jeu and str(conf.get("port")) != str(jeu):
+    ancien = conf.get("port")
+    conf["port"] = int(jeu)
+    ecrit(conf_p, conf)
+    print("[coodsz] port du serveur aligne : %s -> %s (server-config.json)" % (ancien, jeu))
+PYA
+    if [ -n "$PANNEAU_JEU2" ] && [ -n "$PANNEAU_JEU" ] && [ "$PANNEAU_JEU2" != "$((PANNEAU_JEU + 1))" ]; then
+        log "ATTENTION : le deuxieme port publie est $PANNEAU_JEU2, le serveur utilisera $((PANNEAU_JEU + 1))."
+        log "  corriger l'onglet Ports : le second port doit valoir le premier + 1."
+    fi
+    if [ -z "$PANNEAU_JEU2" ]; then
+        log "ATTENTION : aucun second port publie : la moitie des connexions echouera."
+        log "  recreer l'instance (ou rafraichir sa definition) pour publier $((PANNEAU_JEU + 1))."
+    fi
+fi
 python3 - "$HOST_JSON" "$CFG_SERVEUR" <<'PYV'
 import json, re, sys
 
@@ -350,7 +458,6 @@ if conf:
 else:
     print("[coodsz] server-config.json absent ou illisible")
 PYV
-log "rappel : l'onglet Ports doit afficher 4200 (UDP), 4201 (UDP) et 7210 (moteur)"
 
 log "lancement de $EXE"
 cd "$(dirname "$EXE")" || exit 1
