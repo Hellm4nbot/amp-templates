@@ -708,15 +708,23 @@ export DS_ACCEPT_EULA=true
 # Sans le script de lancement du paquet, pwsh repond « not recognized as the
 # name of a script file » et rend 64 : mieux vaut le dire que laisser croire a une
 # panne PowerShell.
-if [ ! -f "$ROOT/server/DedicatedServer/Coodsz-Start-ModdedServer.ps1" ]; then
-    log "Coodsz-Start-ModdedServer.ps1 absent de $ROOT/server/DedicatedServer"
-    log "  ce script n'est pas dans le paquet d'atelier : c'est l'outil qui l'ecrit quand on"
-    log "  clique une fois sur « Demarrer le serveur » dans son interface."
-    log "  clic unique a faire dans l'interface de l'outil :"
-    log "    http://$HOST_AFFICHE:$WEBPORT/vnc.html"
-    log "  l'outil signalera ensuite une erreur PowerShell : c'est normal sous Wine, le script"
-    log "  sera ecrit. Relance Start ici, le template prendra le relais."
-    exit 1
+PS1_LOCAL="$ROOT/server/DedicatedServer/Coodsz-Start-ModdedServer.ps1"
+if [ ! -f "$PS1_LOCAL" ]; then
+    log "Coodsz-Start-ModdedServer.ps1 absent : ce script n'est pas dans le paquet d'atelier,"
+    log "  c'est l'outil qui l'ecrit quand on clique sur « Demarrer le serveur » dans son interface."
+    log "  clic a faire ici : http://$HOST_AFFICHE:$WEBPORT/vnc.html"
+    log "  l'outil affichera une erreur PowerShell : c'est normal sous Wine, le script est ecrit."
+    log "  l'instance reste en marche et surveille le fichier : le serveur demarrera des qu'il apparait."
+    # Ne jamais sortir ici : quitter tue le conteneur, donc l'outil, donc le clic qu'on demande.
+    ATTENTE=0
+    while [ ! -f "$PS1_LOCAL" ]; do
+        sleep 5
+        ATTENTE=$((ATTENTE + 5))
+        case $((ATTENTE % 120)) in
+            0) log "  toujours en attente du script (${ATTENTE}s) : clique sur « Demarrer » dans l'interface" ;;
+        esac
+    done
+    log "script de lancement ecrit par l'outil : demarrage du serveur"
 fi
 exec python3 - wine "$PWSH_WIN" -NoProfile -ExecutionPolicy Bypass -File "$PS1_WIN" \
     -NoPrompt -Port "$PORT" -Region "$REGION" "$SAVEOPT" "$SAVE" <<'PYP'
