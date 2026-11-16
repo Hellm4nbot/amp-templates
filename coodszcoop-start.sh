@@ -331,10 +331,21 @@ REL_INFO="$ROOT/server/DedicatedServer/release-info.txt"
 if [ -f "$REL_INFO" ]; then
     VERSION_PAQUET="$(tr -d '\r' < "$REL_INFO" | grep -E '^(Built|Paired Coop|Game version):' | tr '\n' ' ')"
     log "version du paquet Coop : ${VERSION_PAQUET:-illisible}"
-    case "$VERSION_PAQUET" in
-        *"Paired Coop: 0.1.7"*) : ;;
-        *"Paired Coop:"*) log "ATTENTION : paquet different de la version validee (Coop 0.1.7 / jeu 1.4.8)" ;;
-    esac
+    # Le paquet d'atelier identifie le Coop par un commit, pas par « 0.1.7 » : la
+    # comparaison precedente annoncait donc un ecart a chaque demarrage, y compris
+    # sur le paquet officiel. On nomme le build, et on n'alerte que si le jeu
+    # n'est pas la version attendue.
+    COOP_LIGNE="$(tr -d '\r' < "$REL_INFO" | sed -n 's/^Paired Coop:[[:space:]]*//p' | head -1)"
+    JEU_LIGNE="$(tr -d '\r' < "$REL_INFO" | sed -n 's/^Game version:[[:space:]]*//p' | head -1)"
+    COOP_SHA="$(printf '%s' "$COOP_LIGNE" | sed -n 's/.*commit[[:space:]]\{1,\}\([0-9a-f]\{7,\}\).*/\1/p')"
+    JEU_NORM="$(printf '%s' "$JEU_LIGNE" | sed 's/^.*: Bannerlord[[:space:]]*//; s/^[[:space:]]*[vV]//; s/[[:space:]]*$//')"
+    if [ -n "$COOP_SHA" ]; then
+        log "build Coop du paquet : commit $(printf '%s' "$COOP_SHA" | cut -c1-8)"
+    fi
+    if [ -n "$JEU_NORM" ] && [ "$JEU_NORM" != "1.4.8" ]; then
+        log "ATTENTION : paquet construit pour le jeu ${JEU_NORM}, la version validee est 1.4.8"
+        log "  les sauvegardes et les modules d'une autre version peuvent ne pas correspondre."
+    fi
 fi
 CFG_SERVEUR="$WINEPREFIX/drive_c/users/$(printf '%s' "$HOST_JSON" | sed 's#.*/drive_c/users/\([^/]*\)/.*#\1#')/Documents/Mount and Blade II Bannerlord/CoopData/DedicatedServer/server-config.json"
 
@@ -614,6 +625,10 @@ PY
 SAVE_HJ="${PROFIL%%|*}"; RESTE="${PROFIL#*|}"
 PORT="${RESTE%%|*}"; RESTE="${RESTE#*|}"
 REGION="${RESTE%%|*}"; NEUF_HJ="${RESTE#*|}"
+# Le port moteur fait foi depuis le panneau : l'outil reecrit host.json avec ses
+# propres valeurs au demarrage, et le serveur finissait par ecouter 7210 quand le
+# panneau publiait 7212.
+[ -n "${COODSZ_ENGINE_PORT:-}" ] && PORT="$COODSZ_ENGINE_PORT"
 
 # 5b-bis. D'ou vient la sauvegarde a charger, par ordre de fiabilite :
 # 1. le reglage Save Name (il vit avec l'instance, pas avec l'outil) ;
@@ -669,6 +684,14 @@ log "serveur Coop : port moteur=$PORT region=$REGION"
 # conditions. Une fois acceptee, le serveur ecrit eula=true dans son dossier de
 # donnees et ne redemande plus. Pour refuser : retirer cette ligne.
 export DS_ACCEPT_EULA=true
+# Sans le script de lancement du paquet, pwsh repond « not recognized as the
+# name of a script file » et rend 64 : mieux vaut le dire que laisser croire a une
+# panne PowerShell.
+if [ ! -f "$ROOT/server/DedicatedServer/Coodsz-Start-ModdedServer.ps1" ]; then
+    log "Coodsz-Start-ModdedServer.ps1 absent de $ROOT/server/DedicatedServer"
+    log "  le paquet d'atelier le fournit : relance l Update (il complete le dossier), puis Start"
+    exit 1
+fi
 exec python3 - wine "$PWSH_WIN" -NoProfile -ExecutionPolicy Bypass -File "$PS1_WIN" \
     -NoPrompt -Port "$PORT" -Region "$REGION" "$SAVEOPT" "$SAVE" <<'PYP'
 import os, pty, select, sys

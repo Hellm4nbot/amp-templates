@@ -130,12 +130,24 @@ fi
 # --- 3. Assemblage du dossier serveur ---
 mkdir -p "$SRV"
 DS_SRC="$(dirname "$EXE")"
-if [ ! -d "$SRV/DedicatedServer" ]; then
-    log "copie du serveur dedie vers $SRV/DedicatedServer"
-    cp -a "$DS_SRC" "$SRV/DedicatedServer" || { log "copie du serveur echouee"; exit 1; }
+# Une copie interrompue laissait un dossier present mais vide, et le controle
+# « deja present » la figeait : le serveur ne pouvait plus demarrer, faute du
+# script PowerShell et du bootstrap. On verifie donc le contenu, pas l'existence.
+MANQUANTS=""
+for f in BannerlordCoopServer.exe Coodsz-Start-ModdedServer.ps1 BannerlordCoop.RuntimeBootstrap.dll; do
+    [ -f "$SRV/DedicatedServer/$f" ] || MANQUANTS="$MANQUANTS $f"
+done
+[ -d "$SRV/DedicatedServer/engine/Modules" ] || MANQUANTS="$MANQUANTS engine/Modules"
+if [ -z "$MANQUANTS" ]; then
+    log "dossier serveur complet : laisse tel quel (sauvegardes, mods et reglages de l'outil)"
 else
-    log "dossier serveur deja present : laisse tel quel (sauvegardes, mods et reglages de l'outil)"
-    log "  pour repartir d'une copie neuve, supprime $SRV/DedicatedServer puis relance Update"
+    log "dossier serveur incomplet (manque:$MANQUANTS)"
+    log "  copie des fichiers du paquet depuis $DS_SRC"
+    mkdir -p "$SRV/DedicatedServer"
+    # cp -a source/. destination/ : complete sans effacer ce que l'operateur a
+    # ajoute (mods d'atelier, fichiers de l'outil). Les sauvegardes ne sont pas
+    # ici : elles vivent dans CoopData/DedicatedServer.
+    cp -a "$DS_SRC/." "$SRV/DedicatedServer/" || { log "copie du serveur echouee"; exit 1; }
 fi
 
 # --- 4. Mods d'atelier ---
