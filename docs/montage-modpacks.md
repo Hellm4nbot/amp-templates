@@ -366,3 +366,43 @@ D'où une exigence pour le pack TAOM : le template doit accepter une **sauvegard
 dans un dossier du pack (`modpacks/taom/saves/`), et refuser de « créer un monde » avec un overhaul
 qui ne sait pas s'initialiser ainsi. C'est une différence de nature avec le pack `coop`, et elle
 mérite d'être visible dans la documentation du pack, pas découverte au premier démarrage.
+
+## 16. Mesure : ModderLords n'est pas pilotable en headless (16 novembre 2026)
+
+ModderLords 1.9.0 (publié le jour de la mesure) a été essayé dans l'image de l'instance.
+
+**Résultat : non.** La release ne contient qu'un `ModderLords.exe` de 144 Mo, application
+**graphique** autonome ; il n'y a **aucun binaire `ModderLords.Cli`** dans l'archive, et la
+documentation ne cite que deux sous-commandes (`test`, `smoke`), pas de « lancer le serveur ». Sous
+Wine, `--help` ne répond rien : le processus part en `Unhandled exception 0xe0434352` et
+`nodrv_CreateWindow … no driver could be loaded`. Il lui faut un serveur X, donc un VNC — c'est-à-dire
+le coût d'une interface graphique, dans une application plus lourde que celle de Coodsz.
+
+**Ce qu'il apporte quand même, et qui vaut le détour :** deux fichiers de données, `compat-db.json`
+et `verified-profiles.json` (JSONC), qui forment un **référentiel de compatibilité partagé avec
+Coodsz** — verdicts mesurés mod par mod, rôles serveur, et profils épinglés avec versions,
+`workshopId` et `sha256`.
+
+**Et ce référentiel dit de TAOM quelque chose qu'aucun template ne peut corriger :**
+
+| Mod | Verdict | Pourquoi |
+|---|---|---|
+| `TAOM.Dependencies` | NeedsRecipe | il liste `UIExtenderEx` **en premier** et sans étiquette serveur : le serveur meurt en chargeant un framework d'interface. Il faut ne garder que son amorce et le cœur de réglages de MCM |
+| `TAOM` | NeedsRecipe | le crash headless venait de `0Harmony` (build différent, ILMerged, `MarkSequencePoint` absent du .NET 6 du serveur). Avec un **startup hook** résolvant les bibliothèques partagées, il charge — mais seulement en `DependencyOnly` : ses ~51 comportements de campagne ne tournent pas côté serveur. Leur conclusion : *« a data-parity server, not a full TAOM coop server »*, avec divergence attendue. Et aucun serveur TAOM n'a encore atteint `SERVING` : les essais chargeaient la sauvegarde vanilla, qu'aucun monde TAOM ne peut accepter |
+| `TAOM_Map` | Works | données seules, aucun code : carte lue, CRC de navmesh constant |
+| `LOTRLOME_Armory` | **Broken** | c'est **la** raison pour laquelle un serveur TAOM ne démarrait pas : ses `action_sets.xslt` déclarent des animations dont les données vivent dans un pack client de 1,17 Go que le serveur ne lit pas — 104 à 137 avertissements et 52 à 77 fenêtres modales bloquantes, puis sortie -1. Aucun rôle n'y remède (pas de `<SubModule>` à retirer), et les deux contournements essayés échouent, dont un en violation d'accès native. Verdict : **absent du serveur, présent chez les clients** |
+| `TAOM.CoopCompat` | **Broken** | exige le `DedicatedServer.Core.dll` reconstruit du wrapper TAOM-Coop, avec des gardes épinglées par empreinte ; sur le serveur officiel la porte ne s'ouvre jamais. L'utiliser, c'est adopter toute leur pile, qui **remplace les binaires officiels du serveur** |
+
+**Conséquence pour la décision d'architecture :** TAOM + Coop n'est pas un problème de template, il
+est bloqué au niveau des mods. Notre couche d'assemblage n'y changerait rien, et ModderLords — qui a
+fait ces mesures — n'a lui-même aucun profil TAOM vérifié.
+
+La voie raisonnable devient donc :
+
+1. **garder Coodsz comme serveur coop de référence** (il fonctionne : interface, atelier, lancement,
+   licence, reprise de campagne), avec les ports alignés sur 4200 / 4201 / 7210 ;
+2. laisser le template mince **documenté comme solution de repli**, pas comme chantier en cours ;
+3. réévaluer quand `TAOM.CoopCompat` fonctionnera — c'est-à-dire quand l'équipe TAOM-Coop publiera
+   un wrapper qui s'enregistre sur le serveur officiel — ou quand TAOM sortira en 1.5.7 pour Coop.
+
+Autrement dit : la pièce qui manque n'est pas dans notre camp.
