@@ -28,6 +28,20 @@ RUN curl -fsSL https://raw.githubusercontent.com/Winetricks/winetricks/master/sr
 COPY coodsz-desktop.sh /coodsz-desktop.sh
 RUN chmod +x /coodsz-desktop.sh
 
+# noVNC 1.6.0 (paquet Debian) leve « Cannot read properties of undefined
+# (reading 'focus') » quand on clique la poignee du panneau lateral avant que la
+# session RFB soit connectee : closeControlbar() appelle UI.rfb.focus() et UI.rfb
+# n'existe pas encore. L'erreur casse le bouton, pas la session.
+# On protege les quatre appels de la page complete. vnc_lite.html n'a pas de
+# panneau et reste utilisable telle quelle. Place en fin de fichier pour ne pas
+# invalider le cache des couches precedentes.
+RUN set -eu; \
+    F=/usr/share/novnc/app/ui.js; \
+    sed -i -E 's|^([[:space:]]*)UI\.rfb\.focus\(\);|\1if (UI.rfb) { UI.rfb.focus(); }|' "$F"; \
+    n="$(grep -c 'if (UI.rfb) { UI.rfb.focus(); }' "$F")"; \
+    echo "ui.js : $n appels proteges"; \
+    [ "$n" -eq 4 ] || { echo "correctif noVNC non applique ($n/4 attendus)"; exit 1; }
+
 # Les binaires de l'outil Coodsz NE SONT PAS dans cette image : sa licence les
 # reserve a un usage prive, aucune redistribution. Ils sont telecharges dans
 # l'instance par l'etape de mise a jour du template (releases GitHub + digest).
