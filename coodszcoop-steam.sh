@@ -56,26 +56,30 @@ fi
 # passe change, appareils deauthorises, changement de machine). Sans mot de passe
 # renseigne, SteamCMD ne peut alors que repondre « Cached credentials not found ».
 # On dit donc lequel des deux cas on est, avant de tenter quoi que ce soit.
+# Le seul marqueur fiable d'une session en cache est le fichier de sentry
+# (ssfn*). config/config.vdf existe apres n'importe quelle execution de steamcmd,
+# y compris sans authentification : le prendre pour un jeton faisait annoncer
+# « jeton present » juste avant que Steam reponde « Cached credentials not found ».
 jeton() {
-    if ls "$HOME_SC"/Steam/ssfn* >/dev/null 2>&1 || [ -f "$HOME_SC/Steam/config/config.vdf" ]; then
+    if ls "$HOME_SC"/Steam/ssfn* >/dev/null 2>&1; then
         echo present
     else
         echo absent
     fi
 }
 AVANT="$(jeton)"
+# Le code Steam Guard ne se presente jamais d'avance : envoye sur une session
+# valide, il la casse (« Two-factor code mismatch »). On ne le fournit qu'en
+# second essai, et seulement si Steam le reclame.
 if [ -n "$SPASS" ]; then
-    set -- +login "$SUSER" "$SPASS" ${SGUARD:-}
+    set -- +login "$SUSER" "$SPASS"
 elif [ "$AVANT" = "present" ]; then
     set -- +login "$SUSER"
-    log "jeton Steam en cache : present, connexion sans mot de passe"
+    log "session Steam en cache : connexion sans mot de passe"
 else
     set -- +login "$SUSER"
-    log "jeton Steam en cache : ABSENT et aucun mot de passe renseigne :"
-    log "  Steam va repondre « Cached credentials not found »."
-    log "  Renseigne « Steam Password » (et un code Steam Guard frais) puis relance Update."
-    log "  Ce n'est pas une panne du template : Steam a invalide la session (mot de passe"
-    log "  change, appareil deauthorise, ou jeton expire)."
+    log "aucune session Steam en cache et aucun mot de passe renseigne :"
+    log "  renseigne « Steam Password » (et un code Steam Guard frais) puis relance Update."
 fi
 
 log "connexion Steam et telechargement de l'atelier $ITEM"
@@ -85,6 +89,17 @@ HOME="$HOME_SC" "$SC/steamcmd.sh" "$@" \
 
 # Ce que Steam a retenu de la connexion : sans jeton ecrit, le prochain Update
 # redemandera le mot de passe, et c'est utile a savoir tout de suite.
+# Le code, seulement s'il est reclame.
+if ! grep -q "Success. Downloaded item" "$LOG" 2>/dev/null \
+    && [ -n "${SGUARD:-}" ] && [ -n "$SPASS" ] \
+    && grep -qiE "Steam Guard code|Two-factor code required|need two-factor" "$LOG" 2>/dev/null \
+    && ! grep -qiE "Two-factor code mismatch|Invalid Two-factor" "$LOG" 2>/dev/null; then
+    log "Steam demande un code : nouvelle tentative avec le code fourni"
+    HOME="$HOME_SC" "$SC/steamcmd.sh" +login "$SUSER" "$SPASS" "$SGUARD" \
+        +workshop_download_item 261550 "$ITEM" validate \
+        +quit 2>&1 | tee "$LOG"
+fi
+
 APRES="$(jeton)"
 if [ "$APRES" = "present" ] && [ "$AVANT" = "absent" ]; then
     log "jeton Steam ecrit : les prochains Update se passeront du mot de passe"
@@ -95,9 +110,16 @@ fi
 CONTENT="$HOME_SC/Steam/steamapps/workshop/content/261550"
 EXE="$(find "$CONTENT/$ITEM" -maxdepth 3 -name 'BannerlordCoopServer.exe' 2>/dev/null | head -1)"
 if [ -z "$EXE" ]; then
-    if grep -qE 'Invalid Password|Cached credentials not found|Account Logon Denied|Two-factor|Rate Limit|FAILED' "$LOG"; then
+    if grep -q "Cached credentials not found" "$LOG" 2>/dev/null; then
+        log "Steam n a aucune session en cache pour ce compte, et aucun mot de passe n a ete fourni."
+        log "  renseigne « Steam Password » (plus un code Steam Guard frais si le compte en exige un),"
+        log "  relance Update, puis vide le mot de passe : la session sera reutilisee ensuite."
+    elif grep -qiE 'Invalid Password|Account Logon Denied|Two-factor|Rate Limit|FAILED' "$LOG"; then
         log "CONNEXION STEAM REFUSEE. Renseigne « Steam Password » et, si le compte en exige un,"
         log "un code Steam Guard frais (il expire en ~30 s), relance Update, puis vide les deux champs."
+    elif grep -qiE 'Two-factor code mismatch' "$LOG"; then
+        log "Le code Steam Guard fourni est perime ou errone : il ne vaut que ~30 secondes."
+        log "  si la session existe deja, vide le champ et relance : aucun code n est necessaire."
     else
         log "BannerlordCoopServer.exe introuvable sous $CONTENT/$ITEM — voir $LOG"
     fi
