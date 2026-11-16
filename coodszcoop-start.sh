@@ -266,6 +266,92 @@ if [ -d "$DS" ]; then
     dernier="$(find "$DS" "$WINEPREFIX/drive_c/users" -name '*.log' -newermt '-2 days' 2>/dev/null | head -3 | tr '\n' ' ')"
     [ -n "$dernier" ] && log "verif : journaux recents : $dernier"
 fi
+# 3d. Versions et ports reellement utilises. Sans ce garde-fou, une mise a jour de
+# l'atelier change le socle en silence : le jour ou Coop passera en 1.5.7, le script
+# de Coodsz lancera un moteur et des modules d'une autre version sans que personne
+# ne l'ait decide.
+REL_INFO="$ROOT/server/DedicatedServer/release-info.txt"
+if [ -f "$REL_INFO" ]; then
+    VERSION_PAQUET="$(tr -d '\r' < "$REL_INFO" | grep -E '^(Built|Paired Coop|Game version):' | tr '\n' ' ')"
+    log "version du paquet Coop : ${VERSION_PAQUET:-illisible}"
+    case "$VERSION_PAQUET" in
+        *"Paired Coop: 0.1.7"*) : ;;
+        *"Paired Coop:"*) log "ATTENTION : paquet different de la version validee (Coop 0.1.7 / jeu 1.4.8)" ;;
+    esac
+fi
+CFG_SERVEUR="$WINEPREFIX/drive_c/users/$(printf '%s' "$HOST_JSON" | sed 's#.*/drive_c/users/\([^/]*\)/.*#\1#')/Documents/Mount and Blade II Bannerlord/CoopData/DedicatedServer/server-config.json"
+python3 - "$HOST_JSON" "$CFG_SERVEUR" <<'PYV'
+import json, re, sys
+
+
+def sans_commentaires(texte):
+    """Retire les commentaires // et /* */ sans toucher a l'interieur des chaines."""
+    sortie = []
+    i = 0
+    dans_chaine = False
+    echappe = False
+    while i < len(texte):
+        c = texte[i]
+        if dans_chaine:
+            sortie.append(c)
+            if echappe:
+                echappe = False
+            elif c == "\\":
+                echappe = True
+            elif c == '"':
+                dans_chaine = False
+            i += 1
+            continue
+        if c == '"':
+            dans_chaine = True
+            sortie.append(c)
+            i += 1
+            continue
+        if c == "/" and i + 1 < len(texte) and texte[i + 1] == "/":
+            while i < len(texte) and texte[i] not in "\r\n":
+                i += 1
+            continue
+        if c == "/" and i + 1 < len(texte) and texte[i + 1] == "*":
+            i += 2
+            while i + 1 < len(texte) and not (texte[i] == "*" and texte[i + 1] == "/"):
+                i += 1
+            i += 2
+            continue
+        sortie.append(c)
+        i += 1
+    return "".join(sortie)
+
+
+def charge(chemin):
+    try:
+        texte = open(chemin, encoding="utf-8-sig").read()
+    except Exception:
+        return None
+    try:
+        return json.loads(texte)
+    except Exception:
+        texte = sans_commentaires(texte)
+        texte = re.sub(r",\s*([}\]])", r"\1", texte)
+        try:
+            return json.loads(texte)
+        except Exception:
+            return None
+
+
+hote = charge(sys.argv[1]) or {}
+conf = charge(sys.argv[2]) or {}
+nom = hote.get("ActiveProfile") or ""
+profil = next((x for x in (hote.get("Profiles") or []) if x.get("Name") == nom), {})
+print("[coodsz] ports de l'outil : jeu=%s moteur=%s" % (
+    profil.get("CoopPort") or "?", profil.get("EnginePort") or "?"))
+if conf:
+    print("[coodsz] ports du serveur : jeu=%s monde=%s (server-config.json)" % (
+        conf.get("port", "?"), conf.get("saveName", "?")))
+else:
+    print("[coodsz] server-config.json absent ou illisible")
+PYV
+log "rappel : l'onglet Ports doit afficher 4200 (UDP), 4201 (UDP) et 7210 (moteur)"
+
 log "lancement de $EXE"
 cd "$(dirname "$EXE")" || exit 1
 
