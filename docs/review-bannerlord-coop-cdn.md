@@ -70,3 +70,21 @@ Rien ne menace la production aujourd'hui : les deux voies d'installation sont in
 échecs sont bruyants. Les trois points à traiter **avant** la prochaine bascule de version sont R1
 (réinitialisation silencieuse), R2 (port en dur) et R3 (absence de garde). Ce sont trois corrections
 locales, sans changement d'architecture.
+
+## Corrections livrées dans `bannerlord-coop-cdn-v2`
+
+Le template de production n'est pas touché. Une copie existe sous
+`bannerlord-coop-cdn-v2.*` (nom affiché « … (CDN fallback, v2) »), avec les quatre correctifs et
+trois réglages de version.
+
+| Point | Ce qui change |
+|---|---|
+| R1 | `server-config.json` est lu avec un analyseur tolérant au JSONC (commentaires `//`, `/* */`, virgules finales) et n'est **jamais** réinitialisé quand `Game Saves/` contient une campagne : l'update s'arrête alors avec un code non nul et le fichier intact |
+| R2 | l'initialisation écrit le port du panneau (`GAMEPORT`) au lieu de la constante 4200 |
+| R3 | deux réglages, `Game version` (1.4.8) et `Coop build` (0.1.7), comparés à `release-info.txt` après chaque update ; écart signalé, et refus si `BlockOnVersionMismatch` est à Yes |
+| R7 | contrôle que le deuxième port publié vaut bien le premier + 1, sinon avertissement explicite |
+
+Vérifié sur huit scénarios : JSONC valide avec campagne (fichier intact), JSON cassé avec campagne
+(refus, fichier conservé), JSON cassé sans campagne (réinitialisation au port du panneau, ancien
+fichier gardé en `.illisible-<date>`), écart de build Coop, écart de version de jeu, refus strict,
+paire de ports incohérente, paire conforme.
