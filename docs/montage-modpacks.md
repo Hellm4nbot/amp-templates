@@ -172,6 +172,20 @@ paires validées** et de rendre le mouvement visible :
 - un changement de build côté atelier ne casse donc rien : il **bloque** avec une explication, et
   la mise à jour d'un manifeste est une décision, pas un effet de bord.
 
+**Cible annoncée par l'équipe TAOM** (novembre 2026) : compatibilité TAOM + Coop pour Bannerlord
+**1.5.7** avec Coop **0.1.7** (« we are close »). Le jour où ça sort, l'ajout se limite à une entrée
+`packs/coop-taom-157.json` : `gameVersion: "1.5.7"`, `coopBuild: "0.1.7"`, et la liste des modules
+du build TAOM 2.x. Aucune ligne de code du template ne change.
+
+Trois points à vérifier à ce moment-là, dans cet ordre :
+
+1. que la release Coop de l'atelier livre bien les modules **1.5.7** (le pack les déclare, la
+   vérification de version les contrôle — sinon on assemble un TAOM 1.5.7 sur un socle 1.4.8) ;
+2. que TAOM est distribué en build **1.5.7** (aujourd'hui `2.0.39`, launcher seul ; ModDB et Nexus
+   sont restés en 1.4.8) ;
+3. que **War Sails reste exclu** du montage — le DLC progresse côté Coop, mais TAOM le refuse
+   toujours, et l'annonce ne dit rien d'une levée de cette contrainte.
+
 Ce qu'il faut surveiller dans les changelogs, parce que c'est ce qui touche le template et non le
 jeu : le layout du paquet atelier (`engine/`, `engine/Modules/`, nom de l'exécutable), les
 arguments de lancement et la façon dont le serveur prend sa liste de modules, le format de
