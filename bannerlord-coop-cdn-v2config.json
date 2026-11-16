@@ -1,16 +1,16 @@
 [
  {
-  "DisplayName": "Accept the licence on next start",
+  "DisplayName": "Accept the licence on start",
   "Category": "Server Update:cloud_download",
   "Subcategory": "Licence:gavel:1",
-  "Description": "One-shot switch. Set to Yes and start once: the server writes its eula.txt (with the eula-sha256 of the licence text it ships) and never asks again. Set it back to No afterwards, otherwise a future version of the licence text would be accepted without anyone reading it. Keep it on No when the instance already has an accepted eula.txt.",
+  "Description": "Yes by default: a fresh instance writes its eula.txt (with the eula-sha256 of the licence text it ships) on the first start, so the server becomes reachable without anyone answering a console prompt. Set it to No if you want to read the licence first: the server then asks in the console and waits for an answer. Changing the value after the first start has no effect, because eula.txt already exists.",
   "Keywords": "eula,licence,license,accept,terms",
   "FieldName": "AcceptEula",
   "InputType": "enum",
-  "DefaultValue": "false",
+  "DefaultValue": "true",
   "EnumValues": {
-   "false": "No (default)",
-   "true": "Yes, accept on next start"
+   "true": "Yes, accept on start (default)",
+   "false": "No, ask in the console"
   }
  },
  {
