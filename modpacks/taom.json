@@ -14,6 +14,14 @@
       "taille": 19368167073,
       "prefixe": "Modules",
       "remarque": "archive publique TAOM 2.0.29.5, non redistribuee : le template telecharge l'original et verifie l'empreinte"
+    },
+    "modules_du_jeu": {
+      "type": "archive",
+      "url": "",
+      "sha256": "",
+      "taille": 0,
+      "destination": "game-modules",
+      "remarque": "modules officiels du jeu (CustomBattle, BirthAndDeath) : non redistribues. Renseigner l url et l empreinte depuis le panneau, ou deposer l archive dans le dossier des modules du jeu."
     }
   },
   "modules": [

@@ -19,7 +19,8 @@ Usage :
     modpack.py extraire <manifeste.json> <archive.zip> <dossier Modules>
     modpack.py sources  <manifeste.json>
     modpack.py modules  <manifeste.json> <cle|jeu|engine>
-    modpack.py surcharger <manifeste> <sortie> <url> [sha256] [taille]
+    modpack.py surcharger <manifeste> <sortie> <url> [sha256] [taille] [cle]
+    modpack.py cles     <manifeste.json>
     modpack.py sauvegarde <fichier.sav> [<manifeste.json>]
     modpack.py fiche    <manifeste.json> [<compatibilite.json>]
     modpack.py apparence <manifeste.json> <dossier Modules>
@@ -328,13 +329,23 @@ def sources(chemin_manifeste):
         # Un champ vide entre deux tabulations disparait au « read » du shell (la
         # tabulation est un blanc) : on emet des sentinelles plutot que du vide.
         print(
-            "%s\t%s\t%s\t%s\t%s"
-            % (cle, url or "-", d.get("sha256") or "-", d.get("taille") or 0, nom or "-")
+            "%s\t%s\t%s\t%s\t%s\t%s"
+            % (cle, url or "-", d.get("sha256") or "-", d.get("taille") or 0, nom or "-",
+               d.get("destination") or "modules")
         )
     return 0
 
 
-def surcharger(chemin_manifeste, sortie, url, sha256="", taille=""):
+def cles(chemin_manifeste):
+    """Une ligne par source : cle et destination (« modules » ou « game-modules »)."""
+    manifeste = charger(chemin_manifeste)
+    for cle, d in (manifeste.get("sources") or {}).items():
+        if isinstance(d, dict):
+            print("%s\t%s" % (cle, d.get("destination") or "modules"))
+    return 0
+
+
+def surcharger(chemin_manifeste, sortie, url, sha256="", taille="", cle_seule=""):
     """Ecrit une copie du manifeste avec une autre source d'archive.
 
     Un nouveau build de TAOM ne doit pas demander une modification du depot : le
@@ -354,6 +365,8 @@ def surcharger(chemin_manifeste, sortie, url, sha256="", taille=""):
     touchees = 0
     for cle, d in sources.items():
         if not isinstance(d, dict):
+            continue
+        if cle_seule and cle != cle_seule:
             continue
         d["url"] = url
         d["sha256"] = sha256
@@ -781,7 +794,11 @@ def main(argv):
     if len(argv) >= 6 and argv[1] == "surcharger":
         return surcharger(argv[2], argv[3], argv[4],
                           argv[5] if len(argv) > 5 else "",
-                          argv[6] if len(argv) > 6 else "")
+                          argv[6] if len(argv) > 6 else "",
+                          argv[7] if len(argv) > 7 else "")
+
+    if len(argv) == 3 and argv[1] == "cles":
+        return cles(argv[2])
 
     if len(argv) != 4 or argv[1] not in ("etat", "verifier", "jeton"):
         print(__doc__.strip().splitlines()[0])
