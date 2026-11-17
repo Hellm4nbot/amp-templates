@@ -69,6 +69,9 @@ fi
 # --- 3. archives : presence, taille, empreinte ------------------------------
 while IFS="$(printf '\t')" read -r CLE URL SHA TAILLE NOM; do
     [ -n "${CLE:-}" ] || continue
+    [ "$URL" = "-" ] && URL=""
+    [ "$SHA" = "-" ] && SHA=""
+    [ "$NOM" = "-" ] && NOM=""
     if [ -z "$URL" ] || [ -z "$NOM" ]; then
         erreur "source $CLE sans url : a deposer a la main dans $PACKS"
         exit 1
@@ -120,6 +123,23 @@ while IFS="$(printf '\t')" read -r CLE URL SHA TAILLE NOM; do
         log "aucune empreinte annoncee : $NOM epinglee maintenant ($(printf '%s' "$REEL_SHA" | cut -c1-16)...)"
         log "  pour la fixer durablement, reporter cette valeur dans le manifeste ou le champ Empreinte"
     fi
+
+    # Suivi de version : si l archive a change, les dossiers qu elle avait installes
+    # doivent partir avant l extraction, sinon les fichiers de deux builds cohabitent.
+    ETAT="$PACKS/.etat-$PACK-$CLE.txt"
+    IDS=$(python3 "$OUTIL" modules "$MANIFESTE" "$CLE")
+    if [ -f "$ETAT" ]; then
+        AVANT=$(head -1 "$ETAT")
+        if [ "$AVANT" != "$REEL_SHA" ]; then
+            log "l archive $NOM a change : retrait des modules de la version precedente"
+            for ident in $(tail -n +2 "$ETAT"); do
+                if [ -d "$MODULES/$ident" ]; then
+                    rm -rf "$MODULES/$ident" && log "  retire : $ident"
+                fi
+            done
+        fi
+    fi
+    { printf '%s\n' "$REEL_SHA"; printf '%s\n' "$IDS"; } > "$ETAT"
 done <<EOF
 $(python3 "$OUTIL" sources "$MANIFESTE")
 EOF
@@ -130,6 +150,7 @@ EOF
 # de modules manquants.
 while IFS="$(printf '\t')" read -r CLE URL SHA TAILLE NOM; do
     [ -n "${CLE:-}" ] || continue
+    [ "$NOM" = "-" ] && continue
     ARCHIVE=""
     [ -f "$PACKS/$NOM" ] && ARCHIVE="$PACKS/$NOM"
     [ -z "$ARCHIVE" ] && [ -f "$CACHE/$NOM" ] && ARCHIVE="$CACHE/$NOM"

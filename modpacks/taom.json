@@ -109,10 +109,12 @@
       "Telecharger TAOM 2.0.29.5 sur Nexus et extraire les quatre dossiers (TAOM.Dependencies, TAOM_Map, LOTRLOME_Armory, TAOM) dans le dossier Modules du jeu.",
       "Activer les modules dans cet ordre : TAOM.Dependencies, puis les modules du jeu, puis TAOM_Map, LOTRLOME_Armory, TAOM.",
       "Creer une campagne Sandbox (jamais Story Mode : le serveur ne sait pas la charger), atteindre la carte.",
+      "Regler les options MCM en solo avant de creer la sauvegarde : les reglages du serveur sont ceux du fichier de config, pas du .sav.",
       "Sauvegarder sous le nom voulu, puis copier le .sav dans le dossier d import du serveur.",
       "Au premier demarrage, le serveur ecrit le fichier .json associe : les joueurs creeront leur personnage lors de leur premiere session."
     ]
   },
   "avertissement": "Deux modules viennent de l installation du jeu de l operateur et non du paquet serveur: CustomBattle et BirthAndDeath. Un hote TAOM+Coop qui fonctionne les a bien dans engine\\Modules (StoryMode.dll, CustomBattle.dll, MCMv5.dll cites dans un rapport de plantage). Sans ces dossiers, le controle refuse le demarrage.",
-  "coop_reconnu": "Modules/TAOM.Dependencies/coop-modules.txt cite « Coop » (atelier 3770450698) comme mod co-op reconnu : TAOM desactive alors son PatchShield destructeur et fait relancer les erreurs de sauvegarde. La combinaison est donc prevue du cote TAOM."
+  "coop_reconnu": "Modules/TAOM.Dependencies/coop-modules.txt cite « Coop » (atelier 3770450698) comme mod co-op reconnu : TAOM desactive alors son PatchShield destructeur et fait relancer les erreurs de sauvegarde. La combinaison est donc prevue du cote TAOM.",
+  "note_ordre": "A chaque nouveau build du pack, les dossiers de l archive precedente sont retires avant extraction : deux builds qui cohabitent produisent un melange de fichiers."
 }
