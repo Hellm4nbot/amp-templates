@@ -68,7 +68,7 @@ cd "$SERV" || exit 1
 if [ "${SUPPLEMENTAIRES:-0}" = "0" ]; then
     log "pack $PACK : aucun module supplementaire, lancement par l exe du paquet"
     log "port moteur $PORT, region $REGION, donnees $DATA"
-    exec wine BannerlordCoopServer.exe --no-tui --data-dir "Z:$DATA" -p "$PORT" --region "$REGION"
+    exec /usr/bin/wine BannerlordCoopServer.exe --no-tui --data-dir "Z:$DATA" -p "$PORT" --region "$REGION"
 fi
 
 # --- jeton de modules --------------------------------------------------------
@@ -90,4 +90,4 @@ DOTNET="engine/dotnet/dotnet.exe"
 [ -f "$STARTER" ] || { erreur "starter .NET absent : $STARTER"; exit 1; }
 [ -f "$DOTNET" ] || { erreur "dotnet embarque absent : $DOTNET"; exit 1; }
 
-exec wine "$DOTNET" "$STARTER" "$JETON" /dedicatedcustomserver "$PORT" "$REGION" 0
+exec /usr/bin/wine "$DOTNET" "$STARTER" "$JETON" /dedicatedcustomserver "$PORT" "$REGION" 0
