@@ -392,9 +392,20 @@ def sauvegarde(chemin_sav, chemin_manifeste=None):
         except (OSError, ValueError) as e:
             print("manifeste illisible : %s" % e)
             return 2
-        attendus = [e["id"] for e in manifeste.get("modules", []) if e.get("id")]
-        manquants = [m for m in attendus if m.lower() not in {x.lower() for x in modules}]
-        en_trop = [m for m in modules if m.lower() not in {x.lower() for x in attendus}]
+        # Les modules d'infrastructure du serveur (DedicatedServer.*) n'existent pas
+        # chez un joueur : une sauvegarde creee sur une machine joueur ne les liste
+        # donc pas. Les comparer ferait refuser toute sauvegarde legitime.
+        def infrastructure(m):
+            return m.lower().startswith("dedicatedserver.")
+
+        ignores = sorted({m for m in modules if infrastructure(m)})
+        if ignores:
+            print("  ignore dans la comparaison (modules serveur) : %s" % ", ".join(ignores))
+        attendus = [e["id"] for e in manifeste.get("modules", [])
+                    if e.get("id") and not infrastructure(e["id"])]
+        cote_save = [m for m in modules if not infrastructure(m)]
+        manquants = [m for m in attendus if m.lower() not in {x.lower() for x in cote_save}]
+        en_trop = [m for m in cote_save if m.lower() not in {x.lower() for x in attendus}]
         if manquants:
             print("  REFUS : modules du pack absents de la sauvegarde : %s" % ", ".join(manquants))
         if en_trop:
