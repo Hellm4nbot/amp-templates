@@ -21,6 +21,7 @@ Usage :
     modpack.py surcharger <manifeste> <sortie> <url> [sha256] [taille]
     modpack.py sauvegarde <fichier.sav> [<manifeste.json>]
     modpack.py fiche    <manifeste.json> [<compatibilite.json>]
+    modpack.py apparence <manifeste.json> <dossier Modules>
 
 Codes de sortie : 0 tout va bien, 1 module manquant ou incoherent, 2 manifeste
 illisible.
@@ -418,6 +419,54 @@ def sauvegarde(chemin_sav, chemin_manifeste=None):
     return 0
 
 
+def apparence(chemin_manifeste, modules_dir):
+    """Cree les modules declares « stub » dans le manifeste.
+
+    Un module d'apparence satisfait une dependance DECLAREE, pas un besoin reel :
+    il n'a ni assembly ni donnees. Utile quand un overhaul exige un module du jeu
+    que le paquet serveur ne livre pas (CustomBattle dans le paquet Coop) et que
+    le serveur n'ouvre jamais la fonction correspondante. Ce n'est pas neutre :
+    si le code appelait vraiment ce module, l'echec surviendrait a l'execution.
+    """
+    try:
+        manifeste = charger(chemin_manifeste)
+    except (OSError, ValueError) as e:
+        print("manifeste illisible : %s" % e)
+        return 2
+    crees = 0
+    for entree in manifeste.get("modules", []):
+        if not entree.get("stub"):
+            continue
+        ident = (entree.get("id") or "").strip()
+        if not ident:
+            continue
+        cible = os.path.join(modules_dir, ident)
+        chemin = os.path.join(cible, "SubModule.xml")
+        if os.path.isfile(chemin):
+            print("%s : module d apparence deja present" % ident)
+            continue
+        os.makedirs(cible, exist_ok=True)
+        version = entree.get("version") or "v1.0.0.0"
+        with open(chemin, "w", encoding="utf-8") as f:
+            f.write(
+                '<?xml version="1.0" encoding="utf-8"?>\n'
+                "<!-- Module d apparence cree par le template : il satisfait une dependance\n"
+                "     declaree par un autre module, sans assembly ni donnees. -->\n"
+                "<Module>\n"
+                '  <Name value="%s"/>\n'
+                '  <Id value="%s"/>\n'
+                '  <Version value="%s"/>\n'
+                "  <DefaultModule value=\"false\"/>\n"
+                "  <ModuleCategory value=\"Singleplayer\"/>\n"
+                "  <DependedModules/>\n"
+                "</Module>\n" % (ident, ident, version)
+            )
+        print("%s : module d apparence cree (%s)" % (ident, version))
+        crees += 1
+    print("%d module(s) d apparence en place" % crees)
+    return 0
+
+
 def fiche(chemin_manifeste, chemin_compat=None):
     """Rend la fiche d'un prereglage : ce que le serveur charge, ce que les joueurs
     installent, et les manipulations a faire. Destinee a etre ecrite dans
@@ -605,6 +654,9 @@ def main(argv):
 
     if len(argv) == 3 and argv[1] == "sources":
         return sources(argv[2])
+
+    if len(argv) == 4 and argv[1] == "apparence":
+        return apparence(argv[2], argv[3])
 
     if len(argv) in (3, 4) and argv[1] == "fiche":
         return fiche(argv[2], argv[3] if len(argv) > 3 else None)

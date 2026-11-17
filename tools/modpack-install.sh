@@ -140,7 +140,13 @@ done <<EOF
 $(python3 "$OUTIL" sources "$MANIFESTE")
 EOF
 
-# --- 5. controle final ------------------------------------------------------
+# --- 5. modules d'apparence -------------------------------------------------
+# Certains modules exiges par un overhaul ne sont pas livres par le paquet serveur
+# (CustomBattle cote Coop). Un module d'apparence satisfait la declaration, pas le
+# besoin : il est cree seulement si le manifeste le demande explicitement.
+python3 "$OUTIL" apparence "$MANIFESTE" "$MODULES" || true
+
+# --- 6. controle final ------------------------------------------------------
 if python3 "$OUTIL" verifier "$MANIFESTE" "$MODULES"; then
     log "modpack $PACK pret"
     exit 0
