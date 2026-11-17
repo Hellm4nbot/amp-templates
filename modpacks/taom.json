@@ -13,16 +13,16 @@
     }
   },
   "modules": [
-    { "id": "TAOM.Dependencies", "source": { "archive": "taom_archive", "dossier": "TAOM.Dependencies" } },
+    { "id": "TAOM.Dependencies", "mod": "TAOM", "source": { "archive": "taom_archive", "dossier": "TAOM.Dependencies" } },
     { "id": "Native", "source": "engine" },
     { "id": "SandBoxCore", "source": "engine" },
     { "id": "SandBox", "source": "engine" },
     { "id": "StoryMode", "source": "engine" },
     { "id": "CustomBattle", "source": "engine" },
     { "id": "BirthAndDeath", "source": "engine" },
-    { "id": "TAOM_Map", "source": { "archive": "taom_archive", "dossier": "TAOM MAP" } },
-    { "id": "LOTRAOM_Armory", "source": { "archive": "taom_archive", "dossier": "LOTRAOM Armoury" } },
-    { "id": "TAOM", "source": { "archive": "taom_archive", "dossier": "TAOM" } },
+    { "id": "TAOM_Map", "mod": "TAOM", "source": { "archive": "taom_archive", "dossier": "TAOM MAP" } },
+    { "id": "LOTRAOM_Armory", "mod": "TAOM", "source": { "archive": "taom_archive", "dossier": "LOTRAOM Armoury" } },
+    { "id": "TAOM", "mod": "TAOM", "source": { "archive": "taom_archive", "dossier": "TAOM" } },
     { "id": "DedicatedServer.Windows", "source": "engine" },
     { "id": "Coop", "source": "engine" }
   ]

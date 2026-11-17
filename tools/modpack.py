@@ -15,6 +15,7 @@ Usage :
     modpack.py verifier <manifeste.json> <dossier Modules>
     modpack.py jeton    <manifeste.json> <dossier Modules>
     modpack.py compat   <compatibilite.json> [<manifeste.json>]
+    modpack.py plan     <manifeste.json> <dossier Modules>
 
 Codes de sortie : 0 tout va bien, 1 module manquant ou incoherent, 2 manifeste
 illisible.
@@ -175,9 +176,46 @@ def compatibilite(chemin_compat, chemin_manifeste=None):
     return 0
 
 
+def plan(chemin_manifeste, modules_dir):
+    """Liste, pour chaque module absent, le dossier a extraire de son archive.
+
+    Sortie : une ligne par module a installer, champs separes par une tabulation :
+        <id>\t<dossier dans l'archive>\t<destination>
+    Les modules deja en place ne sortent pas, et les modules « engine » ne
+    s'installent pas : ils viennent avec le paquet du serveur.
+    """
+    try:
+        manifeste = charger(chemin_manifeste)
+    except (OSError, ValueError) as e:
+        print("manifeste illisible : %s" % e)
+        return 2
+    reste = []
+    for entree in manifeste.get("modules", []):
+        ident = (entree.get("id") or "").strip()
+        source = entree.get("source", "")
+        if not ident or source == "engine":
+            continue
+        if not isinstance(source, dict) or "archive" not in source:
+            print(
+                "module %s : provenance non installable (%r) — a deposer a la main dans le dossier de packs"
+                % (ident, source),
+                file=sys.stderr,
+            )
+            reste.append(ident)
+            continue
+        destination = os.path.join(modules_dir, ident)
+        if os.path.isdir(destination):
+            continue
+        print("%s\t%s\t%s" % (ident, source.get("dossier", ident), destination))
+    return 1 if reste else 0
+
+
 def main(argv):
     if len(argv) >= 3 and argv[1] == "compat":
         return compatibilite(argv[2], argv[3] if len(argv) > 3 else None)
+
+    if len(argv) == 4 and argv[1] == "plan":
+        return plan(argv[2], argv[3])
 
     if len(argv) != 4 or argv[1] not in ("etat", "verifier", "jeton"):
         print(__doc__.strip().splitlines()[0])
