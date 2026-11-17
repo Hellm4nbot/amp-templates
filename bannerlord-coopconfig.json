@@ -1,5 +1,25 @@
 [
   {
+    "FieldName": "GameModulesUrl",
+    "Category": "Coop",
+    "Name": "URL des modules du jeu",
+    "Description": "Archive zip contenant les modules officiels de Bannerlord dont le paquet serveur ne dispose pas (CustomBattle, BirthAndDeath). A heberger vous-meme : ces fichiers ne peuvent pas etre redistribues. Remplacable quand ces dossiers changent.",
+    "DefaultValue": "",
+    "InputType": "text",
+    "ParamField": "",
+    "IncludeInCommandLine": false
+  },
+  {
+    "FieldName": "GameModulesSha256",
+    "Category": "Coop",
+    "Name": "Empreinte des modules du jeu",
+    "Description": "sha256 de l archive ci-dessus. Vide : epinglee au premier telechargement, tout changement ulterieur est refuse.",
+    "DefaultValue": "",
+    "InputType": "text",
+    "ParamField": "",
+    "IncludeInCommandLine": false
+  },
+  {
     "FieldName": "GameModulesDir",
     "Category": "Coop",
     "Name": "Modules du jeu (dossier)",

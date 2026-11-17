@@ -1,13 +1,17 @@
 #!/bin/bash
-# Installe un modpack : archive verifiee, modules extraits, etat controle.
+# Installe un modpack : archives verifiees, modules en place, etat controle.
 #
 # Usage : modpack-install.sh <pack> <dossier Modules> <dossier de packs> [<cache>]
 #
-# Le manifeste est cherche d'abord dans le dossier de packs (<pack>.json), puis
-# telecharge depuis le depot. L'archive est cherchee dans le dossier de packs,
-# puis telechargee dans le cache. Dans les deux cas l'empreinte et la taille sont
-# verifiees avant toute extraction : une archive differente de celle epinglee est
-# refusee, pas installee « au cas ou ».
+# Le manifeste est cherche dans le dossier de packs (<pack>.json), puis telecharge
+# depuis le depot. Chaque archive est cherchee dans le dossier de packs, puis
+# telechargee dans le cache ; sa TAILLE et son EMPREINTE sont controlees avant
+# toute extraction. Une archive differente de celle epinglee est refusee, pas
+# installee « au cas ou ».
+#
+# Deux destinations possibles pour une archive :
+#   modules        (defaut)  -> modules extraits dans engine/Modules du serveur
+#   game-modules            -> modules du jeu, deballes dans le dossier du jeu
 #
 # Aucun binaire tiers n'est redistribue : le script telecharge l'original.
 
@@ -17,6 +21,7 @@ PACK="${1:-}"
 MODULES="${2:-}"
 PACKS="${3:-}"
 CACHE="${4:-${PACKS:-/tmp}}"
+GAME_MODULES="${GAME_MODULES_DIR:-$PACKS/game-modules}"
 DEPOT_MANIFESTES="https://raw.githubusercontent.com/Hellm4nbot/amp-templates/main/modpacks"
 OUTIL="$(dirname "$0")/modpack.py"
 
@@ -28,7 +33,17 @@ erreur() { echo "[modpack] ERREUR : $*" >&2; }
     exit 2
 }
 [ -f "$OUTIL" ] || { erreur "outil introuvable : $OUTIL"; exit 2; }
-mkdir -p "$MODULES" "$PACKS" "$CACHE" || exit 2
+mkdir -p "$MODULES" "$PACKS" "$CACHE" "$GAME_MODULES" || exit 2
+
+# --- 0. zips deposes a la main dans le dossier des modules du jeu -------------
+# Avant tout controle : un zip depose la est deballe ici, sinon la source serait
+# declaree manquante alors que les fichiers sont deja la.
+for z in "$GAME_MODULES"/*.zip; do
+    [ -f "$z" ] || continue
+    log "archive de modules du jeu deposee a la main : $(basename "$z")"
+    python3 "$OUTIL" deballer "$z" "$GAME_MODULES" || { erreur "deballage de $z impossible"; exit 1; }
+    mv "$z" "$z.deballee"
+done
 
 # --- 1. manifeste ------------------------------------------------------------
 MANIFESTE="$PACKS/$PACK.json"
@@ -41,20 +56,33 @@ if [ ! -f "$MANIFESTE" ]; then
     fi
     mv "$MANIFESTE.tmp" "$MANIFESTE"
 fi
-# Une url fournie par le panneau prend le pas sur le manifeste du depot : c'est ce
-# qui permet de suivre un nouveau build sans modifier le depot. L'empreinte et la
-# taille sont reprises si elles sont fournies, sinon l archive est epinglee au
-# premier telechargement (voir plus bas).
-if [ -n "${MODPACK_URL:-}" ]; then
-    log "url fournie par le panneau : $MODPACK_URL"
+
+# Une url fournie par le panneau prend le pas sur le manifeste, source par source :
+# c'est ce qui permet de suivre un nouveau build sans modifier le depot. Le
+# manifeste d'origine n'est jamais reecrit, donc vider le champ revient a l'ancien
+# comportement.
+if [ -n "${MODPACK_URL:-}" ] || [ -n "${GAME_MODULES_URL:-}" ]; then
     DERIVE="$PACKS/$PACK.local.json"
-    python3 "$OUTIL" surcharger "$MANIFESTE" "$DERIVE" "$MODPACK_URL" \
-        "${MODPACK_SHA256:-}" "${MODPACK_TAILLE:-}" || exit 1
+    cp "$MANIFESTE" "$DERIVE" || exit 1
+    while IFS="$(printf '\t')" read -r CLE DESTINATION; do
+        [ -n "${CLE:-}" ] || continue
+        [ "$DESTINATION" = "-" ] && DESTINATION="modules"
+        if [ "$DESTINATION" = "game-modules" ] && [ -n "${GAME_MODULES_URL:-}" ]; then
+            log "url des modules du jeu fournie par le panneau : $GAME_MODULES_URL"
+            python3 "$OUTIL" surcharger "$DERIVE" "$DERIVE" "$GAME_MODULES_URL" \
+                "${GAME_MODULES_SHA256:-}" "" "$CLE" || exit 1
+        elif [ "$DESTINATION" != "game-modules" ] && [ -n "${MODPACK_URL:-}" ]; then
+            log "url du pack fournie par le panneau : $MODPACK_URL"
+            python3 "$OUTIL" surcharger "$DERIVE" "$DERIVE" "$MODPACK_URL" \
+                "${MODPACK_SHA256:-}" "${MODPACK_TAILLE:-}" "$CLE" || exit 1
+        fi
+    done <<EOF
+$(python3 "$OUTIL" cles "$MANIFESTE")
+EOF
     MANIFESTE="$DERIVE"
 fi
 
 log "manifeste : $MANIFESTE"
-python3 "$OUTIL" verifier "$MANIFESTE" "$MODULES" 2>/dev/null | head -3 || true
 
 # --- 2. ce que les joueurs ont constate -------------------------------------
 COMPAT="$PACKS/compatibilite.json"
@@ -67,13 +95,29 @@ if [ -f "$COMPAT" ]; then
 fi
 
 # --- 3. archives : presence, taille, empreinte ------------------------------
-while IFS="$(printf '\t')" read -r CLE URL SHA TAILLE NOM; do
+while IFS="$(printf '\t')" read -r CLE URL SHA TAILLE NOM DESTINATION; do
     [ -n "${CLE:-}" ] || continue
     [ "$URL" = "-" ] && URL=""
     [ "$SHA" = "-" ] && SHA=""
     [ "$NOM" = "-" ] && NOM=""
+    [ "$DESTINATION" = "-" ] && DESTINATION="modules"
     if [ -z "$URL" ] || [ -z "$NOM" ]; then
-        erreur "source $CLE sans url : a deposer a la main dans $PACKS"
+        # Sans url, une source n'est acceptable que si ses modules sont deja en
+        # place (archive deposee a la main puis deballee).
+        if [ "$DESTINATION" = "game-modules" ]; then
+            MANQUE=""
+            for ident in $(python3 "$OUTIL" modules "$MANIFESTE" jeu); do
+                [ -f "$GAME_MODULES/$ident/SubModule.xml" ] || MANQUE="$MANQUE $ident"
+            done
+            if [ -z "$MANQUE" ]; then
+                log "modules du jeu deja en place dans $GAME_MODULES"
+                continue
+            fi
+            erreur "modules du jeu manquants ($MANQUE ) et aucune url fournie"
+            erreur "  deposer l archive zip dans $GAME_MODULES, ou renseigner « URL des modules du jeu »"
+        else
+            erreur "source $CLE sans url : a deposer a la main dans $PACKS"
+        fi
         exit 1
     fi
     ARCHIVE="$PACKS/$NOM"
@@ -124,6 +168,15 @@ while IFS="$(printf '\t')" read -r CLE URL SHA TAILLE NOM; do
         log "  pour la fixer durablement, reporter cette valeur dans le manifeste ou le champ Empreinte"
     fi
 
+    if [ "$DESTINATION" = "game-modules" ]; then
+        log "modules du jeu : deballage de $NOM dans $GAME_MODULES"
+        python3 "$OUTIL" deballer "$ARCHIVE" "$GAME_MODULES" || {
+            erreur "deballage de $NOM impossible"
+            exit 1
+        }
+        continue
+    fi
+
     # Suivi de version : si l archive a change, les dossiers qu elle avait installes
     # doivent partir avant l extraction, sinon les fichiers de deux builds cohabitent.
     ETAT="$PACKS/.etat-$PACK-$CLE.txt"
@@ -144,13 +197,13 @@ done <<EOF
 $(python3 "$OUTIL" sources "$MANIFESTE")
 EOF
 
-# --- 4. extraction ----------------------------------------------------------
+# --- 4. extraction des modules du serveur -----------------------------------
 # extraire() traite d'un coup tous les modules d'une archive et saute ce qui est
-# deja complet : une seule passe par archive suffit, quelle que soit la quantite
-# de modules manquants.
-while IFS="$(printf '\t')" read -r CLE URL SHA TAILLE NOM; do
+# deja complet : une seule passe par archive suffit.
+while IFS="$(printf '\t')" read -r CLE URL SHA TAILLE NOM DESTINATION; do
     [ -n "${CLE:-}" ] || continue
     [ "$NOM" = "-" ] && continue
+    [ "$DESTINATION" = "game-modules" ] && continue
     ARCHIVE=""
     [ -f "$PACKS/$NOM" ] && ARCHIVE="$PACKS/$NOM"
     [ -z "$ARCHIVE" ] && [ -f "$CACHE/$NOM" ] && ARCHIVE="$CACHE/$NOM"
@@ -165,25 +218,15 @@ EOF
 # Le paquet serveur Coop ne livre que cinq modules ; un serveur modde a besoin de
 # modules du jeu (CustomBattle, BirthAndDeath...). Ils viennent des fichiers du jeu
 # de l'operateur : rien n'est redistribue.
-GAME_MODULES="${GAME_MODULES_DIR:-$PACKS/game-modules}"
-mkdir -p "$GAME_MODULES"
-# Un zip depose dans ce dossier est deballe ici : l operateur n a pas a l ouvrir.
-for z in "$GAME_MODULES"/*.zip; do
-    [ -f "$z" ] || continue
-    log "archive de modules du jeu : $(basename "$z")"
-    python3 "$OUTIL" deballer "$z" "$GAME_MODULES" || { erreur "deballage de $z impossible"; exit 1; }
-    mv "$z" "$z.deballee"
-done
 python3 "$OUTIL" copier-jeu "$MANIFESTE" "$MODULES" "$GAME_MODULES" || {
     erreur "des modules doivent etre copies depuis votre installation de Bannerlord"
-    erreur "  dossier attendu : ${GAME_MODULES_DIR:-$PACKS/game-modules}"
+    erreur "  dossier attendu : $GAME_MODULES"
     exit 1
 }
 
 # --- 6. modules d'apparence -------------------------------------------------
-# Certains modules exiges par un overhaul ne sont pas livres par le paquet serveur
-# (CustomBattle cote Coop). Un module d'apparence satisfait la declaration, pas le
-# besoin : il est cree seulement si le manifeste le demande explicitement.
+# Un module d'apparence satisfait une dependance declaree, pas le besoin : il n'est
+# cree que si le manifeste le demande explicitement.
 python3 "$OUTIL" apparence "$MANIFESTE" "$MODULES" || true
 
 # --- 7. controle final ------------------------------------------------------
