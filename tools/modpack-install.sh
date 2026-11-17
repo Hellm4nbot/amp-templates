@@ -165,7 +165,16 @@ EOF
 # Le paquet serveur Coop ne livre que cinq modules ; un serveur modde a besoin de
 # modules du jeu (CustomBattle, BirthAndDeath...). Ils viennent des fichiers du jeu
 # de l'operateur : rien n'est redistribue.
-python3 "$OUTIL" copier-jeu "$MANIFESTE" "$MODULES" "${GAME_MODULES_DIR:-$PACKS/game-modules}" || {
+GAME_MODULES="${GAME_MODULES_DIR:-$PACKS/game-modules}"
+mkdir -p "$GAME_MODULES"
+# Un zip depose dans ce dossier est deballe ici : l operateur n a pas a l ouvrir.
+for z in "$GAME_MODULES"/*.zip; do
+    [ -f "$z" ] || continue
+    log "archive de modules du jeu : $(basename "$z")"
+    python3 "$OUTIL" deballer "$z" "$GAME_MODULES" || { erreur "deballage de $z impossible"; exit 1; }
+    mv "$z" "$z.deballee"
+done
+python3 "$OUTIL" copier-jeu "$MANIFESTE" "$MODULES" "$GAME_MODULES" || {
     erreur "des modules doivent etre copies depuis votre installation de Bannerlord"
     erreur "  dossier attendu : ${GAME_MODULES_DIR:-$PACKS/game-modules}"
     exit 1
