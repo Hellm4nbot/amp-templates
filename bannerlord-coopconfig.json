@@ -1,5 +1,35 @@
 [
   {
+    "FieldName": "ArchiveUrl",
+    "Category": "Coop",
+    "Name": "URL de l archive (facultatif)",
+    "Description": "Prend le pas sur l URL du manifeste : utile quand un nouveau build du pack sort sans que le depot soit mis a jour. Laisser vide pour utiliser le manifeste. Le manifeste d origine n est pas modifie : vider le champ revient a l ancien comportement.",
+    "DefaultValue": "",
+    "InputType": "text",
+    "ParamField": "",
+    "IncludeInCommandLine": false
+  },
+  {
+    "FieldName": "ArchiveSha256",
+    "Category": "Coop",
+    "Name": "Empreinte de l archive (facultatif)",
+    "Description": "sha256 attendu pour l archive ci-dessus. Vide : l archive est epinglee au premier telechargement, et un changement ulterieur est refuse au lieu d etre installe.",
+    "DefaultValue": "",
+    "InputType": "text",
+    "ParamField": "",
+    "IncludeInCommandLine": false
+  },
+  {
+    "FieldName": "ImportDir",
+    "Category": "Coop",
+    "Name": "Dossier d import des sauvegardes",
+    "Description": "Ou deposer un fichier .sav (et son .json si la sauvegarde vient d un serveur Coop) pour l installer dans Game Saves. L en-tete de la sauvegarde est compare aux modules du pack : une sauvegarde creee avec d autres modules est refusee, avec la liste des ecarts.",
+    "DefaultValue": "./bannerlordcoop/import/",
+    "InputType": "text",
+    "ParamField": "",
+    "IncludeInCommandLine": false
+  },
+  {
     "FieldName": "Modpack",
     "Category": "Coop",
     "Name": "Modpack",
