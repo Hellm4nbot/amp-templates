@@ -22,6 +22,7 @@ Usage :
     modpack.py sauvegarde <fichier.sav> [<manifeste.json>]
     modpack.py fiche    <manifeste.json> [<compatibilite.json>]
     modpack.py apparence <manifeste.json> <dossier Modules>
+    modpack.py copier-jeu <manifeste.json> <dossier Modules> <dossier Modules du jeu>
 
 Codes de sortie : 0 tout va bien, 1 module manquant ou incoherent, 2 manifeste
 illisible.
@@ -419,6 +420,55 @@ def sauvegarde(chemin_sav, chemin_manifeste=None):
     return 0
 
 
+def copier_jeu(chemin_manifeste, modules_dir, jeu_dir):
+    """Copie depuis une installation du jeu les modules que le paquet ne livre pas.
+
+    Le paquet serveur Coop ne contient que cinq modules. Un serveur modde a besoin
+    de modules du jeu (StoryMode, CustomBattle...) : un hote TAOM+Coop qui
+    fonctionne les a bien dans engine\\Modules. On les copie depuis les fichiers du
+    jeu de l'operateur, sans jamais les redistribuer.
+    """
+    try:
+        manifeste = charger(chemin_manifeste)
+    except (OSError, ValueError) as e:
+        print("manifeste illisible : %s" % e)
+        return 2
+    if not os.path.isdir(jeu_dir):
+        manquants = [e.get("id") for e in manifeste.get("modules", [])
+                     if isinstance(e.get("source"), dict) and e["source"].get("jeu")]
+        if manquants:
+            print("dossier des modules du jeu absent : %s" % jeu_dir)
+            print("  modules attendus de ce dossier : %s" % ", ".join(m for m in manquants if m))
+            print("  deposer les dossiers du jeu dans ce chemin, ou renseigner le reglage")
+            return 1
+        return 0
+
+    codes = 0
+    for entree in manifeste.get("modules", []):
+        source = entree.get("source")
+        if not isinstance(source, dict) or not source.get("jeu"):
+            continue
+        ident = (entree.get("id") or "").strip()
+        if not ident:
+            continue
+        dossier_jeu = os.path.join(jeu_dir, source.get("dossier", ident))
+        cible = os.path.join(modules_dir, ident)
+        if not os.path.isdir(dossier_jeu):
+            print("%s : absent du dossier du jeu (%s)" % (ident, dossier_jeu))
+            codes = 1
+            continue
+        if os.path.isfile(os.path.join(cible, "SubModule.xml")):
+            print("%s : deja en place" % ident)
+            continue
+        shutil.copytree(dossier_jeu, cible, dirs_exist_ok=True)
+        version = version_module(cible)
+        print("%s : copie depuis le jeu (%s)" % (ident, version or "version inconnue"))
+        if identifiant_module(cible) not in (None, ident):
+            print("  identifiant inattendu : %s" % identifiant_module(cible))
+            codes = 1
+    return codes
+
+
 def apparence(chemin_manifeste, modules_dir):
     """Cree les modules declares « stub » dans le manifeste.
 
@@ -654,6 +704,9 @@ def main(argv):
 
     if len(argv) == 3 and argv[1] == "sources":
         return sources(argv[2])
+
+    if len(argv) == 5 and argv[1] == "copier-jeu":
+        return copier_jeu(argv[2], argv[3], argv[4])
 
     if len(argv) == 4 and argv[1] == "apparence":
         return apparence(argv[2], argv[3])
