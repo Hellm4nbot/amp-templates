@@ -1,0 +1,27 @@
+{
+  "maj": "2026-11-12",
+  "source": "Rapports de joueurs, Discord Bannerlord Coop / Coodsz",
+  "regle": "Aucune valeur n'est deduite : chaque entree reprend ce que le rapport dit, avec sa date. « non teste » n'est pas « compatible ».",
+  "champs": {
+    "etat": "teste-ok | teste-ko | non teste",
+    "hebergement": "serveur dedie | jeu du joueur | inconnu",
+    "war_sails": "true | false | inconnu"
+  },
+  "mods": [
+    {
+      "nom": "Spells of the Old Realms",
+      "version_mod": "3.1.7",
+      "jeu": "1.4.x",
+      "coop": "0.1.7",
+      "etat": "non teste",
+      "hebergement": "jeu du joueur",
+      "war_sails": false,
+      "prerequis": ["ButterLib", "MCM", "Harmony"],
+      "mono_joueur_ok": false,
+      "details": "Non teste avec Coop : l'auteur du rapport a un probleme ouvert avec l'auteur du mod (ne possede pas le DLC War Sails). Des joueurs possedant War Sails rapportent que le mod tourne bien.",
+      "licence": "GPL",
+      "depot": "https://github.com/Arkenfagen/Spells-of-the-Old-Realms",
+      "source_rapport": "Discord, 12/11/2026 03:39"
+    }
+  ]
+}

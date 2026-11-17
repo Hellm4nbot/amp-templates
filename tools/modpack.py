@@ -14,6 +14,7 @@ Usage :
     modpack.py etat     <manifeste.json> <dossier Modules>
     modpack.py verifier <manifeste.json> <dossier Modules>
     modpack.py jeton    <manifeste.json> <dossier Modules>
+    modpack.py compat   <compatibilite.json> [<manifeste.json>]
 
 Codes de sortie : 0 tout va bien, 1 module manquant ou incoherent, 2 manifeste
 illisible.
@@ -117,7 +118,67 @@ def etat(manifeste, modules_dir):
     return lignes
 
 
+def _normalise(texte):
+    return "".join(c for c in (texte or "").lower() if c.isalnum())
+
+
+def compatibilite(chemin_compat, chemin_manifeste=None):
+    """Rapporte ce que les joueurs ont constate, sans rien deduire.
+
+    Deux champs changent tout pour un serveur dedie : un mod heberge « jeu du
+    joueur » ne tourne pas sur une instance AMP, et un mod « non teste » n'est pas
+    un mod compatible. Les deux sont signales ici plutot que decouverts au
+    demarrage.
+    """
+    try:
+        with open(chemin_compat, encoding="utf-8-sig") as f:
+            compat = json.load(f)
+    except (OSError, ValueError) as e:
+        print("compatibilite illisible : %s" % e)
+        return 2
+
+    mods = compat.get("mods", [])
+    if chemin_manifeste:
+        try:
+            manifeste = charger(chemin_manifeste)
+        except (OSError, ValueError) as e:
+            print("manifeste illisible : %s" % e)
+            return 2
+        connus = {_normalise(m.get("nom")): m for m in mods}
+        print("pack %s — rapports connus pour ses modules :" % manifeste.get("nom", "?"))
+        trouve = 0
+        for entree in manifeste.get("modules", []):
+            nom = entree.get("mod") or entree.get("id")
+            rapport = connus.get(_normalise(nom))
+            if not rapport:
+                continue
+            trouve += 1
+            alertes = []
+            if rapport.get("etat") == "non teste":
+                alertes.append("NON TESTE")
+            if rapport.get("hebergement") == "jeu du joueur":
+                alertes.append("heberge par le jeu du joueur : pas de serveur dedie")
+            if rapport.get("war_sails") is False:
+                alertes.append("War Sails requis desactive")
+            print("  %-28s %s" % (nom, "; ".join(alertes) if alertes else "rien a signaler"))
+            print("      source : %s" % rapport.get("source_rapport", "?"))
+        if not trouve:
+            print("  aucun rapport pour ce pack")
+        return 0
+
+    print("rapports connus au %s (%s)" % (compat.get("maj", "?"), compat.get("source", "?")))
+    for m in mods:
+        print(
+            "  %-28s etat=%-10s hebergement=%-16s jeu=%s"
+            % (m.get("nom", "?"), m.get("etat", "?"), m.get("hebergement", "?"), m.get("jeu", "?"))
+        )
+    return 0
+
+
 def main(argv):
+    if len(argv) >= 3 and argv[1] == "compat":
+        return compatibilite(argv[2], argv[3] if len(argv) > 3 else None)
+
     if len(argv) != 4 or argv[1] not in ("etat", "verifier", "jeton"):
         print(__doc__.strip().splitlines()[0])
         print("usage : modpack.py {etat|verifier|jeton} <manifeste> <dossier Modules>")
