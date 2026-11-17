@@ -16,6 +16,7 @@ Usage :
     modpack.py jeton    <manifeste.json> <dossier Modules>
     modpack.py compat   <compatibilite.json> [<manifeste.json>]
     modpack.py plan     <manifeste.json> <dossier Modules>
+    modpack.py extraire <manifeste.json> <archive.zip> <dossier Modules>
 
 Codes de sortie : 0 tout va bien, 1 module manquant ou incoherent, 2 manifeste
 illisible.
@@ -23,7 +24,9 @@ illisible.
 
 import json
 import os
+import shutil
 import sys
+import zipfile
 import xml.etree.ElementTree as ET
 
 
@@ -176,6 +179,66 @@ def compatibilite(chemin_compat, chemin_manifeste=None):
     return 0
 
 
+def extraire(chemin_manifeste, archive, modules_dir):
+    """Extrait d'une archive les seuls dossiers de modules du manifeste.
+
+    L'archive TAOM fait 18 Go pour quatre modules : tout decompacter puis trier
+    couterait le double d'espace et de temps. On lit le repertoire central du zip
+    et on n'extrait que les prefixes utiles, sous le nom d'identifiant attendu
+    (le dossier de l'archive ne porte pas toujours cet identifiant).
+    """
+    try:
+        manifeste = charger(chemin_manifeste)
+    except (OSError, ValueError) as e:
+        print("manifeste illisible : %s" % e)
+        return 2
+    sources = manifeste.get("sources", {})
+    try:
+        zf = zipfile.ZipFile(archive)
+    except (OSError, zipfile.BadZipFile) as e:
+        print("archive illisible : %s" % e)
+        return 2
+
+    code = 0
+    with zf:
+        noms = zf.namelist()
+        for entree in manifeste.get("modules", []):
+            ident = (entree.get("id") or "").strip()
+            source = entree.get("source", "")
+            if not ident or not isinstance(source, dict) or "archive" not in source:
+                continue
+            description = sources.get(source["archive"], {})
+            prefixe = (description.get("prefixe") or "").strip("/")
+            dossier = source.get("dossier", ident)
+            base = "/".join(p for p in (prefixe, dossier) if p) + "/"
+            cible = os.path.join(modules_dir, ident)
+            if os.path.isdir(cible):
+                print("%s : deja en place, non extrait" % ident)
+                continue
+            membres = [n for n in noms if n.startswith(base)]
+            if not membres:
+                print("%s : dossier %s introuvable dans l archive" % (ident, base))
+                code = 1
+                continue
+            fichiers = 0
+            for nom in membres:
+                relatif = nom[len(base):]
+                if ".." in relatif.split("/"):
+                    print("%s : entree refusee (chemin relatif) : %s" % (ident, nom))
+                    code = 1
+                    continue
+                destination = os.path.join(cible, relatif)
+                if not relatif or nom.endswith("/"):
+                    os.makedirs(destination, exist_ok=True)
+                    continue
+                os.makedirs(os.path.dirname(destination), exist_ok=True)
+                with zf.open(nom) as source_f, open(destination, "wb") as cible_f:
+                    shutil.copyfileobj(source_f, cible_f, 8 * 1024 * 1024)
+                fichiers += 1
+            print("%s : %d fichiers extraits vers %s" % (ident, fichiers, cible))
+    return code
+
+
 def plan(chemin_manifeste, modules_dir):
     """Liste, pour chaque module absent, le dossier a extraire de son archive.
 
@@ -216,6 +279,9 @@ def main(argv):
 
     if len(argv) == 4 and argv[1] == "plan":
         return plan(argv[2], argv[3])
+
+    if len(argv) == 5 and argv[1] == "extraire":
+        return extraire(argv[2], argv[3], argv[4])
 
     if len(argv) != 4 or argv[1] not in ("etat", "verifier", "jeton"):
         print(__doc__.strip().splitlines()[0])
