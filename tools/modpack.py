@@ -495,6 +495,104 @@ def fiche(chemin_manifeste, chemin_compat=None):
     return 0
 
 
+def exigences_module(dossier):
+    """Dependances et versions epinglees declarees par un SubModule.xml.
+
+    Bannerlord declare ses besoins de deux facons : <DependedModules> (liste
+    simple) et <DependedModuleMetadatas> (avec ordre, version epinglee et
+    optional). Seule la seconde porte les versions, et une dependance non
+    optionnelle absente empeche le module de se charger : c'est exactement le cas
+    qui produit un serveur qui demarre sans le mod.
+    """
+    chemin = os.path.join(dossier, "SubModule.xml")
+    exigences = []
+    if not os.path.isfile(chemin):
+        return exigences
+    try:
+        racine = ET.parse(chemin).getroot()
+    except ET.ParseError:
+        return exigences
+
+    vus = set()
+    for balise, cle_id in (("DependedModules/DependedModule", "Id"),
+                           ("DependedModuleMetadatas/DependedModuleMetadata", "id")):
+        for noeud in racine.findall(balise):
+            ident = (noeud.get(cle_id) or "").strip()
+            if not ident:
+                continue
+            optionnel = (noeud.get("optional") or "").lower() == "true"
+            exigences.append({
+                "id": ident,
+                "optionnel": optionnel,
+                "version": (noeud.get("version") or "").strip(),
+                "ordre": (noeud.get("order") or "").strip(),
+            })
+            vus.add(ident.lower())
+    # une dependance citee dans les deux blocs ne compte qu'une fois, mais on garde
+    # la version epinglee si elle existe
+    fusion = {}
+    for e in exigences:
+        cle = e["id"].lower()
+        if cle in fusion:
+            if not fusion[cle]["version"] and e["version"]:
+                fusion[cle]["version"] = e["version"]
+            if e["optionnel"] is False:
+                fusion[cle]["optionnel"] = False
+        else:
+            fusion[cle] = dict(e)
+    return list(fusion.values())
+
+
+def version_compatible(version_module, motif):
+    """Compare « v1.4.8.118999 » a un motif du type « v1.4.8.* »."""
+    if not motif or not version_module:
+        return True
+    import fnmatch
+    return fnmatch.fnmatch(version_module.strip(), motif.strip())
+
+
+def controler_dependances(manifeste, modules_dir):
+    """Verifie que chaque module du pack trouve ses dependances non optionnelles."""
+    presents = {}
+    for entree in manifeste.get("modules", []):
+        ident = (entree.get("id") or "").strip()
+        if not ident:
+            continue
+        dossier = os.path.join(modules_dir, ident)
+        if os.path.isfile(os.path.join(dossier, "SubModule.xml")):
+            presents[ident.lower()] = (ident, version_module(dossier))
+
+    problemes = []
+    for entree in manifeste.get("modules", []):
+        ident = (entree.get("id") or "").strip()
+        if not ident:
+            continue
+        dossier = os.path.join(modules_dir, ident)
+        if not os.path.isfile(os.path.join(dossier, "SubModule.xml")):
+            continue
+        for ex in exigences_module(dossier):
+            if ex["id"].lower() in ("native", "sandboxcore", "sandbox", "storymode",
+                                    "custombattle", "birthanddeath"):
+                pass
+            if ex["optionnel"]:
+                continue
+            if ex["id"].lower() not in presents:
+                problemes.append(("bloquant", "%s exige %s — absent du pack" % (ident, ex["id"])))
+                continue
+            if ex["version"]:
+                _, version_reelle = presents[ex["id"].lower()]
+                if not version_compatible(version_reelle, ex["version"]):
+                    # Un module absent ne se charge pas ; une version epinglee
+                    # obsolete, si : les builds trainent des epingles perimees
+                    # (LOTRLOME_Armory demande encore Native v1.4.5.* dans une
+                    # archive 2.0.29.5). Avertir, sans bloquer.
+                    problemes.append(
+                        ("avertissement",
+                         "%s epingle %s %s — version presente %s"
+                         % (ident, ex["id"], ex["version"], version_reelle or "inconnue")))
+    return problemes
+
+
 def main(argv):
     if len(argv) >= 3 and argv[1] == "compat":
         return compatibilite(argv[2], argv[3] if len(argv) > 3 else None)
@@ -567,11 +665,29 @@ def main(argv):
                     "  identifiant different : %s attendu, %s trouve dans le dossier %s"
                     % (l["id"], l["id_reel"] or "aucun SubModule.xml", l["dossier"])
                 )
+        problemes = controler_dependances(manifeste, modules_dir)
+        bloquants = [t for niveau, t in problemes if niveau == "bloquant"]
+        avertissements = [t for niveau, t in problemes if niveau == "avertissement"]
+        if problemes:
+            print("dependances declarees par les modules :")
+            for t in bloquants:
+                print("  BLOQUANT : %s" % t)
+            for t in avertissements:
+                print("  avertissement : %s" % t)
+            if bloquants:
+                if manifeste.get("tolerer_dependances_absentes"):
+                    print("  (pack marque comme tolerant ces manques : demarrage possible mais NON VERIFIE)")
+                else:
+                    print("  un module dont une dependance obligatoire manque ne se charge pas")
+                    print("  le serveur demarrerait sans le mod : demarrage refuse")
+
         if manquants or incoherents:
             print(
                 "REFUS : %d module(s) manquant(s), %d incoherent(s) sur %d"
                 % (len(manquants), len(incoherents), len(lignes))
             )
+            return 1
+        if bloquants and not manifeste.get("tolerer_dependances_absentes"):
             return 1
         print("OK : %d modules verifies" % len(lignes))
         return 0
