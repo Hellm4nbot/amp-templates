@@ -24,6 +24,7 @@ Usage :
     modpack.py fiche    <manifeste.json> [<compatibilite.json>]
     modpack.py apparence <manifeste.json> <dossier Modules>
     modpack.py copier-jeu <manifeste.json> <dossier Modules> <dossier Modules du jeu>
+    modpack.py deballer <archive.zip> <dossier destination>
 
 Codes de sortie : 0 tout va bien, 1 module manquant ou incoherent, 2 manifeste
 illisible.
@@ -444,6 +445,36 @@ def sauvegarde(chemin_sav, chemin_manifeste=None):
     return 0
 
 
+def deballer(archive, destination):
+    """Deballe une archive de modules dans un dossier, sans chemin relatif.
+
+    Sert au dossier des modules du jeu : l'operateur y depose un zip (ses propres
+    fichiers de jeu, jamais redistribues) et l'update l'ouvre lui-meme.
+    """
+    os.makedirs(destination, exist_ok=True)
+    try:
+        zf = zipfile.ZipFile(archive)
+    except (OSError, zipfile.BadZipFile) as e:
+        print("archive illisible : %s" % e)
+        return 2
+    fichiers = 0
+    with zf:
+        for nom in zf.namelist():
+            if ".." in nom.split("/"):
+                print("entree refusee (chemin relatif) : %s" % nom)
+                return 1
+            cible = os.path.join(destination, nom)
+            if nom.endswith("/"):
+                os.makedirs(cible, exist_ok=True)
+                continue
+            os.makedirs(os.path.dirname(cible), exist_ok=True)
+            with zf.open(nom) as src, open(cible, "wb") as dst:
+                shutil.copyfileobj(src, dst)
+            fichiers += 1
+    print("%s : %d fichiers deballes dans %s" % (os.path.basename(archive), fichiers, destination))
+    return 0
+
+
 def copier_jeu(chemin_manifeste, modules_dir, jeu_dir):
     """Copie depuis une installation du jeu les modules que le paquet ne livre pas.
 
@@ -731,6 +762,9 @@ def main(argv):
 
     if len(argv) == 3 and argv[1] == "sources":
         return sources(argv[2])
+
+    if len(argv) == 4 and argv[1] == "deballer":
+        return deballer(argv[2], argv[3])
 
     if len(argv) == 5 and argv[1] == "copier-jeu":
         return copier_jeu(argv[2], argv[3], argv[4])
