@@ -19,11 +19,11 @@
   "modules": [
     {
       "id": "TAOM.Dependencies",
-      "mod": "TAOM",
       "source": {
         "archive": "taom_archive",
         "dossier": "TAOM.Dependencies"
-      }
+      },
+      "mod": "TAOM"
     },
     {
       "id": "Native",
@@ -35,36 +35,43 @@
     },
     {
       "id": "CustomBattle",
-      "stub": true,
-      "version": "v1.4.8.118999"
+      "source": {
+        "jeu": true
+      }
     },
     {
       "id": "SandBox",
       "source": "engine"
     },
     {
+      "id": "BirthAndDeath",
+      "source": {
+        "jeu": true
+      }
+    },
+    {
       "id": "LOTRLOME_Armory",
-      "mod": "TAOM",
       "source": {
         "archive": "taom_archive",
         "dossier": "LOTRLOME_Armory"
-      }
+      },
+      "mod": "TAOM"
     },
     {
       "id": "TAOM_Map",
-      "mod": "TAOM",
       "source": {
         "archive": "taom_archive",
         "dossier": "TAOM_Map"
-      }
+      },
+      "mod": "TAOM"
     },
     {
       "id": "TAOM",
-      "mod": "TAOM",
       "source": {
         "archive": "taom_archive",
         "dossier": "TAOM"
-      }
+      },
+      "mod": "TAOM"
     },
     {
       "id": "DedicatedServer.Windows",
@@ -106,7 +113,6 @@
       "Au premier demarrage, le serveur ecrit le fichier .json associe : les joueurs creeront leur personnage lors de leur premiere session."
     ]
   },
-  "avertissement": "CustomBattle figure dans la liste validee par TAOM mais le paquet serveur Coop ne le contient pas (ni dossier de module, ni DLL : 92 DLL, aucune CustomBattle). TAOM, TAOM_Map et LOTRLOME_Armory le declarent obligatoire, donc le controle refuse le demarrage. CustomBattle, BirthAndDeath et FastMode manquent aussi au serveur.",
-  "coop_reconnu": "Modules/TAOM.Dependencies/coop-modules.txt cite « Coop » (atelier 3770450698) comme mod co-op reconnu : TAOM desactive alors son PatchShield destructeur et fait relancer les erreurs de sauvegarde. La combinaison est donc prevue du cote TAOM.",
-  "note_stub": "CustomBattle est fourni comme module d apparence : il satisfait la dependance declaree par TAOM, TAOM_Map et LOTRLOME_Armory, sans assembly ni donnees. Un serveur de campagne n ouvre pas l ecran de bataille personnalise, donc le code n est jamais appele — c est l hypothese testee, pas un fait etabli. Si TAOM appelle reellement ce module, l echec apparaitra au demarrage ou a la premiere utilisation."
+  "avertissement": "Deux modules viennent de l installation du jeu de l operateur et non du paquet serveur: CustomBattle et BirthAndDeath. Un hote TAOM+Coop qui fonctionne les a bien dans engine\\Modules (StoryMode.dll, CustomBattle.dll, MCMv5.dll cites dans un rapport de plantage). Sans ces dossiers, le controle refuse le demarrage.",
+  "coop_reconnu": "Modules/TAOM.Dependencies/coop-modules.txt cite « Coop » (atelier 3770450698) comme mod co-op reconnu : TAOM desactive alors son PatchShield destructeur et fait relancer les erreurs de sauvegarde. La combinaison est donc prevue du cote TAOM."
 }
