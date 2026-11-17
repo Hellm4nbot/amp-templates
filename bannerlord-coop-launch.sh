@@ -32,6 +32,19 @@ OUTIL="$ROOT/tools/modpack.py"
 log() { echo "[coop] $*"; }
 erreur() { echo "[coop] ERREUR : $*" >&2; }
 
+# Bandeau imprime avant de passer la main au serveur : une fois le pty en place,
+# plus rien de ce script n'apparait dans la console.
+banniere() {
+    echo
+    echo " COMMENT JOUER — prereglage « $PACK »"
+    echo "   monde demande      : $SAVE (dans Game Saves)"
+    echo "   port moteur        : $PORT (interne, les joueurs ne s y connectent pas)"
+    echo "   cote joueurs       : meme version de Bannerlord ($JEU) et du mod Coop,"
+    echo "                        plus les mods du prereglage s il en a"
+    echo "   fiche du prereglage: $ROOT/PRESET-$PACK.md (modules, liens, manipulations)"
+    echo
+}
+
 [ -d "$SERV" ] || { erreur "dossier du serveur introuvable : $SERV"; exit 1; }
 [ -f "$OUTIL" ] || { erreur "outil modpack introuvable : $OUTIL"; exit 1; }
 
@@ -104,6 +117,7 @@ PY
 if [ "${SUPPLEMENTAIRES:-0}" = "0" ]; then
     log "pack $PACK : aucun module supplementaire, lancement par l exe du paquet"
     log "port moteur $PORT, region $REGION, donnees $DATA"
+    banniere
     cd "$SERV" || exit 1
     exec /usr/bin/wine BannerlordCoopServer.exe --no-tui --data-dir "Z:$DATA" -p "$PORT" --region "$REGION"
 fi
@@ -131,6 +145,8 @@ DOTNET="$SERV/engine/dotnet/dotnet.exe"
 # Le repertoire de travail est celui du starter : c'est de la que le moteur
 # resout ses assemblies, pas de la racine du serveur.
 cd "$BIN" || exit 1
+
+banniere
 
 export DOTNET_ROOT="Z:$SERV/engine/dotnet"
 export DOTNET_MULTILEVEL_LOOKUP=0

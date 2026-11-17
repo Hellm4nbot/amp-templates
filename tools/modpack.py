@@ -20,6 +20,7 @@ Usage :
     modpack.py sources  <manifeste.json>
     modpack.py surcharger <manifeste> <sortie> <url> [sha256] [taille]
     modpack.py sauvegarde <fichier.sav> [<manifeste.json>]
+    modpack.py fiche    <manifeste.json> [<compatibilite.json>]
 
 Codes de sortie : 0 tout va bien, 1 module manquant ou incoherent, 2 manifeste
 illisible.
@@ -417,6 +418,83 @@ def sauvegarde(chemin_sav, chemin_manifeste=None):
     return 0
 
 
+def fiche(chemin_manifeste, chemin_compat=None):
+    """Rend la fiche d'un prereglage : ce que le serveur charge, ce que les joueurs
+    installent, et les manipulations a faire. Destinee a etre ecrite dans
+    l'instance puis lue par l'operateur, pas a rester dans le depot.
+    """
+    try:
+        manifeste = charger(chemin_manifeste)
+    except (OSError, ValueError) as e:
+        print("manifeste illisible : %s" % e)
+        return 2
+
+    nom = manifeste.get("nom", "?")
+    print("# Prereglage « %s » — %s" % (nom, manifeste.get("libelle", "")))
+    print()
+    print("Bannerlord %s, Coop %s." % (manifeste.get("jeu", "?"), manifeste.get("coop", "?")))
+    if manifeste.get("monde") == "prepare":
+        print()
+        print("**Monde a creer ailleurs.** %s" % manifeste.get("note_monde", ""))
+    print()
+
+    print("## Modules charges par le serveur, dans cet ordre")
+    print()
+    for i, entree in enumerate(manifeste.get("modules", []), 1):
+        source = entree.get("source", "")
+        origine = source_decrite(source)
+        print("%d. **%s** — %s" % (i, entree.get("id", "?"), origine))
+    print()
+
+    joueurs = manifeste.get("joueurs") or {}
+    if joueurs:
+        print("## A installer chez chaque joueur (memes versions)")
+        print()
+        for m in joueurs.get("installer", []):
+            lien = m.get("lien") or ""
+            print("- **%s** %s — %s%s" % (m.get("nom", "?"), m.get("version", ""),
+                                          m.get("ou", ""), (" : " + lien) if lien else ""))
+        print()
+        etapes = joueurs.get("etapes") or []
+        if etapes:
+            print("## Manipulations")
+            print()
+            for i, e in enumerate(etapes, 1):
+                print("%d. %s" % (i, e))
+            print()
+    else:
+        print("## Cote joueurs")
+        print()
+        print("Aucun mod supplementaire : le client Coop du meme build suffit.")
+        print()
+
+    if chemin_compat:
+        try:
+            with open(chemin_compat, encoding="utf-8-sig") as f:
+                compat = json.load(f)
+        except (OSError, ValueError):
+            compat = None
+        if compat:
+            connus = {_normalise(m.get("nom")): m for m in compat.get("mods", [])}
+            lignes = []
+            for entree in manifeste.get("modules", []):
+                nom_mod = entree.get("mod") or entree.get("id")
+                rapport = connus.get(_normalise(nom_mod))
+                if rapport and rapport not in lignes:
+                    lignes.append(rapport)
+            if lignes:
+                print("## Ce que les joueurs ont constate")
+                print()
+                for r in lignes:
+                    print("- **%s** : etat=%s, hebergement=%s (source : %s)"
+                          % (r.get("nom", "?"), r.get("etat", "?"), r.get("hebergement", "?"),
+                             r.get("source_rapport", "?")))
+                    if r.get("details"):
+                        print("  %s" % r["details"])
+                print()
+    return 0
+
+
 def main(argv):
     if len(argv) >= 3 and argv[1] == "compat":
         return compatibilite(argv[2], argv[3] if len(argv) > 3 else None)
@@ -429,6 +507,9 @@ def main(argv):
 
     if len(argv) == 3 and argv[1] == "sources":
         return sources(argv[2])
+
+    if len(argv) in (3, 4) and argv[1] == "fiche":
+        return fiche(argv[2], argv[3] if len(argv) > 3 else None)
 
     if len(argv) >= 3 and argv[1] == "sauvegarde":
         return sauvegarde(argv[2], argv[3] if len(argv) > 3 else None)
