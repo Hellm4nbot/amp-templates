@@ -17,6 +17,7 @@ Usage :
     modpack.py compat   <compatibilite.json> [<manifeste.json>]
     modpack.py plan     <manifeste.json> <dossier Modules>
     modpack.py extraire <manifeste.json> <archive.zip> <dossier Modules>
+    modpack.py sources  <manifeste.json>
 
 Codes de sortie : 0 tout va bien, 1 module manquant ou incoherent, 2 manifeste
 illisible.
@@ -106,13 +107,18 @@ def etat(manifeste, modules_dir):
         chemin = os.path.join(modules_dir, dossier_attendu)
         if not os.path.isdir(chemin):
             chemin = os.path.join(modules_dir, ident)
-        present = os.path.isdir(chemin)
+        # Un dossier vide n'est pas un module installe : c'est ce qui arrive quand une
+        # extraction a ete interrompue, et le compter comme present produit un serveur
+        # qui demarre sans le mod.
+        present = os.path.isdir(chemin) and os.path.isfile(os.path.join(chemin, "SubModule.xml"))
+        incomplet = os.path.isdir(chemin) and not present
         reel = identifiant_module(chemin) if present else None
         lignes.append(
             {
                 "id": ident,
                 "dossier": dossier_attendu,
                 "present": present,
+                "incomplet": incomplet,
                 "id_reel": reel,
                 "version": version_module(chemin) if present else "",
                 "source": source_decrite(source),
@@ -212,9 +218,11 @@ def extraire(chemin_manifeste, archive, modules_dir):
             dossier = source.get("dossier", ident)
             base = "/".join(p for p in (prefixe, dossier) if p) + "/"
             cible = os.path.join(modules_dir, ident)
-            if os.path.isdir(cible):
+            if os.path.isfile(os.path.join(cible, "SubModule.xml")):
                 print("%s : deja en place, non extrait" % ident)
                 continue
+            if os.path.isdir(cible):
+                print("%s : dossier present mais sans SubModule.xml, extraction pour le completer" % ident)
             membres = [n for n in noms if n.startswith(base)]
             if not membres:
                 print("%s : dossier %s introuvable dans l archive" % (ident, base))
@@ -267,10 +275,33 @@ def plan(chemin_manifeste, modules_dir):
             reste.append(ident)
             continue
         destination = os.path.join(modules_dir, ident)
-        if os.path.isdir(destination):
+        if os.path.isfile(os.path.join(destination, "SubModule.xml")):
             continue
         print("%s\t%s\t%s" % (ident, source.get("dossier", ident), destination))
     return 1 if reste else 0
+
+
+def sources(chemin_manifeste):
+    """Une ligne par source d'archive : cle, url, sha256, taille, nom de fichier.
+
+    Sortie tabulee, destinee au shell : il n'a pas a relire le JSON, et une
+    source sans url ni empreinte est signalee comme telle plutot que devinee.
+    """
+    try:
+        manifeste = charger(chemin_manifeste)
+    except (OSError, ValueError) as e:
+        print("manifeste illisible : %s" % e)
+        return 2
+    for cle, d in (manifeste.get("sources") or {}).items():
+        if not isinstance(d, dict):
+            continue
+        url = d.get("url") or ""
+        nom = url.rsplit("/", 1)[-1] if url else ""
+        print(
+            "%s\t%s\t%s\t%s\t%s"
+            % (cle, url, d.get("sha256") or "", d.get("taille") or "", nom)
+        )
+    return 0
 
 
 def main(argv):
@@ -282,6 +313,9 @@ def main(argv):
 
     if len(argv) == 5 and argv[1] == "extraire":
         return extraire(argv[2], argv[3], argv[4])
+
+    if len(argv) == 3 and argv[1] == "sources":
+        return sources(argv[2])
 
     if len(argv) != 4 or argv[1] not in ("etat", "verifier", "jeton"):
         print(__doc__.strip().splitlines()[0])
@@ -308,7 +342,14 @@ def main(argv):
         print("jeu attendu %s / Coop %s" % (manifeste.get("jeu", "?"), manifeste.get("coop", "?")))
         print("%-26s %-9s %-10s %s" % ("module", "present", "version", "provenance"))
         for l in lignes:
-            etat_txt = "oui" if l["coherent"] else ("ABSENT" if not l["present"] else "INCOHERENT")
+            if l["coherent"]:
+                etat_txt = "oui"
+            elif not l["present"] and l.get("incomplet"):
+                etat_txt = "INCOMPLET"
+            elif not l["present"]:
+                etat_txt = "ABSENT"
+            else:
+                etat_txt = "INCOHERENT"
             print(
                 "%-26s %-9s %-10s %s"
                 % (
@@ -344,4 +385,9 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv))
+    try:
+        sys.exit(main(sys.argv))
+    except BrokenPipeError:
+        # sortie redirigee vers head : ce n'est pas une erreur du script
+        sys.stderr.close()
+        sys.exit(0)
