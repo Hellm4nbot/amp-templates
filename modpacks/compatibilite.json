@@ -16,12 +16,42 @@
       "etat": "non teste",
       "hebergement": "jeu du joueur",
       "war_sails": false,
-      "prerequis": ["ButterLib", "MCM", "Harmony"],
+      "prerequis": [
+        "ButterLib",
+        "MCM",
+        "Harmony"
+      ],
       "mono_joueur_ok": false,
       "details": "Non teste avec Coop : l'auteur du rapport a un probleme ouvert avec l'auteur du mod (ne possede pas le DLC War Sails). Des joueurs possedant War Sails rapportent que le mod tourne bien.",
       "licence": "GPL",
       "depot": "https://github.com/Arkenfagen/Spells-of-the-Old-Realms",
       "source_rapport": "Discord, 12/11/2026 03:39"
+    }
+  ],
+  "notes_terrain": [
+    {
+      "sujet": "modules manquants",
+      "constat": "un hote TAOM+Coop fonctionnel contient StoryMode.dll, CustomBattle.dll et MCMv5.dll dans engine\\Modules",
+      "consequence": "copier ces dossiers depuis l installation du jeu, ils ne sont pas dans le paquet serveur",
+      "source": "rapport de plantage Discord, 20:39"
+    },
+    {
+      "sujet": "remplacement de version",
+      "constat": "les anciens fichiers doivent partir avant de copier un nouveau build",
+      "consequence": "le template retire les dossiers de l archive precedente quand son empreinte change",
+      "source": "readme HexServerPack"
+    },
+    {
+      "sujet": "reglages MCM",
+      "constat": "ils sont reconnus s ils ont ete regles en solo puis portes par la sauvegarde",
+      "consequence": "regler en solo avant de creer le monde a importer",
+      "source": "readme HexServerPack"
+    },
+    {
+      "sujet": "duree de vie",
+      "constat": "3 a 6 h sans incident sur un hote modde correctement monte",
+      "consequence": "attendre au moins quelques heures avant de conclure qu un montage est stable",
+      "source": "readme HexServerPack"
     }
   ]
 }

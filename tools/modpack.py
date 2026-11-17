@@ -18,6 +18,7 @@ Usage :
     modpack.py plan     <manifeste.json> <dossier Modules>
     modpack.py extraire <manifeste.json> <archive.zip> <dossier Modules>
     modpack.py sources  <manifeste.json>
+    modpack.py modules  <manifeste.json> <cle|jeu|engine>
     modpack.py surcharger <manifeste> <sortie> <url> [sha256] [taille]
     modpack.py sauvegarde <fichier.sav> [<manifeste.json>]
     modpack.py fiche    <manifeste.json> [<compatibilite.json>]
@@ -286,6 +287,27 @@ def plan(chemin_manifeste, modules_dir):
     return 1 if reste else 0
 
 
+def modules_de(manifeste, cle):
+    """Identifiants des modules d'une provenance donnee.
+
+    Sert a retirer proprement une version precedente : quand l'archive change,
+    les dossiers qu'elle avait installes doivent partir, sinon les fichiers des
+    deux builds cohabitent et le serveur charge un melange.
+    """
+    for entree in manifeste.get("modules", []):
+        ident = (entree.get("id") or "").strip()
+        source = entree.get("source", "")
+        if not ident:
+            continue
+        if cle == "engine" and source == "engine":
+            print(ident)
+        elif cle == "jeu" and isinstance(source, dict) and source.get("jeu"):
+            print(ident)
+        elif isinstance(source, dict) and source.get("archive") == cle:
+            print(ident)
+    return 0
+
+
 def sources(chemin_manifeste):
     """Une ligne par source d'archive : cle, url, sha256, taille, nom de fichier.
 
@@ -302,9 +324,11 @@ def sources(chemin_manifeste):
             continue
         url = d.get("url") or ""
         nom = url.rsplit("/", 1)[-1] if url else ""
+        # Un champ vide entre deux tabulations disparait au « read » du shell (la
+        # tabulation est un blanc) : on emet des sentinelles plutot que du vide.
         print(
             "%s\t%s\t%s\t%s\t%s"
-            % (cle, url, d.get("sha256") or "", d.get("taille") or "", nom)
+            % (cle, url or "-", d.get("sha256") or "-", d.get("taille") or 0, nom or "-")
         )
     return 0
 
@@ -701,6 +725,9 @@ def main(argv):
 
     if len(argv) == 5 and argv[1] == "extraire":
         return extraire(argv[2], argv[3], argv[4])
+
+    if len(argv) == 4 and argv[1] == "modules":
+        return modules_de(charger(argv[2]), argv[3])
 
     if len(argv) == 3 and argv[1] == "sources":
         return sources(argv[2])
