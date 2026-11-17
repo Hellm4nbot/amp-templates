@@ -41,6 +41,18 @@ if [ ! -f "$MANIFESTE" ]; then
     fi
     mv "$MANIFESTE.tmp" "$MANIFESTE"
 fi
+# Une url fournie par le panneau prend le pas sur le manifeste du depot : c'est ce
+# qui permet de suivre un nouveau build sans modifier le depot. L'empreinte et la
+# taille sont reprises si elles sont fournies, sinon l archive est epinglee au
+# premier telechargement (voir plus bas).
+if [ -n "${MODPACK_URL:-}" ]; then
+    log "url fournie par le panneau : $MODPACK_URL"
+    DERIVE="$PACKS/$PACK.local.json"
+    python3 "$OUTIL" surcharger "$MANIFESTE" "$DERIVE" "$MODPACK_URL" \
+        "${MODPACK_SHA256:-}" "${MODPACK_TAILLE:-}" || exit 1
+    MANIFESTE="$DERIVE"
+fi
+
 log "manifeste : $MANIFESTE"
 python3 "$OUTIL" verifier "$MANIFESTE" "$MODULES" 2>/dev/null | head -3 || true
 
@@ -83,17 +95,30 @@ while IFS="$(printf '\t')" read -r CLE URL SHA TAILLE NOM; do
         erreur "taille de $NOM inattendue : $REEL_TAILLE octets, $TAILLE attendus"
         exit 1
     fi
+    REEL_SHA=$(sha256sum "$ARCHIVE" | cut -d' ' -f1)
+    EPINGLE="$PACKS/$NOM.sha256"
     if [ -n "$SHA" ]; then
-        REEL_SHA=$(sha256sum "$ARCHIVE" | cut -d' ' -f1)
         if [ "$REEL_SHA" != "$SHA" ]; then
-            erreur "empreinte de $NOM differente de celle epinglee"
+            erreur "empreinte de $NOM differente de celle epinglee dans le manifeste"
             erreur "  attendu : $SHA"
             erreur "  obtenu  : $REEL_SHA"
             exit 1
         fi
-        log "empreinte de $NOM conforme"
+        log "empreinte de $NOM conforme au manifeste"
+    elif [ -f "$EPINGLE" ]; then
+        ATTENDU=$(cut -d' ' -f1 "$EPINGLE")
+        if [ "$REEL_SHA" != "$ATTENDU" ]; then
+            erreur "l archive $NOM a change depuis le premier telechargement"
+            erreur "  epinglee : $ATTENDU"
+            erreur "  obtenue  : $REEL_SHA"
+            erreur "  si c est voulu, effacer $EPINGLE ; sinon remettre la bonne archive"
+            exit 1
+        fi
+        log "empreinte de $NOM conforme a l epinglage local"
     else
-        log "aucune empreinte epinglee pour $NOM : taille verifiee seulement"
+        printf '%s  %s\n' "$REEL_SHA" "$NOM" > "$EPINGLE"
+        log "aucune empreinte annoncee : $NOM epinglee maintenant ($(printf '%s' "$REEL_SHA" | cut -c1-16)...)"
+        log "  pour la fixer durablement, reporter cette valeur dans le manifeste ou le champ Empreinte"
     fi
 done <<EOF
 $(python3 "$OUTIL" sources "$MANIFESTE")

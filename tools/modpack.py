@@ -18,6 +18,8 @@ Usage :
     modpack.py plan     <manifeste.json> <dossier Modules>
     modpack.py extraire <manifeste.json> <archive.zip> <dossier Modules>
     modpack.py sources  <manifeste.json>
+    modpack.py surcharger <manifeste> <sortie> <url> [sha256] [taille]
+    modpack.py sauvegarde <fichier.sav> [<manifeste.json>]
 
 Codes de sortie : 0 tout va bien, 1 module manquant ou incoherent, 2 manifeste
 illisible.
@@ -304,6 +306,106 @@ def sources(chemin_manifeste):
     return 0
 
 
+def surcharger(chemin_manifeste, sortie, url, sha256="", taille=""):
+    """Ecrit une copie du manifeste avec une autre source d'archive.
+
+    Un nouveau build de TAOM ne doit pas demander une modification du depot : le
+    panneau fournit l'url (et l'empreinte si elle est connue), et la copie obtenue
+    est utilisee a la place du manifeste d'origine. L'original reste intact, donc
+    revenir en arriere = vider le champ.
+    """
+    try:
+        manifeste = charger(chemin_manifeste)
+    except (OSError, ValueError) as e:
+        print("manifeste illisible : %s" % e)
+        return 2
+    sources = manifeste.get("sources") or {}
+    if not sources:
+        print("manifeste sans source d archive : rien a surcharger")
+        return 2
+    touchees = 0
+    for cle, d in sources.items():
+        if not isinstance(d, dict):
+            continue
+        d["url"] = url
+        d["sha256"] = sha256
+        try:
+            d["taille"] = int(taille) if taille else 0
+        except ValueError:
+            d["taille"] = 0
+        touchees += 1
+        print("source %s : url remplacee par %s" % (cle, url))
+    if touchees > 1:
+        print("attention : %d sources d archive ont recu la meme url" % touchees)
+    with open(sortie, "w", encoding="utf-8") as f:
+        json.dump(manifeste, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+    print("manifeste derive : %s" % sortie)
+    return 0
+
+
+def entete_sauvegarde(chemin):
+    """En-tete d'une sauvegarde Bannerlord : longueur sur 4 octets, puis du JSON.
+
+    Il porte la liste des modules et leurs versions : c'est ce qui permet de dire
+    si une sauvegarde a ete creee avec le meme montage que le serveur, au lieu de
+    le decouvrir quand le monde refuse de se charger.
+    """
+    with open(chemin, "rb") as f:
+        brut = f.read(4)
+        if len(brut) < 4:
+            raise ValueError("fichier trop court")
+        taille = int.from_bytes(brut, "little")
+        if taille <= 0 or taille > 4 * 1024 * 1024:
+            raise ValueError("longueur d en-tete invraisemblable (%d)" % taille)
+        charge = f.read(taille)
+    return json.loads(charge.decode("utf-8", "replace"))
+
+
+def modules_sauvegarde(entete):
+    brut = (entete.get("List") or {}).get("Modules") or ""
+    return [m for m in brut.split(";") if m]
+
+
+def sauvegarde(chemin_sav, chemin_manifeste=None):
+    try:
+        entete = entete_sauvegarde(chemin_sav)
+    except (OSError, ValueError) as e:
+        print("sauvegarde illisible : %s (%s)" % (chemin_sav, e))
+        return 2
+    liste = entete.get("List") or {}
+    modules = modules_sauvegarde(entete)
+    sidecar = os.path.splitext(chemin_sav)[0] + ".json"
+    a_sidecar = os.path.isfile(sidecar)
+    print("sauvegarde : %s" % os.path.basename(chemin_sav))
+    print("  jeu        : %s" % liste.get("ApplicationVersion", "?"))
+    print("  personnage : %s" % liste.get("CharacterName", "?"))
+    print("  modules    : %s" % ";".join(modules))
+    print("  sidecar    : %s" % ("present (%s)" % os.path.basename(sidecar) if a_sidecar else "absent"))
+    if not a_sidecar:
+        print("  consequence : sauvegarde de solo, sans personnages joueurs —")
+        print("                les joueurs repartiront de la creation de personnage a la premiere session")
+
+    if chemin_manifeste:
+        try:
+            manifeste = charger(chemin_manifeste)
+        except (OSError, ValueError) as e:
+            print("manifeste illisible : %s" % e)
+            return 2
+        attendus = [e["id"] for e in manifeste.get("modules", []) if e.get("id")]
+        manquants = [m for m in attendus if m.lower() not in {x.lower() for x in modules}]
+        en_trop = [m for m in modules if m.lower() not in {x.lower() for x in attendus}]
+        if manquants:
+            print("  REFUS : modules du pack absents de la sauvegarde : %s" % ", ".join(manquants))
+        if en_trop:
+            print("  REFUS : modules de la sauvegarde absents du pack : %s" % ", ".join(en_trop))
+        if manquants or en_trop:
+            print("  une sauvegarde doit etre creee avec exactement les modules du pack")
+            return 1
+        print("  modules conformes au pack %s" % manifeste.get("nom", "?"))
+    return 0
+
+
 def main(argv):
     if len(argv) >= 3 and argv[1] == "compat":
         return compatibilite(argv[2], argv[3] if len(argv) > 3 else None)
@@ -316,6 +418,14 @@ def main(argv):
 
     if len(argv) == 3 and argv[1] == "sources":
         return sources(argv[2])
+
+    if len(argv) >= 3 and argv[1] == "sauvegarde":
+        return sauvegarde(argv[2], argv[3] if len(argv) > 3 else None)
+
+    if len(argv) >= 6 and argv[1] == "surcharger":
+        return surcharger(argv[2], argv[3], argv[4],
+                          argv[5] if len(argv) > 5 else "",
+                          argv[6] if len(argv) > 6 else "")
 
     if len(argv) != 4 or argv[1] not in ("etat", "verifier", "jeton"):
         print(__doc__.strip().splitlines()[0])
