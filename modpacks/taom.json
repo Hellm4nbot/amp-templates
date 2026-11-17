@@ -3,13 +3,15 @@
   "libelle": "TAOM 2.0.29.5 (Bannerlord 1.4.8)",
   "jeu": "1.4.8",
   "coop": "0.1.7",
-  "note": "Ordre de chargement publie sur la page Nexus de TAOM. Les identifiants exacts sont verifies a l'Update en lisant SubModule.xml de chaque module: si un identifiant ne correspond pas, le template refuse et liste l'ecart au lieu de demarrer a moitie.",
+  "note": "Ordre de chargement publie sur la page Nexus de TAOM. Identifiants et versions releves dans l'archive elle-meme (SubModule.xml de chaque module), pas recopies de la page : LOTRLOME_Armory et non LOTRAOM_Armory, et les quatre modules sont en v2.0.29.5.",
   "sources": {
     "taom_archive": {
-      "type": "url",
-      "url": "",
-      "sha256": "",
-      "remarque": "archive TAOM publique (18 Go) hebergee par l'operateur, ou deposee dans le dossier de packs"
+      "type": "archive",
+      "url": "https://archives.example.invalid/TAOM_2_0_29_5.zip",
+      "sha256": "0aaff9dca5f86dd432cf52d5cbc581b87c2d70924a49bc4f9f9e545f5a10284a",
+      "taille": 19368167073,
+      "prefixe": "Modules",
+      "remarque": "archive publique TAOM 2.0.29.5, non redistribuee : le template telecharge l'original et verifie l'empreinte"
     }
   },
   "modules": [
@@ -20,8 +22,8 @@
     { "id": "StoryMode", "source": "engine" },
     { "id": "CustomBattle", "source": "engine" },
     { "id": "BirthAndDeath", "source": "engine" },
-    { "id": "TAOM_Map", "mod": "TAOM", "source": { "archive": "taom_archive", "dossier": "TAOM MAP" } },
-    { "id": "LOTRAOM_Armory", "mod": "TAOM", "source": { "archive": "taom_archive", "dossier": "LOTRAOM Armoury" } },
+    { "id": "TAOM_Map", "mod": "TAOM", "source": { "archive": "taom_archive", "dossier": "TAOM_Map" } },
+    { "id": "LOTRLOME_Armory", "mod": "TAOM", "source": { "archive": "taom_archive", "dossier": "LOTRLOME_Armory" } },
     { "id": "TAOM", "mod": "TAOM", "source": { "archive": "taom_archive", "dossier": "TAOM" } },
     { "id": "DedicatedServer.Windows", "source": "engine" },
     { "id": "Coop", "source": "engine" }
