@@ -1,0 +1,14 @@
+{
+  "nom": "vanilla",
+  "libelle": "Vanilla (Coop seul, aucun mod de gameplay)",
+  "jeu": "1.4.8",
+  "coop": "0.1.7",
+  "note": "Ordre reellement utilise par le serveur Coop dedie tel qu'il tourne aujourd'hui. Sert de temoin: si ce pack ne demarre plus, c'est le template qui a casse, pas les mods.",
+  "modules": [
+    { "id": "Native", "source": "engine" },
+    { "id": "DedicatedServer.Windows", "source": "engine" },
+    { "id": "SandBoxCore", "source": "engine" },
+    { "id": "SandBox", "source": "engine" },
+    { "id": "Coop", "source": "engine" }
+  ]
+}

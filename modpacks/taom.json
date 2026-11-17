@@ -1,0 +1,29 @@
+{
+  "nom": "taom",
+  "libelle": "TAOM 2.0.29.5 (Bannerlord 1.4.8)",
+  "jeu": "1.4.8",
+  "coop": "0.1.7",
+  "note": "Ordre de chargement publie sur la page Nexus de TAOM. Les identifiants exacts sont verifies a l'Update en lisant SubModule.xml de chaque module: si un identifiant ne correspond pas, le template refuse et liste l'ecart au lieu de demarrer a moitie.",
+  "sources": {
+    "taom_archive": {
+      "type": "url",
+      "url": "",
+      "sha256": "",
+      "remarque": "archive TAOM publique (18 Go) hebergee par l'operateur, ou deposee dans le dossier de packs"
+    }
+  },
+  "modules": [
+    { "id": "TAOM.Dependencies", "source": { "archive": "taom_archive", "dossier": "TAOM.Dependencies" } },
+    { "id": "Native", "source": "engine" },
+    { "id": "SandBoxCore", "source": "engine" },
+    { "id": "SandBox", "source": "engine" },
+    { "id": "StoryMode", "source": "engine" },
+    { "id": "CustomBattle", "source": "engine" },
+    { "id": "BirthAndDeath", "source": "engine" },
+    { "id": "TAOM_Map", "source": { "archive": "taom_archive", "dossier": "TAOM MAP" } },
+    { "id": "LOTRAOM_Armory", "source": { "archive": "taom_archive", "dossier": "LOTRAOM Armoury" } },
+    { "id": "TAOM", "source": { "archive": "taom_archive", "dossier": "TAOM" } },
+    { "id": "DedicatedServer.Windows", "source": "engine" },
+    { "id": "Coop", "source": "engine" }
+  ]
+}
