@@ -17,17 +17,100 @@
     }
   },
   "modules": [
-    { "id": "TAOM.Dependencies", "mod": "TAOM", "source": { "archive": "taom_archive", "dossier": "TAOM.Dependencies" } },
-    { "id": "Native", "source": "engine" },
-    { "id": "SandBoxCore", "source": "engine" },
-    { "id": "SandBox", "source": "engine" },
-    { "id": "StoryMode", "source": "engine" },
-    { "id": "CustomBattle", "source": "engine" },
-    { "id": "BirthAndDeath", "source": "engine" },
-    { "id": "TAOM_Map", "mod": "TAOM", "source": { "archive": "taom_archive", "dossier": "TAOM_Map" } },
-    { "id": "LOTRLOME_Armory", "mod": "TAOM", "source": { "archive": "taom_archive", "dossier": "LOTRLOME_Armory" } },
-    { "id": "TAOM", "mod": "TAOM", "source": { "archive": "taom_archive", "dossier": "TAOM" } },
-    { "id": "DedicatedServer.Windows", "source": "engine" },
-    { "id": "Coop", "source": "engine" }
-  ]
+    {
+      "id": "TAOM.Dependencies",
+      "mod": "TAOM",
+      "source": {
+        "archive": "taom_archive",
+        "dossier": "TAOM.Dependencies"
+      }
+    },
+    {
+      "id": "Native",
+      "source": "engine"
+    },
+    {
+      "id": "SandBoxCore",
+      "source": "engine"
+    },
+    {
+      "id": "SandBox",
+      "source": "engine"
+    },
+    {
+      "id": "StoryMode",
+      "source": "engine"
+    },
+    {
+      "id": "CustomBattle",
+      "source": "engine"
+    },
+    {
+      "id": "BirthAndDeath",
+      "source": "engine"
+    },
+    {
+      "id": "TAOM_Map",
+      "mod": "TAOM",
+      "source": {
+        "archive": "taom_archive",
+        "dossier": "TAOM_Map"
+      }
+    },
+    {
+      "id": "LOTRLOME_Armory",
+      "mod": "TAOM",
+      "source": {
+        "archive": "taom_archive",
+        "dossier": "LOTRLOME_Armory"
+      }
+    },
+    {
+      "id": "TAOM",
+      "mod": "TAOM",
+      "source": {
+        "archive": "taom_archive",
+        "dossier": "TAOM"
+      }
+    },
+    {
+      "id": "DedicatedServer.Windows",
+      "source": "engine"
+    },
+    {
+      "id": "Coop",
+      "source": "engine"
+    }
+  ],
+  "joueurs": {
+    "jeu": "1.4.8",
+    "installer": [
+      {
+        "nom": "Bannerlord",
+        "version": "1.4.8",
+        "ou": "Steam",
+        "lien": "https://steamdb.info/app/261550/patchnotes/"
+      },
+      {
+        "nom": "Mod Coop",
+        "version": "0.1.7 (commit ecd4c479)",
+        "ou": "atelier Steam item 3770450698",
+        "lien": "https://steamcommunity.com/sharedfiles/filedetails/?id=3770450698"
+      },
+      {
+        "nom": "TAOM",
+        "version": "2.0.29.5",
+        "ou": "NexusMods",
+        "lien": "https://www.nexusmods.com/mountandblade2bannerlord/mods/7748?tab=files"
+      }
+    ],
+    "etapes": [
+      "Installer Bannerlord 1.4.8 et le mod Coop du meme build que le serveur (le serveur annonce le commit au demarrage).",
+      "Telecharger TAOM 2.0.29.5 sur Nexus et extraire les quatre dossiers (TAOM.Dependencies, TAOM_Map, LOTRLOME_Armory, TAOM) dans le dossier Modules du jeu.",
+      "Activer les modules dans cet ordre : TAOM.Dependencies, puis les modules du jeu, puis TAOM_Map, LOTRLOME_Armory, TAOM.",
+      "Creer une campagne Sandbox (jamais Story Mode : le serveur ne sait pas la charger), atteindre la carte.",
+      "Sauvegarder sous le nom voulu, puis copier le .sav dans le dossier d import du serveur.",
+      "Au premier demarrage, le serveur ecrit le fichier .json associe : les joueurs creeront leur personnage lors de leur premiere session."
+    ]
+  }
 }
