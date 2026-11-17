@@ -9,7 +9,18 @@
 set -u
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-log() { echo "[coodsz] $*"; }
+# Journal durable des decisions du template : la console AMP ne garde pas
+# toujours la sortie, et sans trace on ne peut pas dire si le superviseur a vu la
+# demande de demarrage de l'outil. Ecrase a chaque demarrage de l'instance.
+TRACE="${ROOT:-/amp/coodszcoop}/coodsz-template.log"
+if [ -d "${ROOT:-/amp/coodszcoop}" ]; then
+    printf '=== %s demarrage de l instance ===\n' "$(date '+%Y-%m-%d %H:%M:%S')" > "$TRACE" 2>/dev/null || TRACE=""
+fi
+log() {
+    echo "[coodsz] $*"
+    [ -n "${TRACE:-}" ] && printf '%s %s\n' "$(date '+%H:%M:%S')" "$*" >> "$TRACE" 2>/dev/null
+    return 0
+}
 
 EXE="$(find "$ROOT/app" -maxdepth 3 -name 'Coodsz Coop Server Tool.exe' 2>/dev/null | head -1)"
 if [ -z "$EXE" ]; then
