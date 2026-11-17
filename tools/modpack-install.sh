@@ -140,13 +140,23 @@ done <<EOF
 $(python3 "$OUTIL" sources "$MANIFESTE")
 EOF
 
-# --- 5. modules d'apparence -------------------------------------------------
+# --- 5. modules pris dans l'installation du jeu -----------------------------
+# Le paquet serveur Coop ne livre que cinq modules ; un serveur modde a besoin de
+# modules du jeu (CustomBattle, BirthAndDeath...). Ils viennent des fichiers du jeu
+# de l'operateur : rien n'est redistribue.
+python3 "$OUTIL" copier-jeu "$MANIFESTE" "$MODULES" "${GAME_MODULES_DIR:-$PACKS/game-modules}" || {
+    erreur "des modules doivent etre copies depuis votre installation de Bannerlord"
+    erreur "  dossier attendu : ${GAME_MODULES_DIR:-$PACKS/game-modules}"
+    exit 1
+}
+
+# --- 6. modules d'apparence -------------------------------------------------
 # Certains modules exiges par un overhaul ne sont pas livres par le paquet serveur
 # (CustomBattle cote Coop). Un module d'apparence satisfait la declaration, pas le
 # besoin : il est cree seulement si le manifeste le demande explicitement.
 python3 "$OUTIL" apparence "$MANIFESTE" "$MODULES" || true
 
-# --- 6. controle final ------------------------------------------------------
+# --- 7. controle final ------------------------------------------------------
 if python3 "$OUTIL" verifier "$MANIFESTE" "$MODULES"; then
     log "modpack $PACK pret"
     exit 0

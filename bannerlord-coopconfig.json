@@ -1,5 +1,15 @@
 [
   {
+    "FieldName": "GameModulesDir",
+    "Category": "Coop",
+    "Name": "Modules du jeu (dossier)",
+    "Description": "Dossier ou deposer les modules copies de votre installation de Bannerlord 1.4.8 (CustomBattle, BirthAndDeath, StoryMode...). Le paquet serveur Coop ne livre que cinq modules ; un serveur modde a besoin de ceux-la, et ils ne peuvent pas etre redistribues : c est votre copie du jeu qui les fournit.",
+    "DefaultValue": "./bannerlordcoop/game-modules/",
+    "InputType": "text",
+    "ParamField": "",
+    "IncludeInCommandLine": false
+  },
+  {
     "FieldName": "ArchiveUrl",
     "Category": "Coop",
     "Name": "URL de l archive (facultatif)",
