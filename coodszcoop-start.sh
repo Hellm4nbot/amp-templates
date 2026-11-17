@@ -775,6 +775,87 @@ fi
 # serveur depuis l'outil fermait noVNC et tout s'arretait.
 # Le programme pty est ecrit sur disque puis execute, pour que l'entree standard du
 # serveur reste celle du conteneur et non le source du script.
+# --- re-alignement des ports avant CHAQUE lancement -------------------------
+# L'outil reecrit host.json avec ses propres ports a son demarrage, et il lance le
+# serveur avec ces valeurs (mesure : Start ... EnginePort=7210, Router port 4200,
+# alors que le panneau publie 4204/7212). L'alignement fait une fois au demarrage
+# ne suffit donc pas : on le refait juste avant chaque lancement.
+aligner_ports() {
+    [ -f "$HOST_JSON" ] || return 0
+    python3 - "$HOST_JSON" "$CFG_SERVEUR" "${COODSZ_GAME_PORT:-}" "${COODSZ_ENGINE_PORT:-}" <<'PYR'
+import json, os, re, sys
+
+chemin, conf_p, jeu, moteur = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+
+
+def charge(p):
+    try:
+        with open(p, encoding="utf-8-sig") as f:
+            t = f.read()
+    except OSError:
+        return None
+    t = re.sub(r"/\*.*?\*/", "", t, flags=re.S)
+    t = re.sub(r"^\s*//.*$", "", t, flags=re.M)
+    t = re.sub(r",(\s*[}\]])", r"\1", t)
+    try:
+        return json.loads(t)
+    except ValueError:
+        return None
+
+
+def ecrit(p, d):
+    os.makedirs(os.path.dirname(p), exist_ok=True)
+    with open(p, "w", encoding="utf-8") as f:
+        json.dump(d, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+
+
+h = charge(chemin)
+if isinstance(h, dict):
+    profils = h.get("Profiles") or []
+    actif = h.get("ActiveProfile")
+    cible = None
+    for x in profils:
+        if isinstance(x, dict) and x.get("Name") == actif:
+            cible = x
+            break
+    if cible is None and profils:
+        cible = profils[0]
+    change = False
+    if isinstance(cible, dict):
+        if jeu and str(cible.get("CoopPort")) != str(jeu):
+            print("[coodsz] port de jeu de l outil aligne : %s -> %s" % (cible.get("CoopPort"), jeu))
+            cible["CoopPort"] = int(jeu)
+            change = True
+        if moteur and str(cible.get("EnginePort")) != str(moteur):
+            print("[coodsz] port moteur de l outil aligne : %s -> %s" % (cible.get("EnginePort"), moteur))
+            cible["EnginePort"] = int(moteur)
+            change = True
+    if change:
+        ecrit(chemin, h)
+
+c = charge(conf_p)
+if isinstance(c, dict) and jeu and str(c.get("port")) != str(jeu):
+    print("[coodsz] port du serveur aligne : %s -> %s (server-config.json)" % (c.get("port"), jeu))
+    c["port"] = int(jeu)
+    ecrit(conf_p, c)
+PYR
+}
+
+# --- signaux de relance -----------------------------------------------------
+# Le journal de l'outil ecrit « Start » a chaque clic sur Demarrer : c'est le seul
+# signal fiable (le script .ps1 n'est PAS reecrit a chaque clic, mesure du 17/11).
+HOSTLOG=""
+if [ -n "${HOST_JSON:-}" ]; then
+    HOSTLOG="$(dirname "$HOST_JSON")/../../../Documents/Mount and Blade II Bannerlord/CoopData/DedicatedServer/logs/host-action.log"
+fi
+demandes_start() {
+    [ -f "$HOSTLOG" ] && grep -c "  Start  " "$HOSTLOG" 2>/dev/null || echo 0
+}
+outil_ouvert() {
+    [ -f "$HOSTLOG" ] && grep -q "  Open  " "$HOSTLOG" 2>/dev/null
+}
+
 PTY_PY="$ROOT/.coodsz-serveur-pty.py"
 cat > "$PTY_PY" <<'PYP'
 import os, pty, select, sys
@@ -833,8 +914,23 @@ empreinte_script() {
     stat -c '%Y-%s' "$PS1_LOCAL" 2>/dev/null || echo absent
 }
 
+# L'outil refuse de piloter un serveur demarre avant lui (mesure : « This server was
+# started before Coodsz Coop Server Tool was opened, so Save game cannot reach it »).
+# On attend donc qu'il ait ecrit sa ligne d'ouverture avant le premier lancement.
+ATTENTE=0
+while ! outil_ouvert; do
+    sleep 3
+    ATTENTE=$((ATTENTE + 3))
+    if [ "$ATTENTE" -ge 180 ]; then
+        log "outil pas encore ouvert apres 3 min : demarrage du serveur quand meme"
+        break
+    fi
+done
+
 AVANT="$(empreinte_script)"
+DEMANDE="$(demandes_start)"
 while :; do
+    aligner_ports
     log "serveur Coop : demarrage (port moteur $PORT, monde $SAVE)"
     lance_serveur
     CODE=$?
@@ -842,7 +938,7 @@ while :; do
     log " serveur Coop arrete (code $CODE) : l instance et l outil restent en marche"
     log "  regle ce que tu veux dans l'outil, puis relance le serveur :"
     log "    bouton « Demarrer le serveur » dans l'outil, ou Stop/Start de l instance"
-    log "  le template relance des que l'outil reecrit son script de lancement"
+    log "  le template relance des que l'outil demande un demarrage (ligne Start dans son journal)"
     log "=============================================================="
     while :; do
         sleep 3
@@ -851,10 +947,16 @@ while :; do
             log "relance demandee (.coodsz-relancer)"
             break
         fi
+        NOUVEAU="$(demandes_start)"
+        if [ "$NOUVEAU" -gt "$DEMANDE" ]; then
+            DEMANDE="$NOUVEAU"
+            log "demarrage demande depuis l'outil : relance du serveur"
+            break
+        fi
         if [ "$(empreinte_script)" != "$AVANT" ]; then
+            AVANT="$(empreinte_script)"
             log "script de lancement reecrit par l'outil : relance du serveur"
             break
         fi
     done
-    AVANT="$(empreinte_script)"
 done
