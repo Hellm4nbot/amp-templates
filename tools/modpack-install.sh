@@ -42,7 +42,8 @@ empreinte_archive() {
                 ;;
         esac
     fi
-    _sha=$(sha256sum "$_f" | cut -d' ' -f1)
+    # l avancement part sur la sortie d erreur, l empreinte seule sur la sortie standard
+    _sha=$(python3 "$OUTIL" empreinte "$_f")
     printf '%s %s\n' "$_info" "$_sha" > "$_stamp" 2>/dev/null || true
     echo "$_sha"
 }
