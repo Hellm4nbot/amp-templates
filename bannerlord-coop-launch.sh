@@ -87,11 +87,21 @@ fi
 UTILISATEUR=$(id -un 2>/dev/null || echo root)
 PREFIXE="${WINEPREFIX:-$ROOT.wine}"
 DOCS="$PREFIXE/drive_c/users/$UTILISATEUR/Documents/Mount and Blade II Bannerlord"
-if [ ! -e "$DOCS/CoopData" ] && [ -d "$DATA" ]; then
-    mkdir -p "$(dirname "$DOCS/CoopData")" 2>/dev/null || true
-    ln -sfn "$DATA" "$DOCS/CoopData" 2>/dev/null \
-        && log "CoopData du prefixe relie a $DATA" \
-        || log "lien CoopData impossible : le mod utilisera son dossier par defaut"
+# Le mod ne cherche PAS au meme niveau que le wrapper : il lit son dossier
+# utilisateur dans Documents\...\CoopData\DedicatedServer, alors qu'un lien place sur
+# CoopData pointait un cran trop haut — le mod ne trouvait alors aucune configuration
+# et prenait ses valeurs par defaut (port 4200 au lieu du port publie, pas de mot de
+# passe). On relie donc le niveau exact attendu, en laissant CoopData comme vrai
+# dossier pour ce que le wrapper y depose.
+CIDIR="$DOCS/CoopData"
+if [ -L "$CIDIR" ]; then rm -f "$CIDIR" 2>/dev/null; fi
+if [ -d "$DATA" ]; then
+    mkdir -p "$CIDIR" 2>/dev/null || true
+    if [ ! -e "$CIDIR/DedicatedServer" ]; then
+        ln -sfn "$DATA" "$CIDIR/DedicatedServer" 2>/dev/null \
+            && log "dossier utilisateur du mod relie a $DATA" \
+            || log "lien CoopData/DedicatedServer impossible : le mod utilisera ses valeurs par defaut"
+    fi
 fi
 
 # --- 1. import d'une sauvegarde ---------------------------------------------
