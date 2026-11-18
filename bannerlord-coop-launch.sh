@@ -64,8 +64,24 @@ if [ -d "$DOSSIER_JOURNAUX" ] && [ -w "$DOSSIER_JOURNAUX" ]; then
     # awk ecrit lui-meme dans le journal, ligne par ligne, avec fflush. Passer par tee
     # ajoutait un tampon : sur un demarrage long il ne vidait rien, et le journal restait
     # a zero octet alors que le serveur tournait. Un seul ecrivain, pas de tampon.
-    exec > >(awk -v J="$JOURNAL" '
-        BEGIN { bruit = 0 }
+    # Capture d incident : les boites « Would you like to always ignore this failure? »
+    # sont la cause mesuree des gels cote joueur (une par 1,6 s), et le journal filtre ne
+    # dit pas ce qui les declenche. On garde en memoire les 80 dernieres lignes brutes et,
+    # aux cinq premieres boites, on les ecrit a part. Cinq captures suffisent a nommer la
+    # cause sans ajouter de volume ensuite.
+    exec > >(awk -v J="$JOURNAL" -v I="$JOURNAL.incidents" '
+        BEGIN { bruit = 0; n = 0; captures = 0 }
+        {
+            tampon[n % 80] = $0
+            n++
+            if ($0 ~ /Would you like to always ignore/ && captures < 5) {
+                captures++
+                print "=== capture " captures " ===" > I
+                depart = (n > 80) ? n - 80 : 0
+                for (i = depart; i < n; i++) print tampon[i % 80] > I
+                fflush(I)
+            }
+        }
         /Failed to tick moving party|IndexOutOfRangeException: Index was outside/ \
         || /DefaultMapWeatherModel|IsBaseSpeedCacheInvalid|CalculateSpeed_Patch|ComputeNextMoveDistance/ \
         || /FillCurrentTickMoveDataForMovingMobileParty|ParallelTickMovingParties/ {
@@ -80,6 +96,10 @@ if [ -d "$DOSSIER_JOURNAUX" ] && [ -w "$DOSSIER_JOURNAUX" ]; then
         END {
             if (bruit > 0) {
                 ligne = sprintf("[coop] bruit TAOM : %d incidents de tick au total", bruit)
+                print ligne > J; fflush(J)
+            }
+            if (captures > 0) {
+                ligne = sprintf("[coop] captures d incident : %d dans %s.incidents", captures, J)
                 print ligne > J; fflush(J)
             }
         }
