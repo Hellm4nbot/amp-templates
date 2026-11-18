@@ -896,5 +896,25 @@
       "false": "No (report only)",
       "true": "Yes, stop on mismatch"
     }
+  },
+  {
+    "FieldName": "MondeUrl",
+    "Category": "Coop",
+    "Name": "URL du monde de depart (facultatif)",
+    "Description": "Sauvegarde .sav d ou partir pour ce pack, quand le pack a un monde custom : carte, cache de distances et campagne doivent decrire le meme univers, et un serveur dedie ne sait pas creer cette campagne. Vide : le monde deja present dans Game Saves est repris, ou la copie monde/<pack>-depart.sav si elle existe. Le fichier telecharge est verifie par empreinte et par sa liste de modules avant installation, puis conserve comme point de depart.",
+    "DefaultValue": "",
+    "InputType": "text",
+    "ParamField": "",
+    "IncludeInCommandLine": false
+  },
+  {
+    "FieldName": "MondeSha256",
+    "Category": "Coop",
+    "Name": "Empreinte du monde de depart (facultatif)",
+    "Description": "sha256 de la sauvegarde ci-dessus. Vide : l empreinte est epinglee au premier telechargement (ecrite a cote du fichier) et tout changement ulterieur est refuse. Renseigner la valeur connue si vous hebergez le fichier.",
+    "DefaultValue": "",
+    "InputType": "text",
+    "ParamField": "",
+    "IncludeInCommandLine": false
   }
 ]
