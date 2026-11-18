@@ -34,6 +34,7 @@ illisible.
 import hashlib
 import json
 import os
+import re
 import shutil
 import sys
 import time
@@ -601,6 +602,50 @@ def assemblies_interface(chemin_manifeste, modules_dir, bin_dir):
     return 0
 
 
+def masquer_sous_modules(chemin_manifeste, modules_dir):
+    """Retire d un SubModule.xml les sous-modules declares inutilisables sur un serveur.
+
+    MCM construit une interface : sur un hote sans ecran il charge, puis echoue sans
+    message utile (0xE0434352 avec Bannerlord.MBOptionScreen dans la pile). Le manifeste
+    du pack liste donc, par module, les sous-modules a neutraliser. Les blocs sont
+    commentes, jamais supprimes : le fichier d origine reste lisible, et un nouveau
+    passage ne fait rien (marqueur deja present).
+    """
+    try:
+        manifeste = charger_avec_base(chemin_manifeste)
+    except (OSError, ValueError) as e:
+        print("manifeste illisible : %s" % e)
+        return 2
+    plan = manifeste.get("sous_modules_desactives") or {}
+    total = 0
+    for module, noms in plan.items():
+        chemin = os.path.join(modules_dir, module, "SubModule.xml")
+        if not os.path.isfile(chemin):
+            print("%s : SubModule.xml introuvable, rien a masquer" % module)
+            continue
+        texte = open(chemin, encoding="utf-8-sig").read()
+        modifies = 0
+        for nom in noms:
+            motif = re.compile(
+                r"(\s*)(<SubModule>\s*(?:(?!</SubModule>).)*?<Name\s+value=\"" +
+                re.escape(nom) + r"\"\s*/>.*?</SubModule>)", re.S | re.I)
+            def remplacer(m):
+                nonlocal modifies
+                if "<!-- masque" in m.group(0):
+                    return m.group(0)
+                modifies += 1
+                return "%s<!-- masque par le pack %s : %s --><!--%s-->" % (
+                    m.group(1), module, nom, m.group(2))
+            texte = motif.sub(remplacer, texte)
+        if modifies:
+            if not os.path.isfile(chemin + ".orig"):
+                shutil.copy2(chemin, chemin + ".orig")
+            open(chemin, "w", encoding="utf-8").write(texte)
+            print("%s : %d sous-module(s) desactive(s) (%s)" % (module, modifies, ", ".join(noms)))
+            total += modifies
+    return 0
+
+
 def cache_distances(chemin_manifeste, modules_dir):
     """Pose le cache de distances du fournisseur de carte declare par le manifeste.
 
@@ -978,6 +1023,9 @@ def main(argv):
 
     if len(argv) in (3, 4) and argv[1] == "fiche":
         return fiche(argv[2], argv[3] if len(argv) > 3 else None)
+
+    if len(argv) == 4 and argv[1] == "masquer":
+        return masquer_sous_modules(argv[2], argv[3])
 
     if len(argv) == 5 and argv[1] == "assemblies":
         return assemblies_interface(argv[2], argv[3], argv[4])

@@ -168,5 +168,13 @@
     "System.ValueTuple.dll",
     "protobuf-net.Core.dll",
     "protobuf-net.dll"
-  ]
+  ],
+  "sous_modules_desactives": {
+    "TAOM.Dependencies": [
+      "MCMv5",
+      "MCMv5 Basic Implementation",
+      "Bannerlord Module Loader"
+    ]
+  },
+  "note_sous_modules": "MCM exige un ecran : sur un serveur dedie il charge puis leve une exception muette (0xE0434352, pile Bannerlord.MBOptionScreen). On garde UIExtenderEx et ButterLib, qui n ont pas besoin d interface, et on retire les trois sous-modules MCM a l installation."
 }
