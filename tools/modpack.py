@@ -31,10 +31,12 @@ Codes de sortie : 0 tout va bien, 1 module manquant ou incoherent, 2 manifeste
 illisible.
 """
 
+import hashlib
 import json
 import os
 import shutil
 import sys
+import time
 import zipfile
 import xml.etree.ElementTree as ET
 
@@ -250,6 +252,16 @@ def extraire(chemin_manifeste, archive, modules_dir):
                 code = 1
                 continue
             fichiers = 0
+            total_octets = 0
+            for nom in membres:
+                if not nom.endswith("/"):
+                    try:
+                        total_octets += zf.getinfo(nom).file_size
+                    except KeyError:
+                        pass
+            faits = 0
+            debut = time.time()
+            dernier = debut
             for nom in membres:
                 relatif = nom[len(base):]
                 if ".." in relatif.split("/"):
@@ -264,6 +276,17 @@ def extraire(chemin_manifeste, archive, modules_dir):
                 with zf.open(nom) as source_f, open(destination, "wb") as cible_f:
                     shutil.copyfileobj(source_f, cible_f, 8 * 1024 * 1024)
                 fichiers += 1
+                faits += zf.getinfo(nom).file_size
+                maintenant = time.time()
+                if total_octets and maintenant - dernier >= 10.0:
+                    dernier = maintenant
+                    ecoule = max(maintenant - debut, 0.001)
+                    debit = faits / ecoule
+                    reste = (total_octets - faits) / max(debit, 1.0)
+                    print("  %s : %d %% (%s / %s, %.0f Mo/s, reste ~%d min)"
+                          % (ident, faits * 100 // total_octets, _taille(faits),
+                             _taille(total_octets), debit / 1048576.0, reste / 60))
+                    sys.stdout.flush()
             print("%s : %d fichiers extraits vers %s" % (ident, fichiers, cible))
     return code
 
@@ -468,6 +491,43 @@ def sauvegarde(chemin_sav, chemin_manifeste=None):
             print("  une sauvegarde doit etre creee avec exactement les modules du pack")
             return 1
         print("  modules conformes au pack %s" % manifeste.get("nom", "?"))
+    return 0
+
+
+def empreinte_fichier(chemin, intervalle=10.0):
+    """sha256 d un gros fichier, avec avancement sur la sortie d erreur.
+
+    Un sha256 de 19 Go prend des dizaines de minutes sur un disque charge, sans rien
+    afficher : l operateur ne peut pas distinguer un calcul lent d un blocage. On annonce
+    donc le pourcentage, le debit et le temps restant a intervalle regulier — l empreinte
+    elle-meme reste seule sur la sortie standard, pour rester capturable.
+    """
+    total = os.path.getsize(chemin)
+    h = hashlib.sha256()
+    lus = 0
+    debut = time.time()
+    dernier = debut
+    with open(chemin, "rb") as f:
+        while True:
+            bloc = f.read(64 * 1024 * 1024)
+            if not bloc:
+                break
+            h.update(bloc)
+            lus += len(bloc)
+            maintenant = time.time()
+            if maintenant - dernier >= intervalle and total:
+                dernier = maintenant
+                ecoule = max(maintenant - debut, 0.001)
+                debit = lus / ecoule
+                reste = (total - lus) / max(debit, 1.0)
+                sys.stderr.write(
+                    "  empreinte : %d %% (%s / %s, %.0f Mo/s, reste ~%d min)\n"
+                    % (lus * 100 // total, _taille(lus), _taille(total), debit / 1048576.0, reste / 60))
+                sys.stderr.flush()
+    if total:
+        sys.stderr.write("  empreinte : 100 %% (%s)\n" % _taille(total))
+        sys.stderr.flush()
+    print(h.hexdigest())
     return 0
 
 
@@ -848,6 +908,9 @@ def main(argv):
 
     if len(argv) in (3, 4) and argv[1] == "fiche":
         return fiche(argv[2], argv[3] if len(argv) > 3 else None)
+
+    if len(argv) == 3 and argv[1] == "empreinte":
+        return empreinte_fichier(argv[2])
 
     if len(argv) == 4 and argv[1] == "cache":
         return cache_distances(argv[2], argv[3])
