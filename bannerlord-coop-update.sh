@@ -568,10 +568,6 @@ if ! cfg_valide "$CFG"; then
     # quoi comprendre le fichier quand on l ouvre six mois plus tard.
     cat > "$TMPCFG" 2>/dev/null <<'CFGEOF'
 {
-  // Ecrit par le template AMP au premier update : le serveur doit ecouter le port
-  // que le panneau publie, et AMP 3 publie les ports en 1:1 (4202 dehors = 4202
-  // dedans). Le mod complete ce fichier au premier demarrage et le garde ensuite.
-  // Documentation complete des cles : voir l exemple livré dans le paquet serveur.
   "saveName": "saveauto1",
   "autosaveMinutes": 5,
   "password": "",
@@ -580,7 +576,7 @@ if ! cfg_valide "$CFG"; then
   "steam": true,
   "traceTick": false,
   "tracePublish": false,
-  "traceBandits": false,
+  "traceBandits": false
 }
 CFGEOF
     sed -i "s/PORT_ICI/${GAMEPORT}/" "$TMPCFG" 2>/dev/null
@@ -656,6 +652,25 @@ fi
 # le panneau publie GAMEPORT, mais le mod lit "port" dans server-config.json. Un
 # desaccord laisse un serveur injoignable qui affiche pourtant SERVING. On aligne
 # donc le fichier sur le panneau, en gardant une copie et en le disant.
+# AMP relit ce fichier pour y appliquer les reglages de l onglet, en JSON strict. Un
+# commentaire ou une virgule finale le font echouer au demarrage (« '/' is invalid after
+# a value »), donc le serveur ne demarre pas du tout. On repare un fichier ecrit par une
+# version precedente du template plutot que de le laisser bloquant.
+if [ -f "$CFG" ] && command -v python3 >/dev/null 2>&1 \
+    && ! python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$CFG" >/dev/null 2>&1; then
+    cp -f "$CFG" "${CFG}.invalide.bak" 2>/dev/null
+    sed -i '/^[[:space:]]*\/\//d' "$CFG" 2>/dev/null
+    awk '{ if ($0 ~ /^[[:space:]]*}/ && prev ~ /,[[:space:]]*$/) { sub(/,[[:space:]]*$/, "", prev) } if (prev != "") print prev; prev = $0 } END { print prev }' \
+        "$CFG" > "${CFG}.tmp" 2>/dev/null && mv -f "${CFG}.tmp" "$CFG"
+    if python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$CFG" >/dev/null 2>&1; then
+        echo "    server-config.json repare : commentaires et virgule finale retirees"
+        echo "      original conserve : ${CFG}.invalide.bak"
+    else
+        echo "    AVERTISSEMENT : server-config.json reste illisible pour AMP"
+        echo "      le demarrage echouera tant que ce fichier n est pas du JSON valide"
+    fi
+fi
+
 PORT_CFG=$(cfg_valeur "$CFG" port)
 if [ -n "$PORT_CFG" ] && [ "$PORT_CFG" != "$GAMEPORT" ]; then
     cp -f "$CFG" "${CFG}.port-${HORO}.bak" 2>/dev/null
