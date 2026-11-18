@@ -4,7 +4,7 @@
   "jeu": "1.4.8",
   "coop": "0.1.7",
   "monde": "auto",
-  "note": "Pack de validation du chemin modde. Il ne contient aucun mod d interface : ni MCM, ni UIExtenderEx, ni ButterLib, qui sont precisement ce qui empeche un serveur sans ecran de demarrer. Ce qu il exerce : le starter TaleWorlds.Starter.DotNetCore avec le jeton _MODULES_ et un ordre de modules different du vanilla. CustomBattle et BirthAndDeath viennent de l installation du jeu de l operateur (DedicatedServerType=none : le moteur enregistre le module sans executer son code cote client).",
+  "note": "Pack de validation du chemin modde. Il ne contient aucun mod d interface : ni MCM, ni UIExtenderEx, ni ButterLib, qui sont precisement ce qui empeche un serveur sans ecran de demarrer. Ce qu il exerce : le starter TaleWorlds.Starter.DotNetCore avec le jeton _MODULES_ et un ordre de modules different du vanilla. CustomBattle vient de l installation du jeu de l operateur (DedicatedServerType=none). BirthAndDeath n y figure pas : Coop refuse la DLC (« DLC is not supported ») et gere lui-meme les naissances et les morts par son propre reglage birthAndDeath, dans CoopData/mod-config.json.",
   "sources": {
     "modules_du_jeu": {
       "type": "archive",
@@ -35,12 +35,6 @@
       "source": "engine"
     },
     {
-      "id": "BirthAndDeath",
-      "source": {
-        "jeu": true
-      }
-    },
-    {
       "id": "DedicatedServer.Windows",
       "source": "engine"
     },
@@ -67,10 +61,10 @@
     ],
     "etapes": [
       "Installer Bannerlord 1.4.8 et le mod Coop du meme build que le serveur.",
-      "Copier CustomBattle et BirthAndDeath depuis l installation du jeu dans le dossier Modules.",
+      "Copier CustomBattle depuis l installation du jeu dans le dossier Modules. Ne PAS activer la DLC BirthAndDeath : Coop la refuse.",
       "Activer les modules dans cet ordre : Native, SandBoxCore, CustomBattle, SandBox, BirthAndDeath, DedicatedServer.Windows, Coop.",
       "Creer une campagne, atteindre la carte, sauvegarder, puis copier le .sav dans le dossier d import du serveur."
     ]
   },
-  "avertissement": "Pack temoin : il ne sert pas a jouer, il sert a prouver que le starter .NET charge une liste de modules differente de celle du vanilla. Si ce pack demarre, le montage modde fonctionne et la seule limite restante est celle des mods d interface."
+  "avertissement": "Pack temoin. Coop refuse explicitement le module DLC BirthAndDeath : les naissances et les morts s activent par birthAndDeath=true dans mod-config.json, cote serveur, sans aucun module. Un joueur qui garde la DLC activee cote client ne pourra pas se joindre."
 }
