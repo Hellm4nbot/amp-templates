@@ -664,6 +664,179 @@ def masquer_sous_modules(chemin_manifeste, modules_dir):
     return 0
 
 
+def filtrer_actions(chemin_manifeste, modules_dir):
+    """Ne garder, cote serveur, que les actions dont l animation existe dans le jeu de base.
+
+    Un serveur sans rendu ne resout pas les clips propres a un mod : chaque `<action>` qui les
+    reference leve un `Could not find animation`, et chaque avertissement ouvre une modale qui
+    gele le tick (mesure : une toutes les 2,2 s, 1 432 avertissements en huit minutes). On garde
+    donc les animations que les modules de base declarent (Native, SandBoxCore, SandBox,
+    CustomBattle, DedicatedServer.Windows) et on retire les autres, ainsi que les actions dont
+    le type n est defini nulle part (`Trying to use undefined action`).
+
+    Regle, jamais une liste de noms observes : le mod invente une famille par version
+    (rider_warg_*, howdah_*, anim_hill_troll_*, an_spi_*…), et chaque campagne revelerait la
+    suivante. Les fichiers d origine restent en .orig, et le filtrage repart toujours d eux,
+    donc il est idempotent. Toute ecriture invalide est annulee.
+    """
+    try:
+        manifeste = charger_avec_base(chemin_manifeste)
+    except (OSError, ValueError) as e:
+        print("manifeste illisible : %s" % e)
+        return 2
+    plan = manifeste.get("actions_serveur") or {}
+    if isinstance(plan, str):
+        plan = {"mode": plan, "modules": []}
+    if plan.get("mode") != "vanilla-seulement":
+        return 0
+    cibles_modules = plan.get("modules") or []
+    base_modules = ("Native", "SandBoxCore", "SandBox", "CustomBattle", "DedicatedServer.Windows")
+    motif_anim = re.compile(r'animation="([^"]*)"')
+    motif_type = re.compile(r'<action\s+type="([^"]+)"')
+    debut = re.compile(r'<action(?=[\s/>])')
+    vanilla = set()
+    for module in base_modules:
+        chemin = os.path.join(modules_dir, module, "ModuleData", "action_sets.xml")
+        if os.path.isfile(chemin):
+            with open(chemin, encoding="utf-8-sig", errors="replace") as f:
+                vanilla.update(motif_anim.findall(f.read()))
+    if not vanilla:
+        print("actions du serveur : aucun jeu d actions de base lisible, filtrage annule")
+        return 1
+    definis = set()
+    for module in os.listdir(modules_dir):
+        md = os.path.join(modules_dir, module, "ModuleData")
+        if not os.path.isdir(md):
+            continue
+        for racine, _, fichiers in os.walk(md):
+            for f in fichiers:
+                if "action_types" in f and f.lower().endswith((".xml", ".xslt")):
+                    with open(os.path.join(racine, f), encoding="utf-8-sig", errors="replace") as fh:
+                        definis.update(re.findall(r'<action\s+name="([^"]+)"', fh.read()))
+
+    def decouper(lignes):
+        garde, retires, i, commentaire = [], 0, 0, False
+        while i < len(lignes):
+            ligne = lignes[i]
+            nue = ligne.lstrip()
+            if commentaire:
+                garde.append(ligne)
+                if "-->" in ligne:
+                    commentaire = False
+                i += 1
+                continue
+            if nue.startswith("<!--"):
+                if "-->" not in ligne:
+                    commentaire = True
+                garde.append(ligne)
+                i += 1
+                continue
+            if "<!--" in ligne or "-->" in ligne:
+                garde.append(ligne)
+                i += 1
+                continue
+            if debut.search(nue):
+                bloc, j = [ligne], i + 1
+                while "/>" not in bloc[-1] and j < len(lignes) and "<!--" not in lignes[j]:
+                    bloc.append(lignes[j])
+                    j += 1
+                if "/>" in bloc[-1]:
+                    texte = "".join(bloc)
+                    m = motif_anim.search(texte)
+                    if m and m.group(1) not in vanilla:
+                        retires += 1
+                        i = j
+                        continue
+                    mt = motif_type.search(texte)
+                    if mt and mt.group(1) not in definis:
+                        retires += 1
+                        i = j
+                        continue
+                garde.extend(bloc)
+                i = j
+                continue
+            garde.append(ligne)
+            i += 1
+        return garde, retires
+
+    total = 0
+    for module in cibles_modules:
+        md = os.path.join(modules_dir, module, "ModuleData")
+        if not os.path.isdir(md):
+            continue
+        for racine, _, fichiers in os.walk(md):
+            for f in sorted(fichiers):
+                if not f.startswith("action_sets") or not f.endswith((".xml", ".xslt")):
+                    continue
+                chemin = os.path.join(racine, f)
+                orig = chemin + ".orig"
+                if not os.path.isfile(orig):
+                    shutil.copy2(chemin, orig)
+                with open(orig, encoding="utf-8-sig", errors="replace") as fh:
+                    lignes = fh.readlines()
+                garde, retires = decouper(lignes)
+                if not retires:
+                    continue
+                resultat = "".join(garde)
+                with open(chemin, encoding="utf-8", errors="replace") as fh:
+                    if fh.read() == resultat:
+                        continue
+                with open(chemin, "w", encoding="utf-8") as fh:
+                    fh.write(resultat)
+                try:
+                    ET.parse(chemin)
+                except ET.ParseError as e:
+                    shutil.copy2(orig, chemin)
+                    print("actions du serveur : %s invalide apres filtrage (%s), original remis" % (f, e))
+                    continue
+                total += retires
+                print("actions du serveur : %s/%s, %d action(s) retiree(s)" % (module, f, retires))
+    if total:
+        print("actions du serveur : %d action(s) retirees au total (jeu de base : %d animations)"
+              % (total, len(vanilla)))
+    return 0
+
+
+def poser_assets_serveur(chemin_manifeste, modules_dir, dossier_sources):
+    """Copier dans <module>/DsAssetPackages les paquets que le serveur dedie doit voir.
+
+    Le moteur charge <module>/DsAssetPackages/*.tpac pour chaque module et le client ne lit
+    jamais ce dossier : c est la le seul endroit sur pour un paquet que seul l hote consomme.
+    Sans lui, les squelettes de creatures manquent, chaque recherche d os echoue et ouvre une
+    modale (mesure : 149 asserts, chargement des monstres a 8 minutes).
+    """
+    try:
+        manifeste = charger_avec_base(chemin_manifeste)
+    except (OSError, ValueError) as e:
+        print("manifeste illisible : %s" % e)
+        return 2
+    for paquet in manifeste.get("assets_serveur") or []:
+        nom = paquet.get("fichier")
+        module = paquet.get("module")
+        attendu = (paquet.get("sha256") or "").lower()
+        if not nom or not module:
+            continue
+        cible = os.path.join(modules_dir, module, "DsAssetPackages", nom)
+        source = os.path.join(dossier_sources, nom)
+        if os.path.isfile(cible):
+            with open(cible, "rb") as f:
+                actuel = hashlib.sha256(f.read()).hexdigest()
+            if not attendu or actuel == attendu:
+                continue
+        if not os.path.isfile(source):
+            print("assets du serveur : %s absent du dossier paquets/, %s reste sans paquet" % (nom, module))
+            continue
+        with open(source, "rb") as f:
+            donnees = f.read()
+        if attendu and hashlib.sha256(donnees).hexdigest() != attendu:
+            print("assets du serveur : %s ne correspond pas a l empreinte annoncee, ignore" % nom)
+            continue
+        os.makedirs(os.path.dirname(cible), exist_ok=True)
+        shutil.copy2(source, cible)
+        print("assets du serveur : %s pose dans %s/DsAssetPackages" % (nom, module))
+    return 0
+
+
 def cache_distances(chemin_manifeste, modules_dir):
     """Pose le cache de distances du fournisseur de carte declare par le manifeste.
 
@@ -1041,6 +1214,12 @@ def main(argv):
 
     if len(argv) in (3, 4) and argv[1] == "fiche":
         return fiche(argv[2], argv[3] if len(argv) > 3 else None)
+
+    if len(argv) == 4 and argv[1] == "actions":
+        return filtrer_actions(argv[2], argv[3])
+
+    if len(argv) == 5 and argv[1] == "assets":
+        return poser_assets_serveur(argv[2], argv[3], argv[4])
 
     if len(argv) == 4 and argv[1] == "masquer":
         return masquer_sous_modules(argv[2], argv[3])

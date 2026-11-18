@@ -356,6 +356,20 @@ case "$MASQ_MESSAGE" in
     *desactive*) log "$MASQ_MESSAGE" ;;
 esac
 
+# Paquets que seul le serveur lit (squelettes des creatures d un overhaul) : le moteur charge
+# <module>/DsAssetPackages, le client jamais. Deposes dans le dossier paquets/ du pack.
+ASSETS_MESSAGE=$(python3 "$OUTIL" assets "$MANIFESTE" "$MODULES" "$ROOT/paquets" 2>&1 || true)
+case "$ASSETS_MESSAGE" in
+    *"assets du serveur :"*) echo "$ASSETS_MESSAGE" | while IFS= read -r l; do log "$l"; done ;;
+esac
+
+# Actions liees a des clips que le serveur ne peut pas resoudre : elles n ouvrent que des
+# modales qui gelent le tick. On ne garde que ce que le jeu de base declare.
+ACTIONS_MESSAGE=$(python3 "$OUTIL" actions "$MANIFESTE" "$MODULES" 2>&1 || true)
+case "$ACTIONS_MESSAGE" in
+    *"action(s)"*) echo "$ACTIONS_MESSAGE" | while IFS= read -r l; do log "$l"; done ;;
+esac
+
 # Assemblies d interface reclamees par le pack (mods d UI) : le serveur tourne depuis son
 # propre bin, qui n en contient pas. Le manifeste dit lesquelles ; on ne copie que celles-la.
 ASM_MESSAGE=$(python3 "$OUTIL" assemblies "$MANIFESTE" "$MODULES" "$SERV/engine/bin/Win64_Shipping_Server" 2>&1 || true)

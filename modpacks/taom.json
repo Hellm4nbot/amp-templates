@@ -176,5 +176,20 @@
       "Bannerlord Module Loader"
     ]
   },
-  "note_sous_modules": "MCM exige un ecran : sur un serveur dedie il charge puis leve une exception muette (0xE0434352, pile Bannerlord.MBOptionScreen). On garde UIExtenderEx et ButterLib, qui n ont pas besoin d interface, et on retire les trois sous-modules MCM a l installation."
+  "note_sous_modules": "MCM exige un ecran : sur un serveur dedie il charge puis leve une exception muette (0xE0434352, pile Bannerlord.MBOptionScreen). On garde UIExtenderEx et ButterLib, qui n ont pas besoin d interface, et on retire les trois sous-modules MCM a l installation.",
+  "actions_serveur": {
+    "mode": "vanilla-seulement",
+    "modules": [
+      "LOTRLOME_Armory"
+    ]
+  },
+  "note_actions_serveur": "Le serveur ne resout pas les clips propres au mod : chaque action qui les reference ouvre une modale et gele le tick. On ne garde donc que les animations que les modules de base declarent, plus les actions dont le type est defini.",
+  "assets_serveur": [
+    {
+      "module": "TAOM",
+      "fichier": "taom_creature_skeletons.tpac",
+      "sha256": "68d7bebd063efee9fa262a702222cc5d42482bec5d0969287cc83c18673b2dfe"
+    }
+  ],
+  "note_assets_serveur": "Paquet de squelettes du serveur dedie, construit par tools/build_ds_skeleton_pack.py de TAOM et publie avec la 2.0.40 : sans lui, 149 recherches d os echouent et ouvrent une modale. Le moteur ne lit <module>/DsAssetPackages que sur l hote, jamais sur le client."
 }
