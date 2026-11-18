@@ -47,6 +47,11 @@ SAVE="${SAVE_NAME:-saveauto1}"
 PORT="${ENGINE_PORT:-7210}"
 REGION="${REGION:-EU}"
 OUTIL="$ROOT/tools/modpack.py"
+# Version de jeu annoncee aux joueurs. Elle vient du reglage, avec la valeur du template en
+# secours : le bandeau est imprime avant tout le reste, donc la variable doit exister des ici
+# (set -u fait echouer le script sur une variable non definie).
+JEU="${GAME_VERSION:-1.4.8}"
+COOP_ID="${COOP_BUILD:-0.1.7}"
 
 log() { echo "[coop] $*"; }
 erreur() { echo "[coop] ERREUR : $*" >&2; }
@@ -58,7 +63,7 @@ banniere() {
     echo " COMMENT JOUER — prereglage « $PACK »"
     echo "   monde demande      : $SAVE (dans Game Saves)"
     echo "   port moteur        : $PORT (interne, les joueurs ne s y connectent pas)"
-    echo "   cote joueurs       : meme version de Bannerlord ($JEU) et du mod Coop,"
+    echo "   cote joueurs       : meme version de Bannerlord ($JEU) et du mod Coop ($COOP_ID),"
     echo "                        plus les mods du prereglage s il en a"
     echo "   fiche du prereglage: $ROOT/PRESET-$PACK.md (modules, liens, manipulations)"
     echo
