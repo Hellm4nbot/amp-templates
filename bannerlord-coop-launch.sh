@@ -54,7 +54,25 @@ DOSSIER_JOURNAUX="$ROOT/logs"
 mkdir -p "$DOSSIER_JOURNAUX" 2>/dev/null
 JOURNAL="$DOSSIER_JOURNAUX/console-$(date +%Y%m%d-%H%M%S).log"
 if [ -d "$DOSSIER_JOURNAUX" ] && [ -w "$DOSSIER_JOURNAUX" ]; then
-    exec > >(tee -a "$JOURNAL") 2>&1
+    # Le modele meteo vanilla decoupe la carte en une grille fixe ; la carte de TAOM la
+    # depasse, et chaque parti hors grille leve une exception de tick, rattrapee par Coop,
+    # repetee a chaque tick et pour chaque parti. Sans filtre, ce bruit atteint des millions
+    # de lignes et noie tout le reste. On le compte au lieu de l ecrire.
+    exec > >(awk '
+        BEGIN { bruit = 0 }
+        /Failed to tick moving party|IndexOutOfRangeException: Index was outside/ \
+        || /DefaultMapWeatherModel|IsBaseSpeedCacheInvalid|CalculateSpeed_Patch|ComputeNextMoveDistance/ \
+        || /FillCurrentTickMoveDataForMovingMobileParty|ParallelTickMovingParties/ {
+            bruit++
+            if (bruit % 2000 == 1) {
+                printf "[coop] bruit TAOM : %d incidents de tick ignores (partis hors grille meteo)\n", bruit
+                fflush()
+            }
+            next
+        }
+        { print; fflush() }
+        END { if (bruit > 0) printf "[coop] bruit TAOM : %d incidents de tick au total\n", bruit }
+    ' | tee -a "$JOURNAL") 2>&1
     ls -1t "$DOSSIER_JOURNAUX"/console-*.log 2>/dev/null | tail -n +6 | while read -r vieux; do rm -f "$vieux"; done
     echo "sortie aussi ecrite dans : $JOURNAL"
 fi
@@ -138,6 +156,27 @@ MONDE="$ROOT/monde/$PACK-depart.sav"
 MONDE_SHA="$ROOT/monde/$PACK-depart.sha256"
 MONDE_SOURCE="$ROOT/monde/$PACK-depart.url"
 CIBLE_MONDE="$SAVES/$SAVE.sav"
+
+# Repartir de zero : le reglage du panneau (MondeReset) ou, pour les instances dont la
+# configuration est figee, un fichier monde/RESET. La partie en cours est archivee avant
+# d etre supprimee, et le monde de depart est reinstalle juste apres.
+RESET_MARQUE="$ROOT/monde/.reset-fait"
+if [ -f "$ROOT/monde/RESET" ] || [ "${MONDE_RESET:-false}" = "true" ]; then
+    if [ "${MONDE_RESET:-false}" = "true" ] && [ -f "$RESET_MARQUE" ]; then
+        log "monde deja remis a zero : decocher le reglage pour pouvoir le refaire"
+    elif [ -f "$CIBLE_MONDE" ] || [ -f "$CIBLE_MONDE.json" ] || [ -f "$ROOT/monde/RESET" ]; then
+        ARCHIVE="$ROOT/sauvegardes/$(date +%Y%m%d-%H%M)-reset"
+        mkdir -p "$ARCHIVE" 2>/dev/null
+        for f in "$CIBLE_MONDE" "$CIBLE_MONDE.json"; do
+            [ -f "$f" ] && cp -a "$f" "$ARCHIVE/" 2>/dev/null
+        done
+        rm -f "$CIBLE_MONDE" "$CIBLE_MONDE.json" "$ROOT/monde/RESET"
+        log "remise a zero : partie archivee dans sauvegardes/$(basename "$ARCHIVE")/ puis supprimee"
+        [ "${MONDE_RESET:-false}" = "true" ] && : > "$RESET_MARQUE"
+    fi
+elif [ -f "$RESET_MARQUE" ]; then
+    rm -f "$RESET_MARQUE"
+fi
 
 # D ou vient le monde : reglage du panneau (MondeUrl / MondeSha256), sinon fichier local
 # monde/<pack>-depart.url (deux lignes : url puis empreinte). Le fichier local sert aux
