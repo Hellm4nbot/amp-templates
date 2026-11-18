@@ -916,5 +916,15 @@
     "InputType": "text",
     "ParamField": "",
     "IncludeInCommandLine": false
+  },
+  {
+    "FieldName": "MondeReset",
+    "Category": "Coop",
+    "Name": "Repartir de zero au prochain demarrage",
+    "Description": "Coche puis demarre : la partie en cours est archivee dans sauvegardes/, supprimee, et le monde de depart est reinstalle. Se desactive tout seul apres un demarrage — decocher le reglage pour pouvoir s en resservir. Sans ce reglage, deposer un fichier vide nomme RESET dans le dossier monde/ fait la meme chose.",
+    "DefaultValue": "false",
+    "InputType": "checkbox",
+    "ParamField": "",
+    "IncludeInCommandLine": false
   }
 ]
