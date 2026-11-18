@@ -21,8 +21,27 @@ SERV="$ROOT/steamhome/Steam/steamapps/workshop/content/261550/$WID/DedicatedServ
 DATA="$ROOT/CoopData/DedicatedServer"
 SAVES="$DATA/Game Saves"
 MODULES="$SERV/engine/Modules"
-PACKS="${PACKS_DIR:-$ROOT/packs}"
-IMPORT="${IMPORT_DIR:-$ROOT/import}"
+# Les reglages de dossier sont saisis en chemin relatif (./bannerlordcoop/...), valable
+# depuis la racine du shard pendant l Update, mais le serveur demarre avec un autre
+# repertoire courant : « ./bannerlordcoop/packs » y designe un dossier inexistant, et le
+# manifeste est annonce introuvable alors qu il est en place. On essaie donc les deux
+# bases possibles et on garde celle qui existe.
+resoudre() {
+    # $1 = valeur du reglage, $2 = defaut a utiliser s il est vide
+    v="$1"
+    [ -n "$v" ] || { echo "$2"; return; }
+    case "$v" in
+        /*) echo "${v%/}"; return ;;
+    esac
+    rel="${v#./}"
+    for base in "$ROOT" "$(dirname "$ROOT")"; do
+        c="${base%/}/$rel"
+        if [ -d "$c" ]; then echo "${c%/}"; return; fi
+    done
+    echo "$(dirname "$ROOT")/${rel%/}"
+}
+PACKS="$(resoudre "${PACKS_DIR:-}" "$ROOT/packs")"
+IMPORT="$(resoudre "${IMPORT_DIR:-}" "$ROOT/import")"
 PACK="${MODPACK:-vanilla}"
 SAVE="${SAVE_NAME:-saveauto1}"
 PORT="${ENGINE_PORT:-7210}"
@@ -51,6 +70,8 @@ banniere() {
 MANIFESTE="$PACKS/$PACK.json"
 if [ ! -f "$MANIFESTE" ]; then
     erreur "manifeste du pack « $PACK » introuvable : $MANIFESTE"
+    erreur "  dossier des packs : $PACKS"
+    erreur "  (reglage « Dossier des packs » : chemin relatif resolu depuis $ROOT)"
     erreur "  lancer un Update du template (il recupere les manifestes du depot)"
     exit 1
 fi
