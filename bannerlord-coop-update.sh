@@ -509,7 +509,7 @@ PY
     echo "    version installee :"
     grep -E "Built:|Paired Coop:|Game version:" "$DEST/release-info.txt" 2>/dev/null | sed 's/^/      /'
     if [ -n "$CLIENT" ]; then
-        echo "      client pour les joueurs, meme build : $CLIENT"
+        echo "      client pour les joueurs (build libre, mod Coop identique) : $CLIENT"
     fi
 fi
 
@@ -701,7 +701,7 @@ echo "  adresse a donner aux joueurs : celle affichee par le panneau pour cette 
 echo "    reseau local pour les joueurs chez vous, adresse publique pour les autres"
 echo "    ne pas confondre avec le port moteur, qui ne sert pas aux joueurs"
 echo "  ports a ouvrir sur le routeur : ${GAMEPORT} et $((GAMEPORT + 1)), en UDP, vers cette machine"
-echo "  cote joueur : Bannerlord ${JEU_NORM:-1.4.8}, mod Coop ${COOP_ID:-0.1.7}, meme build que le serveur"
+echo "  cote joueur : Bannerlord ${JEU_NORM:-1.4.8} (numero de build libre), mod Coop ${COOP_ID:-0.1.7} identique"
 echo "                l adresse se saisit dans l ecran de connexion du client Coop"
 
 echo
@@ -753,4 +753,4 @@ echo "TERMINE : serveur Bannerlord Coop pret"
 echo "  binaires : $DEST"
 echo "  donnees  : $BASE"
 echo "  licence  : eula.txt conserve, rien a refaire si le texte n a pas change"
-echo "  rappel   : client et serveur doivent etre sur le meme build Coop"
+echo "  rappel   : le mod Coop doit etre identique cote client ; le numero de build de Bannerlord peut differer"
