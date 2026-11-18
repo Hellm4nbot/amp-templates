@@ -531,6 +531,55 @@ def empreinte_fichier(chemin, intervalle=10.0):
     return 0
 
 
+def assemblies_interface(chemin_manifeste, modules_dir, bin_dir):
+    """Copie dans le bin du serveur les assemblies d interface que reclame un pack.
+
+    Le serveur Coop tourne depuis engine/bin/Win64_Shipping_Server, mais les assemblies
+    d interface (GauntletUI, TwoDimension, view models) ne sont livrees que dans le bin du
+    module Coop. Un pack qui ajoute un mod d interface echoue alors sur
+    « Could not load TaleWorlds.GauntletUI ». Le manifeste liste donc ce qui doit etre
+    visible du serveur : on ne copie que ces noms, jamais les assemblies des modules
+    (Coop.dll, Common.dll, GameInterface.dll…), dont la provenance est verifiee au demarrage.
+    """
+    try:
+        manifeste = charger(chemin_manifeste)
+    except (OSError, ValueError) as e:
+        print("manifeste illisible : %s" % e)
+        return 2
+    noms = manifeste.get("assemblies_interface") or []
+    if not noms:
+        return 0
+    if not os.path.isdir(bin_dir):
+        print("bin du serveur introuvable : %s" % bin_dir)
+        return 1
+    copies = 0
+    sources = []
+    if os.path.isdir(modules_dir):
+        for dossier in sorted(os.listdir(modules_dir)):
+            candidat = os.path.join(modules_dir, dossier, "bin", "Win64_Shipping_Server")
+            if os.path.isdir(candidat):
+                sources.append(candidat)
+    manquants = []
+    for nom in noms:
+        if os.path.exists(os.path.join(bin_dir, nom)):
+            continue
+        trouve = None
+        for source in sources:
+            if os.path.exists(os.path.join(source, nom)):
+                trouve = os.path.join(source, nom)
+                break
+        if not trouve:
+            manquants.append(nom)
+            continue
+        shutil.copy2(trouve, os.path.join(bin_dir, nom))
+        copies += 1
+    if copies:
+        print("assemblies d interface : %d copiee(s) dans le bin du serveur" % copies)
+    if manquants:
+        print("assemblies introuvables : %s" % ", ".join(manquants))
+    return 0
+
+
 def cache_distances(chemin_manifeste, modules_dir):
     """Pose le cache de distances du fournisseur de carte declare par le manifeste.
 
@@ -908,6 +957,9 @@ def main(argv):
 
     if len(argv) in (3, 4) and argv[1] == "fiche":
         return fiche(argv[2], argv[3] if len(argv) > 3 else None)
+
+    if len(argv) == 5 and argv[1] == "assemblies":
+        return assemblies_interface(argv[2], argv[3], argv[4])
 
     if len(argv) == 3 and argv[1] == "empreinte":
         return empreinte_fichier(argv[2])
