@@ -52,12 +52,6 @@
       "source": "engine"
     },
     {
-      "id": "BirthAndDeath",
-      "source": {
-        "jeu": true
-      }
-    },
-    {
       "id": "LOTRLOME_Armory",
       "source": {
         "archive": "taom_archive",
@@ -122,7 +116,7 @@
       "Au premier demarrage, le serveur ecrit le fichier .json associe : les joueurs creeront leur personnage lors de leur premiere session."
     ]
   },
-  "avertissement": "Deux modules viennent de l installation du jeu de l operateur et non du paquet serveur: CustomBattle et BirthAndDeath. Un hote TAOM+Coop qui fonctionne les a bien dans engine\\Modules (StoryMode.dll, CustomBattle.dll, MCMv5.dll cites dans un rapport de plantage). Sans ces dossiers, le controle refuse le demarrage.",
+  "avertissement": "Le module DLC BirthAndDeath est retire de cette liste : Coop le refuse (« DLC is not supported ») et assure lui-meme les naissances et les morts par son reglage birthAndDeath (CoopData/mod-config.json). CustomBattle, lui, vient de l installation du jeu de l operateur et reste necessaire.",
   "coop_reconnu": "Modules/TAOM.Dependencies/coop-modules.txt cite « Coop » (atelier 3770450698) comme mod co-op reconnu : TAOM desactive alors son PatchShield destructeur et fait relancer les erreurs de sauvegarde. La combinaison est donc prevue du cote TAOM.",
   "note_ordre": "A chaque nouveau build du pack, les dossiers de l archive precedente sont retires avant extraction : deux builds qui cohabitent produisent un melange de fichiers."
 }
