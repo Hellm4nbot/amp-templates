@@ -97,6 +97,8 @@ def source_decrite(source):
             return "atelier %s" % source["atelier"]
         if "archive" in source:
             return "archive %s/%s" % (source["archive"], source.get("dossier", "?"))
+        if source.get("jeu"):
+            return "modules du jeu (copie locale)"
         if "dossier_packs" in source:
             return "dossier de packs : %s" % source["dossier_packs"]
     return "provenance inconnue"
@@ -719,7 +721,16 @@ def version_compatible(version_module, motif):
     if not motif or not version_module:
         return True
     import fnmatch
-    return fnmatch.fnmatch(version_module.strip(), motif.strip())
+    v, m = version_module.strip(), motif.strip()
+    if fnmatch.fnmatch(v, m):
+        return True
+    # « v1.4.8.* » veut dire « n importe quel build de 1.4.8 », et certains modules
+    # publient « v1.4.8 » sans numero de build : l epingle doit donc l accepter.
+    # Une epingle reellement differente (v1.4.5.* contre v1.4.8) reste un ecart.
+    if m.endswith(".*"):
+        base = m[:-2]
+        return v == base or v.startswith(base + ".")
+    return False
 
 
 def controler_dependances(manifeste, modules_dir):
