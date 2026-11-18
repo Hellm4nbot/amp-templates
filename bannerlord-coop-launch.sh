@@ -135,14 +135,61 @@ fi
 # en place quand la sauvegarde attendue est absente — l autosave ecrit dans la
 # sauvegarde de jeu, il ne doit jamais manger le monde de depart.
 MONDE="$ROOT/monde/$PACK-depart.sav"
+MONDE_SHA="$ROOT/monde/$PACK-depart.sha256"
+MONDE_SOURCE="$ROOT/monde/$PACK-depart.url"
 CIBLE_MONDE="$SAVES/$SAVE.sav"
+
+# D ou vient le monde : reglage du panneau (MondeUrl / MondeSha256), sinon fichier local
+# monde/<pack>-depart.url (deux lignes : url puis empreinte). Le fichier local sert aux
+# instances dont la configuration est figee et qui ne montrent pas encore ces reglages.
+URL_MONDE="${MONDE_URL:-}"
+SHA_MONDE="${MONDE_SHA256:-}"
+if [ -z "$URL_MONDE" ] && [ -f "$MONDE_SOURCE" ]; then
+    URL_MONDE=$(sed -n '1p' "$MONDE_SOURCE" | tr -d '\r' | tr -d ' ')
+    [ -z "$SHA_MONDE" ] && SHA_MONDE=$(sed -n '2p' "$MONDE_SOURCE" | tr -d '\r' | tr -d ' ')
+fi
+
+# Autre sauvegarde proposee : si l empreinte declaree n est plus celle du fichier en place,
+# la source a change et l ancienne copie est remplacee.
+if [ -n "$URL_MONDE" ] && [ -n "$SHA_MONDE" ] && [ -f "$MONDE" ]; then
+    ACTUEL=$(awk '/^[0-9a-f]{64}$/{print $1}' "$MONDE_SHA" 2>/dev/null | head -1)
+    if [ -n "$ACTUEL" ] && [ "$ACTUEL" != "$SHA_MONDE" ]; then
+        log "monde de depart : source differente de la copie en place, remplacement"
+        rm -f "$MONDE" "$MONDE_SHA"
+        [ -f "$CIBLE_MONDE" ] && : > "$ROOT/monde/$PACK-depart.neuf"
+    fi
+fi
+
+if [ ! -f "$MONDE" ] && [ -n "$URL_MONDE" ]; then
+    log "monde de depart : telechargement"
+    mkdir -p "$ROOT/monde" 2>/dev/null
+    if curl -fsSL --max-time 1800 -o "$MONDE.part" "$URL_MONDE"; then
+        RECU=$(sha256sum "$MONDE.part" 2>/dev/null | awk '{print $1}')
+        # le fichier recu est controle tout de suite : enregistrer l empreinte declaree sans
+        # verifier reviendrait a signer un fichier qu on n a pas regarde
+        if [ -n "$SHA_MONDE" ] && [ "$RECU" != "$SHA_MONDE" ]; then
+            rm -f "$MONDE.part"
+            erreur "monde de depart refuse : empreinte attendue $SHA_MONDE, obtenue $RECU"
+            exit 1
+        fi
+        mv -f "$MONDE.part" "$MONDE"
+        echo "$RECU" > "$MONDE_SHA"
+        log "monde de depart telecharge : $(du -h "$MONDE" 2>/dev/null | cut -f1), empreinte $RECU"
+    else
+        rm -f "$MONDE.part"
+        erreur "telechargement du monde de depart impossible : $URL_MONDE"
+        exit 1
+    fi
+fi
+
 if [ ! -f "$CIBLE_MONDE" ] && [ -f "$MONDE" ]; then
-    ATTENDU=$(awk '/^[0-9a-f]{64}$/{print $1}' "$ROOT/monde/$PACK-depart.sha256" 2>/dev/null | head -1)
+    ATTENDU=$(awk '/^[0-9a-f]{64}$/{print $1}' "$MONDE_SHA" 2>/dev/null | head -1)
     OBTENU=$(sha256sum "$MONDE" 2>/dev/null | awk '{print $1}')
     if [ -n "$ATTENDU" ] && [ "$ATTENDU" != "$OBTENU" ]; then
         erreur "monde de depart corrompu : empreinte attendue $ATTENDU, obtenue $OBTENU"
         exit 1
     fi
+    [ -z "$ATTENDU" ] && echo "$OBTENU" > "$MONDE_SHA"
     if python3 "$OUTIL" sauvegarde "$MONDE" "$MANIFESTE" >/dev/null 2>&1; then
         cp -a "$MONDE" "$CIBLE_MONDE" \
             && log "monde de depart installe : $PACK-depart.sav devient $SAVE.sav" \
@@ -153,6 +200,10 @@ if [ ! -f "$CIBLE_MONDE" ] && [ -f "$MONDE" ]; then
     fi
 elif [ -f "$CIBLE_MONDE" ]; then
     log "monde existant repris : $SAVE.sav (monde de depart conserve dans monde/)"
+    if [ -f "$ROOT/monde/$PACK-depart.neuf" ]; then
+        log "  un nouveau monde de depart est pret : supprimer $SAVE.sav de Game Saves pour repartir de lui"
+        rm -f "$ROOT/monde/$PACK-depart.neuf"
+    fi
 fi
 
 # --- 1. import d'une sauvegarde ---------------------------------------------
