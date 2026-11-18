@@ -754,3 +754,48 @@ echo "  binaires : $DEST"
 echo "  donnees  : $BASE"
 echo "  licence  : eula.txt conserve, rien a refaire si le texte n a pas change"
 echo "  rappel   : le mod Coop doit etre identique cote client ; le numero de build de Bannerlord peut differer"
+
+# ---------------------------------------------------------------------------
+# Normalisation finale de server-config.json.
+#
+# AMP relit ce fichier pour y fusionner ses reglages, et il le fait en JSON strict :
+# un commentaire // ou une virgule finale et le demarrage est refuse avant meme que le
+# serveur soit lance (« '/' is invalid after a value »). Plutot que de supposer que
+# personne n ecrira jamais un fichier commente, on le remet en forme ici, en dernier,
+# quelle que soit son origine. L original est conserve.
+CFG_FINAL="$BASE/server-config.json"
+if [ -f "$CFG_FINAL" ]; then
+    RESULTAT=$(python3 - "$CFG_FINAL" <<'PYNORM'
+import json, os, re, sys
+chemin = sys.argv[1]
+brut = open(chemin, encoding="utf-8-sig").read()
+try:
+    json.loads(brut)
+    print("ok")
+    sys.exit(0)
+except Exception:
+    pass
+sans = re.sub(r'^\s*//.*$', '', brut, flags=re.M)
+sans = re.sub(r',(\s*[}\]])', r'\1', sans)
+try:
+    donnees = json.loads(sans)
+except Exception as e:
+    print("echec: %s" % e)
+    sys.exit(1)
+os.replace(chemin, chemin + ".avant-normalisation")
+json.dump(donnees, open(chemin, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+print("repare")
+PYNORM
+)
+    case "$RESULTAT" in
+        ok) : ;;
+        repare)
+            echo "    server-config.json remis en JSON strict (original en .avant-normalisation)"
+            chown 1001:1001 "$CFG_FINAL" "${CFG_FINAL}.avant-normalisation" 2>/dev/null || true
+            ;;
+        *)
+            echo "    AVERTISSEMENT : server-config.json reste illisible ($RESULTAT)"
+            echo "      AMP refusera de demarrer tant qu il n est pas corrige a la main."
+            ;;
+    esac
+fi
