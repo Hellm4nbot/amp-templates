@@ -25,6 +25,28 @@ GAME_MODULES="${GAME_MODULES_DIR:-$PACKS/game-modules}"
 DEPOT_MANIFESTES="https://raw.githubusercontent.com/Hellm4nbot/amp-templates/main/modpacks"
 OUTIL="$(dirname "$0")/modpack.py"
 
+# Le calcul d empreinte prend une demi-heure sur une archive de 19 Go et un disque charge,
+# et l update le refaisait a chaque passage. La taille et la date de modification suffisent
+# a garantir que le fichier n a pas bouge : on garde le dernier resultat a cote de l archive
+# et on ne recalcule que si l un des deux a change.
+empreinte_archive() {
+    _f="$1"
+    _stamp="${_f}.empreinte"
+    _info=$(stat -c '%s %Y' "$_f" 2>/dev/null || echo "0 0")
+    if [ -f "$_stamp" ]; then
+        _cache=$(cat "$_stamp" 2>/dev/null)
+        case "$_cache" in
+            "$_info "*)
+                echo "$_cache" | cut -d' ' -f3
+                return 0
+                ;;
+        esac
+    fi
+    _sha=$(sha256sum "$_f" | cut -d' ' -f1)
+    printf '%s %s\n' "$_info" "$_sha" > "$_stamp" 2>/dev/null || true
+    echo "$_sha"
+}
+
 log() { echo "[modpack] $*"; }
 erreur() { echo "[modpack] ERREUR : $*" >&2; }
 
@@ -142,7 +164,7 @@ while IFS="$(printf '\t')" read -r CLE URL SHA TAILLE NOM DESTINATION; do
         erreur "taille de $NOM inattendue : $REEL_TAILLE octets, $TAILLE attendus"
         exit 1
     fi
-    REEL_SHA=$(sha256sum "$ARCHIVE" | cut -d' ' -f1)
+    REEL_SHA=$(empreinte_archive "$ARCHIVE")
     EPINGLE="$PACKS/$NOM.sha256"
     if [ -n "$SHA" ]; then
         if [ "$REEL_SHA" != "$SHA" ]; then
