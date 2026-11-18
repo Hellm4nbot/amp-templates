@@ -178,6 +178,24 @@ elif [ -f "$RESET_MARQUE" ]; then
     rm -f "$RESET_MARQUE"
 fi
 
+# La sauvegarde en place appartient-elle bien au pack courant ? Un changement de Modpack
+# (vanilla -> taom, ou l inverse) laisse une campagne d un autre monde : la charger ferait
+# mourir la lecture du cache de distances en 0xC0000005, et noierait la cause sous un
+# accident memoire. On verifie donc les modules de la sauvegarde contre le manifeste, et si
+# elle vient d ailleurs elle est archivee au lieu d etre chargee.
+if [ -f "$CIBLE_MONDE" ] && [ -f "$MANIFESTE" ]; then
+    if ! python3 "$OUTIL" sauvegarde "$CIBLE_MONDE" "$MANIFESTE" >/dev/null 2>&1; then
+        ARCHIVE="$ROOT/sauvegardes/$(date +%Y%m%d-%H%M)-autre-pack"
+        mkdir -p "$ARCHIVE" 2>/dev/null
+        for f in "$CIBLE_MONDE" "$CIBLE_MONDE.json"; do
+            [ -f "$f" ] && cp -a "$f" "$ARCHIVE/" 2>/dev/null
+        done
+        rm -f "$CIBLE_MONDE" "$CIBLE_MONDE.json"
+        log "la partie en place vient d un autre pack : archivee dans sauvegardes/$(basename "$ARCHIVE")/"
+        log "  le pack $PACK repart de son propre monde"
+    fi
+fi
+
 # D ou vient le monde : reglage du panneau (MondeUrl / MondeSha256), sinon fichier local
 # monde/<pack>-depart.url (deux lignes : url puis empreinte). Le fichier local sert aux
 # instances dont la configuration est figee et qui ne montrent pas encore ces reglages.
@@ -300,6 +318,12 @@ if [ "${SUPPLEMENTAIRES:-0}" = "0" ]; then
 fi
 
 # --- 3b. pack modde : starter .NET avec le jeton ----------------------------
+# Le cache de distances de la carte : l hote dedie le lit en dur dans SandBox. Un pack qui
+# change la carte declare son fournisseur dans le manifeste, et on le met en place ici —
+# sinon campagne et cache decrivent deux mondes (0xC0000005 a la lecture).
+CACHE_MESSAGE=$(python3 "$OUTIL" cache "$MANIFESTE" "$MODULES" 2>/dev/null || true)
+[ -n "$CACHE_MESSAGE" ] && log "$CACHE_MESSAGE"
+
 JETON=$(python3 "$OUTIL" jeton "$MANIFESTE" "$MODULES")
 CODE=$?
 if [ "$CODE" != "0" ]; then
