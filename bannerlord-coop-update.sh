@@ -163,6 +163,7 @@ if [ "$SRC" != "cdn" ]; then
             # ne suffit PAS pour cet objet (SteamCMD repond "Download item ...
             # failed (Failure)"), l atelier Coop exige une copie possedee du jeu.
             echo "    connexion avec le compte Steam"
+            echo "    si Steam demande un code de verification, il s affiche sur le mobile"
             if [ -n "$SP" ]; then
                 atelier +login "$SU" "$SP" && steam_ok=1
             else
