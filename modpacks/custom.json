@@ -1,0 +1,76 @@
+{
+  "nom": "custom",
+  "libelle": "Pack minimal : Coop + deux modules du jeu (temoins)",
+  "jeu": "1.4.8",
+  "coop": "0.1.7",
+  "monde": "auto",
+  "note": "Pack de validation du chemin modde. Il ne contient aucun mod d interface : ni MCM, ni UIExtenderEx, ni ButterLib, qui sont precisement ce qui empeche un serveur sans ecran de demarrer. Ce qu il exerce : le starter TaleWorlds.Starter.DotNetCore avec le jeton _MODULES_ et un ordre de modules different du vanilla. CustomBattle et BirthAndDeath viennent de l installation du jeu de l operateur (DedicatedServerType=none : le moteur enregistre le module sans executer son code cote client).",
+  "sources": {
+    "modules_du_jeu": {
+      "type": "archive",
+      "url": "",
+      "sha256": "",
+      "taille": 0,
+      "destination": "game-modules",
+      "remarque": "modules officiels du jeu (CustomBattle, BirthAndDeath) : non redistribues. Renseigner l url et l empreinte depuis le panneau, ou deposer l archive dans le dossier des modules du jeu."
+    }
+  },
+  "modules": [
+    {
+      "id": "Native",
+      "source": "engine"
+    },
+    {
+      "id": "SandBoxCore",
+      "source": "engine"
+    },
+    {
+      "id": "CustomBattle",
+      "source": {
+        "jeu": true
+      }
+    },
+    {
+      "id": "SandBox",
+      "source": "engine"
+    },
+    {
+      "id": "BirthAndDeath",
+      "source": {
+        "jeu": true
+      }
+    },
+    {
+      "id": "DedicatedServer.Windows",
+      "source": "engine"
+    },
+    {
+      "id": "Coop",
+      "source": "engine"
+    }
+  ],
+  "joueurs": {
+    "jeu": "1.4.8",
+    "installer": [
+      {
+        "nom": "Bannerlord",
+        "version": "1.4.8",
+        "ou": "Steam",
+        "lien": "https://steamdb.info/app/261550/patchnotes/"
+      },
+      {
+        "nom": "Mod Coop",
+        "version": "0.1.7 (commit ecd4c479)",
+        "ou": "atelier Steam item 3770450698",
+        "lien": "https://steamcommunity.com/sharedfiles/filedetails/?id=3770450698"
+      }
+    ],
+    "etapes": [
+      "Installer Bannerlord 1.4.8 et le mod Coop du meme build que le serveur.",
+      "Copier CustomBattle et BirthAndDeath depuis l installation du jeu dans le dossier Modules.",
+      "Activer les modules dans cet ordre : Native, SandBoxCore, CustomBattle, SandBox, BirthAndDeath, DedicatedServer.Windows, Coop.",
+      "Creer une campagne, atteindre la carte, sauvegarder, puis copier le .sav dans le dossier d import du serveur."
+    ]
+  },
+  "avertissement": "Pack temoin : il ne sert pas a jouer, il sert a prouver que le starter .NET charge une liste de modules differente de celle du vanilla. Si ce pack demarre, le montage modde fonctionne et la seule limite restante est celle des mods d interface."
+}

@@ -9,7 +9,7 @@
   "sources": {
     "taom_archive": {
       "type": "archive",
-      "url": "https://archives.example.invalid/TAOM_2_0_29_5.zip",
+      "url": "https://archives.example.invalid/AMP/Mount%20%26%20Blade%20II%20%3A%20Bannerlord/TAOM_2_0_29_5.zip",
       "sha256": "0aaff9dca5f86dd432cf52d5cbc581b87c2d70924a49bc4f9f9e545f5a10284a",
       "taille": 19368167073,
       "prefixe": "Modules",
