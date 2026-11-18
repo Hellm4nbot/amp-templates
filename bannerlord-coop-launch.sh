@@ -129,6 +129,32 @@ elif [ -f "$DATA/mod-config.json" ]; then
         || log "reglages du mod absents : Coop utilisera ses valeurs par defaut"
 fi
 
+# --- 0. monde de depart du pack ---------------------------------------------
+# Un pack a monde custom ne peut pas creer sa campagne sur un serveur dedie : le monde
+# vient d une machine joueur. On en garde une copie vierge dans monde/, et on la remet
+# en place quand la sauvegarde attendue est absente — l autosave ecrit dans la
+# sauvegarde de jeu, il ne doit jamais manger le monde de depart.
+MONDE="$ROOT/monde/$PACK-depart.sav"
+CIBLE_MONDE="$SAVES/$SAVE.sav"
+if [ ! -f "$CIBLE_MONDE" ] && [ -f "$MONDE" ]; then
+    ATTENDU=$(awk '/^[0-9a-f]{64}$/{print $1}' "$ROOT/monde/$PACK-depart.sha256" 2>/dev/null | head -1)
+    OBTENU=$(sha256sum "$MONDE" 2>/dev/null | awk '{print $1}')
+    if [ -n "$ATTENDU" ] && [ "$ATTENDU" != "$OBTENU" ]; then
+        erreur "monde de depart corrompu : empreinte attendue $ATTENDU, obtenue $OBTENU"
+        exit 1
+    fi
+    if python3 "$OUTIL" sauvegarde "$MONDE" "$MANIFESTE" >/dev/null 2>&1; then
+        cp -a "$MONDE" "$CIBLE_MONDE" \
+            && log "monde de depart installe : $PACK-depart.sav devient $SAVE.sav" \
+            || { erreur "copie du monde de depart impossible"; exit 1; }
+    else
+        erreur "monde de depart refuse : ses modules ne correspondent pas au pack $PACK"
+        exit 1
+    fi
+elif [ -f "$CIBLE_MONDE" ]; then
+    log "monde existant repris : $SAVE.sav (monde de depart conserve dans monde/)"
+fi
+
 # --- 1. import d'une sauvegarde ---------------------------------------------
 # Le monde d'un overhaul se cree sur une machine joueur : sans ce chemin, il
 # faudrait aller copier des fichiers a la main au fond du conteneur.
