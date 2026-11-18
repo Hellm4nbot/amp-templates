@@ -104,6 +104,18 @@ if [ -d "$DATA" ]; then
     fi
 fi
 
+# Coop lit ses reglages de jeu dans CoopData/mod-config.json, un niveau au-dessus de ses
+# donnees. C'est ce fichier qui porte birthAndDeath : les naissances et les morts sont
+# activees par ce reglage, sans le module DLC BirthAndDeath que Coop refuse.
+MCFG="$CIDIR/mod-config.json"
+if [ -f "$MCFG" ]; then
+    log "reglages du mod : $MCFG ($(grep -o '"birthAndDeath"[[:space:]]*:[[:space:]]*[a-z]*' "$MCFG" 2>/dev/null | head -1))"
+elif [ -f "$DATA/mod-config.json" ]; then
+    cp -a "$DATA/mod-config.json" "$MCFG" 2>/dev/null \
+        && log "reglages du mod mis en place : $MCFG" \
+        || log "reglages du mod absents : Coop utilisera ses valeurs par defaut"
+fi
+
 # --- 1. import d'une sauvegarde ---------------------------------------------
 # Le monde d'un overhaul se cree sur une machine joueur : sans ce chemin, il
 # faudrait aller copier des fichiers a la main au fond du conteneur.
