@@ -329,6 +329,13 @@ if [ "${SUPPLEMENTAIRES:-0}" = "0" ]; then
 fi
 
 # --- 3b. pack modde : starter .NET avec le jeton ----------------------------
+# Sous-modules inutilisables sur un serveur sans ecran (MCM et consorts), declares par le
+# pack : ils sont neutralises dans le SubModule.xml avant le chargement des modules.
+MASQ_MESSAGE=$(python3 "$OUTIL" masquer "$MANIFESTE" "$MODULES" 2>&1 || true)
+case "$MASQ_MESSAGE" in
+    *desactive*) log "$MASQ_MESSAGE" ;;
+esac
+
 # Assemblies d interface reclamees par le pack (mods d UI) : le serveur tourne depuis son
 # propre bin, qui n en contient pas. Le manifeste dit lesquelles ; on ne copie que celles-la.
 ASM_MESSAGE=$(python3 "$OUTIL" assemblies "$MANIFESTE" "$MODULES" "$SERV/engine/bin/Win64_Shipping_Server" 2>&1 || true)
