@@ -58,21 +58,28 @@ if [ -d "$DOSSIER_JOURNAUX" ] && [ -w "$DOSSIER_JOURNAUX" ]; then
     # depasse, et chaque parti hors grille leve une exception de tick, rattrapee par Coop,
     # repetee a chaque tick et pour chaque parti. Sans filtre, ce bruit atteint des millions
     # de lignes et noie tout le reste. On le compte au lieu de l ecrire.
-    exec > >(awk '
-        BEGIN { bruit = 0 }
-        /Failed to tick moving party|IndexOutOfRangeException: Index was outside/ \
-        || /DefaultMapWeatherModel|IsBaseSpeedCacheInvalid|CalculateSpeed_Patch|ComputeNextMoveDistance/ \
-        || /FillCurrentTickMoveDataForMovingMobileParty|ParallelTickMovingParties/ {
-            bruit++
-            if (bruit % 2000 == 1) {
-                printf "[coop] bruit TAOM : %d incidents de tick ignores (partis hors grille meteo)\n", bruit
-                fflush()
+    # Deux flux separes : la console recoit tout, sans filtre, et le fichier recoit la
+    # version filtree. Le filtre passe par tee, donc s il meurt il ne fait plus tomber
+    # le lanceur avec lui — un filtre qui casse ne doit pas empecher un serveur de demarrer.
+    if command -v awk >/dev/null 2>&1; then
+        exec > >(tee >(awk '
+            BEGIN { bruit = 0 }
+            /Failed to tick moving party|IndexOutOfRangeException: Index was outside/ \
+            || /DefaultMapWeatherModel|IsBaseSpeedCacheInvalid|CalculateSpeed_Patch|ComputeNextMoveDistance/ \
+            || /FillCurrentTickMoveDataForMovingMobileParty|ParallelTickMovingParties/ {
+                bruit++
+                if (bruit % 2000 == 1) {
+                    printf "[coop] bruit TAOM : %d incidents de tick ignores (partis hors grille meteo)\n", bruit
+                    fflush()
+                }
+                next
             }
-            next
-        }
-        { print; fflush() }
-        END { if (bruit > 0) printf "[coop] bruit TAOM : %d incidents de tick au total\n", bruit }
-    ' | tee -a "$JOURNAL") 2>&1
+            { print; fflush() }
+            END { if (bruit > 0) printf "[coop] bruit TAOM : %d incidents de tick au total\n", bruit }
+        ' >> "$JOURNAL")) 2>&1
+    else
+        exec > >(tee -a "$JOURNAL") 2>&1
+    fi
     ls -1t "$DOSSIER_JOURNAUX"/console-*.log 2>/dev/null | tail -n +6 | while read -r vieux; do rm -f "$vieux"; done
     echo "sortie aussi ecrite dans : $JOURNAL"
 fi
