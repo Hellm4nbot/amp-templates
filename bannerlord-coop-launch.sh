@@ -46,6 +46,19 @@ PACK="${MODPACK:-vanilla}"
 SAVE="${SAVE_NAME:-saveauto1}"
 PORT="${ENGINE_PORT:-7210}"
 REGION="${REGION:-EU}"
+# AMP affiche la sortie du serveur dans son interface mais ne la conserve pas sur disque :
+# apres un demarrage rate il ne reste que le journal de l agent, qui ne dit pas pourquoi.
+# On duplique donc toute la sortie dans un fichier de l instance, en gardant les cinq
+# derniers demarrages.
+DOSSIER_JOURNAUX="$ROOT/logs"
+mkdir -p "$DOSSIER_JOURNAUX" 2>/dev/null
+JOURNAL="$DOSSIER_JOURNAUX/console-$(date +%Y%m%d-%H%M%S).log"
+if [ -d "$DOSSIER_JOURNAUX" ] && [ -w "$DOSSIER_JOURNAUX" ]; then
+    exec > >(tee -a "$JOURNAL") 2>&1
+    ls -1t "$DOSSIER_JOURNAUX"/console-*.log 2>/dev/null | tail -n +6 | while read -r vieux; do rm -f "$vieux"; done
+    echo "sortie aussi ecrite dans : $JOURNAL"
+fi
+
 OUTIL="$ROOT/tools/modpack.py"
 # Version de jeu annoncee aux joueurs. Elle vient du reglage, avec la valeur du template en
 # secours : le bandeau est imprime avant tout le reste, donc la variable doit exister des ici
