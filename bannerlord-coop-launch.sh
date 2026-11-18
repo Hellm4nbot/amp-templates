@@ -61,25 +61,29 @@ if [ -d "$DOSSIER_JOURNAUX" ] && [ -w "$DOSSIER_JOURNAUX" ]; then
     # Deux flux separes : la console recoit tout, sans filtre, et le fichier recoit la
     # version filtree. Le filtre passe par tee, donc s il meurt il ne fait plus tomber
     # le lanceur avec lui — un filtre qui casse ne doit pas empecher un serveur de demarrer.
-    if command -v awk >/dev/null 2>&1; then
-        exec > >(tee >(awk '
-            BEGIN { bruit = 0 }
-            /Failed to tick moving party|IndexOutOfRangeException: Index was outside/ \
-            || /DefaultMapWeatherModel|IsBaseSpeedCacheInvalid|CalculateSpeed_Patch|ComputeNextMoveDistance/ \
-            || /FillCurrentTickMoveDataForMovingMobileParty|ParallelTickMovingParties/ {
-                bruit++
-                if (bruit % 2000 == 1) {
-                    printf "[coop] bruit TAOM : %d incidents de tick ignores (partis hors grille meteo)\n", bruit
-                    fflush()
-                }
-                next
+    # awk ecrit lui-meme dans le journal, ligne par ligne, avec fflush. Passer par tee
+    # ajoutait un tampon : sur un demarrage long il ne vidait rien, et le journal restait
+    # a zero octet alors que le serveur tournait. Un seul ecrivain, pas de tampon.
+    exec > >(awk -v J="$JOURNAL" '
+        BEGIN { bruit = 0 }
+        /Failed to tick moving party|IndexOutOfRangeException: Index was outside/ \
+        || /DefaultMapWeatherModel|IsBaseSpeedCacheInvalid|CalculateSpeed_Patch|ComputeNextMoveDistance/ \
+        || /FillCurrentTickMoveDataForMovingMobileParty|ParallelTickMovingParties/ {
+            bruit++
+            if (bruit % 2000 == 1) {
+                ligne = sprintf("[coop] bruit TAOM : %d incidents de tick ignores (partis hors grille meteo)", bruit)
+                print ligne; fflush(); print ligne > J; fflush(J)
             }
-            { print; fflush() }
-            END { if (bruit > 0) printf "[coop] bruit TAOM : %d incidents de tick au total\n", bruit }
-        ' >> "$JOURNAL")) 2>&1
-    else
-        exec > >(tee -a "$JOURNAL") 2>&1
-    fi
+            next
+        }
+        { print; fflush(); print > J; fflush(J) }
+        END {
+            if (bruit > 0) {
+                ligne = sprintf("[coop] bruit TAOM : %d incidents de tick au total", bruit)
+                print ligne > J; fflush(J)
+            }
+        }
+    ') 2>&1
     ls -1t "$DOSSIER_JOURNAUX"/console-*.log 2>/dev/null | tail -n +6 | while read -r vieux; do rm -f "$vieux"; done
     echo "sortie aussi ecrite dans : $JOURNAL"
 fi
