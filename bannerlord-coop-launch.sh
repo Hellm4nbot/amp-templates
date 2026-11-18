@@ -63,8 +63,8 @@ banniere() {
     echo " COMMENT JOUER — prereglage « $PACK »"
     echo "   monde demande      : $SAVE (dans Game Saves)"
     echo "   port moteur        : $PORT (interne, les joueurs ne s y connectent pas)"
-    echo "   cote joueurs       : meme version de Bannerlord ($JEU) et du mod Coop ($COOP_ID),"
-    echo "                        plus les mods du prereglage s il en a"
+    echo "   cote joueurs       : Bannerlord $JEU (le numero de build peut differer) et le mod Coop $COOP_ID,"
+    echo "                        identique ; plus les mods du prereglage s il en a"
     echo "   fiche du prereglage: $ROOT/PRESET-$PACK.md (modules, liens, manipulations)"
     echo
 }
