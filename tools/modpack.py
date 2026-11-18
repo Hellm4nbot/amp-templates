@@ -39,6 +39,13 @@ import zipfile
 import xml.etree.ElementTree as ET
 
 
+
+def _taille(octets):
+    for unite in ("o", "Ko", "Mo", "Go"):
+        if octets < 1024 or unite == "Go":
+            return ("%d %s" % (octets, unite)) if unite == "o" else ("%.1f %s" % (octets, unite))
+        octets /= 1024.0
+
 def charger(chemin):
     with open(chemin, encoding="utf-8-sig") as f:
         return json.load(f)
@@ -464,6 +471,45 @@ def sauvegarde(chemin_sav, chemin_manifeste=None):
     return 0
 
 
+def cache_distances(chemin_manifeste, modules_dir):
+    """Pose le cache de distances du fournisseur de carte declare par le manifeste.
+
+    L hote dedie lit en dur Modules/SandBox/ModuleData/DistanceCaches/*.bin. Un pack qui
+    change la carte fournit son propre cache : sans lui, la campagne chargee et le cache
+    decrivent deux mondes, et la lecture du cache tombe en 0xC0000005. Le manifeste declare
+    donc le module fournisseur ("cache_distances") ; l original est conserve en .vanilla
+    pour pouvoir revenir a un pack sans carte custom.
+    """
+    nom = "settlements_distance_cache_Default.bin"
+    cible = os.path.join(modules_dir, "SandBox", "ModuleData", "DistanceCaches", nom)
+    original = cible + ".vanilla"
+    try:
+        manifeste = charger(chemin_manifeste)
+    except (OSError, ValueError) as e:
+        print("manifeste illisible : %s" % e)
+        return 2
+    fournisseur = manifeste.get("cache_distances") or ""
+    if not fournisseur:
+        if os.path.exists(original) and os.path.exists(cible):
+            if open(original, "rb").read() != open(cible, "rb").read():
+                shutil.copy2(original, cible)
+                print("cache de distances : celui d origine remis en place")
+        return 0
+    source = os.path.join(modules_dir, fournisseur, "ModuleData", "DistanceCaches", nom)
+    if not os.path.exists(source):
+        print("cache de distances : %s n en fournit pas" % fournisseur)
+        return 0
+    if not os.path.exists(cible):
+        print("cache de distances : %s introuvable cote SandBox" % cible)
+        return 1
+    if not os.path.exists(original):
+        shutil.copy2(cible, original)
+    if open(source, "rb").read() != open(cible, "rb").read():
+        shutil.copy2(source, cible)
+        print("cache de distances : celui de %s (%s)" % (fournisseur, _taille(os.path.getsize(cible))))
+    return 0
+
+
 def deballer(archive, destination):
     """Deballe une archive de modules dans un dossier, sans chemin relatif.
 
@@ -802,6 +848,9 @@ def main(argv):
 
     if len(argv) in (3, 4) and argv[1] == "fiche":
         return fiche(argv[2], argv[3] if len(argv) > 3 else None)
+
+    if len(argv) == 4 and argv[1] == "cache":
+        return cache_distances(argv[2], argv[3])
 
     if len(argv) >= 3 and argv[1] == "sauvegarde":
         return sauvegarde(argv[2], argv[3] if len(argv) > 3 else None)
