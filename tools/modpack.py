@@ -130,7 +130,11 @@ def etat(manifeste, modules_dir):
                 "id_reel": reel,
                 "version": version_module(chemin) if present else "",
                 "source": source_decrite(source),
-                "coherent": present and (reel is None or reel == ident),
+                # Bannerlord compare les identifiants de module sans tenir compte de la
+                # casse (le paquet declare « Sandbox » la ou le manifeste dit « SandBox »,
+                # et les sauvegardes ecrivent « Sandbox »). Une difference de casse n est
+                # donc pas une incoherence ; un identifiant different, si.
+                "coherent": present and (reel is None or reel.lower() == ident.lower()),
             }
         )
     return lignes
