@@ -42,6 +42,27 @@ import xml.etree.ElementTree as ET
 
 
 
+def charger_avec_base(chemin):
+    """Charge un manifeste en completant depuis le manifeste du pack s il est derive.
+
+    Un manifeste derive (<pack>.local.json) est ecrit par l update quand le panneau fournit
+    une URL : il recopie le manifeste du moment. Si le pack gagne ensuite une cle
+    (assemblies_interface, cache_distances…), le fichier derive la masque et le reglage est
+    ignore sans le dire. On complete donc les cles absentes depuis <pack>.json.
+    """
+    manifeste = charger(chemin)
+    if chemin.endswith(".local.json"):
+        base = chemin[:-len(".local.json")] + ".json"
+        if os.path.isfile(base):
+            try:
+                reference = charger(base)
+            except (OSError, ValueError):
+                reference = {}
+            for cle, valeur in reference.items():
+                manifeste.setdefault(cle, valeur)
+    return manifeste
+
+
 def _taille(octets):
     for unite in ("o", "Ko", "Mo", "Go"):
         if octets < 1024 or unite == "Go":
@@ -542,7 +563,7 @@ def assemblies_interface(chemin_manifeste, modules_dir, bin_dir):
     (Coop.dll, Common.dll, GameInterface.dll…), dont la provenance est verifiee au demarrage.
     """
     try:
-        manifeste = charger(chemin_manifeste)
+        manifeste = charger_avec_base(chemin_manifeste)
     except (OSError, ValueError) as e:
         print("manifeste illisible : %s" % e)
         return 2
@@ -593,7 +614,7 @@ def cache_distances(chemin_manifeste, modules_dir):
     cible = os.path.join(modules_dir, "SandBox", "ModuleData", "DistanceCaches", nom)
     original = cible + ".vanilla"
     try:
-        manifeste = charger(chemin_manifeste)
+        manifeste = charger_avec_base(chemin_manifeste)
     except (OSError, ValueError) as e:
         print("manifeste illisible : %s" % e)
         return 2
