@@ -607,9 +607,14 @@ def masquer_sous_modules(chemin_manifeste, modules_dir):
 
     MCM construit une interface : sur un hote sans ecran il charge, puis echoue sans
     message utile (0xE0434352 avec Bannerlord.MBOptionScreen dans la pile). Le manifeste
-    du pack liste donc, par module, les sous-modules a neutraliser. Les blocs sont
-    commentes, jamais supprimes : le fichier d origine reste lisible, et un nouveau
-    passage ne fait rien (marqueur deja present).
+    du pack liste donc, par module, les sous-modules a neutraliser.
+
+    Les blocs sont supprimes, pas commentes : un commentaire XML qui contient lui-meme un
+    commentaire (TAOM en seme dans ses blocs) produit un fichier invalide, et Bannerlord
+    refuse alors le module entier — « Module … can't be loaded, there are some errors ».
+    Mesure : ce defaut a fait rejeter TAOM.Dependencies au chargement, donc disparaitre des
+    modules annonces au client. L original est conserve en .orig, et la liste de ce qui a
+    ete retire dans .sous-modules-retires.txt.
     """
     try:
         manifeste = charger_avec_base(chemin_manifeste)
@@ -617,32 +622,45 @@ def masquer_sous_modules(chemin_manifeste, modules_dir):
         print("manifeste illisible : %s" % e)
         return 2
     plan = manifeste.get("sous_modules_desactives") or {}
-    total = 0
     for module, noms in plan.items():
         chemin = os.path.join(modules_dir, module, "SubModule.xml")
         if not os.path.isfile(chemin):
             print("%s : SubModule.xml introuvable, rien a masquer" % module)
             continue
-        texte = open(chemin, encoding="utf-8-sig").read()
-        modifies = 0
-        for nom in noms:
-            motif = re.compile(
-                r"(\s*)(<SubModule>\s*(?:(?!</SubModule>).)*?<Name\s+value=\"" +
-                re.escape(nom) + r"\"\s*/>.*?</SubModule>)", re.S | re.I)
-            def remplacer(m):
-                nonlocal modifies
-                if "<!-- masque" in m.group(0):
-                    return m.group(0)
-                modifies += 1
-                return "%s<!-- masque par le pack %s : %s --><!--%s-->" % (
-                    m.group(1), module, nom, m.group(2))
-            texte = motif.sub(remplacer, texte)
-        if modifies:
-            if not os.path.isfile(chemin + ".orig"):
-                shutil.copy2(chemin, chemin + ".orig")
-            open(chemin, "w", encoding="utf-8").write(texte)
-            print("%s : %d sous-module(s) desactive(s) (%s)" % (module, modifies, ", ".join(noms)))
-            total += modifies
+        with open(chemin, encoding="utf-8-sig") as f:
+            lignes = f.readlines()
+        garde, retires = [], []
+        i = 0
+        while i < len(lignes):
+            if lignes[i].lstrip().startswith("<SubModule>"):
+                bloc = []
+                while i < len(lignes):
+                    bloc.append(lignes[i])
+                    if "</SubModule>" in lignes[i]:
+                        i += 1
+                        break
+                    i += 1
+                concerne = ""
+                for ligne in bloc:
+                    for nom in noms:
+                        if '<Name value="%s"' % nom in ligne:
+                            concerne = nom
+                if concerne:
+                    retires.append(concerne)
+                    continue
+                garde.extend(bloc)
+                continue
+            garde.append(lignes[i])
+            i += 1
+        if not retires:
+            continue
+        if not os.path.isfile(chemin + ".orig"):
+            shutil.copy2(chemin, chemin + ".orig")
+        with open(chemin, "w", encoding="utf-8") as f:
+            f.writelines(garde)
+        with open(chemin + ".sous-modules-retires.txt", "w", encoding="utf-8") as f:
+            f.write("retires par le pack %s : %s\n" % (module, ", ".join(retires)))
+        print("%s : %d sous-module(s) desactive(s) (%s)" % (module, len(retires), ", ".join(retires)))
     return 0
 
 
