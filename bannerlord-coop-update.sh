@@ -102,25 +102,34 @@ AMONT="$(cd "${ROOT}.." 2>/dev/null && pwd)/.virtualhome"
 SHOME="${ROOT}steamhome"
 
 compte_amont() {
-    cfg="${AMONT}/Steam/config/config.vdf"
-    [ -f "$cfg" ] || return 1
-    grep -q '"ConnectCache"' "$cfg" || return 1
-    noms=$(tr -d '\r' < "$cfg" | awk '
-        /"Accounts"/ { dedans = 1; next }
-        dedans && /^[ \t]*"[^"]+"[ \t]*$/ { t = $0; gsub(/[ \t"]/, "", t) }
-        dedans && /"SteamID"/ && t != "" { print t; t = "" }
-    ')
-    [ -n "$noms" ] || return 1
-    if [ "$(printf '%s\n' "$noms" | wc -l)" -eq 1 ]; then
-        printf '%s\n' "$noms"
-        return 0
-    fi
-    for n in $noms; do
-        if HOME="$AMONT" timeout 120 "${ROOT}steamcmd.sh" +login "$n" +quit \
-                < /dev/null 2>&1 | grep -Eq "Logging in user '[^']*'.*\.\.\.OK"; then
-            printf '%s\n' "$n"
+    # Le cache peut vivre a trois endroits selon qui a fait la connexion : le HOME du
+    # conteneur (les stages SteamCMD d AMP), .virtualhome (anciennes versions), ou le
+    # steamhome de l instance. On les essaie dans cet ordre et on retient celui qui
+    # contient une session utilisable.
+    for base in "$HOME" "$AMONT" "${ROOT}.virtualhome" "${ROOT}steamhome"; do
+        [ -n "$base" ] || continue
+        cfg="${base}/Steam/config/config.vdf"
+        [ -f "$cfg" ] || continue
+        grep -q '"ConnectCache"' "$cfg" || continue
+        noms=$(tr -d '\r' < "$cfg" | awk '
+            /"Accounts"/ { dedans = 1; next }
+            dedans && /^[ \t]*"[^"]+"[ \t]*$/ { t = $0; gsub(/[ \t"]/, "", t) }
+            dedans && /"SteamID"/ && t != "" { print t; t = "" }
+        ')
+        [ -n "$noms" ] || continue
+        if [ "$(printf '%s\n' "$noms" | wc -l)" -eq 1 ]; then
+            CACHE_HOME="$base"
+            printf '%s\n' "$noms"
             return 0
         fi
+        for n in $noms; do
+            if HOME="$base" timeout 120 "${ROOT}steamcmd.sh" +login "$n" +quit \
+                    < /dev/null 2>&1 | grep -Eq "Logging in user '[^']*'.*\.\.\.OK"; then
+                CACHE_HOME="$base"
+                printf '%s\n' "$n"
+                return 0
+            fi
+        done
     done
     return 1
 }
@@ -161,10 +170,14 @@ if [ "$SRC" != "cdn" ]; then
     # sa session, celui de l instance sinon. On rapatrie pour que la suite du script n ait
     # qu un seul chemin a connaitre.
     rapatrier() {
-        src="${AMONT}/Steam/steamapps/workshop/content/261550/${ITEM}"
-        [ -d "$src" ] || return 0
         [ -d "${DEST}" ] && [ -n "$(ls -A "$DEST" 2>/dev/null)" ] && return 0
-        mkdir -p "$(dirname "$DEST")" && cp -a "$src/." "$(dirname "$DEST")/" 2>/dev/null
+        for base in "${CACHE_HOME:-}" "$SHOME" "${AMONT}"; do
+            [ -n "$base" ] || continue
+            src="${base}/Steam/steamapps/workshop/content/261550/${ITEM}"
+            [ -d "$src" ] || continue
+            mkdir -p "$(dirname "$DEST")" && cp -a "$src/." "$(dirname "$DEST")/" 2>/dev/null
+            return 0
+        done
         return 0
     }
     decide_raison() {
@@ -180,7 +193,7 @@ if [ "$SRC" != "cdn" ]; then
     if [ -x "${ROOT}steamcmd.sh" ]; then
         if SU=$(compte_amont); then
             echo "    session Steam de l instance reutilisee : $SU"
-            SHOME="$AMONT"
+            SHOME="${CACHE_HOME:-$SHOME}"
             atelier +login "$SU" && steam_ok=1
             if [ "$steam_ok" = "1" ]; then
                 echo "    atelier : OK (compte)"
