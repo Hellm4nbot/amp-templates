@@ -94,16 +94,36 @@ valeur = donnees.get(sys.argv[3], "")
 print("" if valeur is None else valeur)
 PYJSONC
 
-CRED="${ROOT}fb-creds.txt"
-SU=""
-SP=""
-SG=""
-if [ -f "$CRED" ]; then
-    SU=$(sed -n 1p "$CRED")
-    SP=$(sed -n 2p "$CRED")
-    SG=$(sed -n 3p "$CRED")
-    rm -f "$CRED"
-fi
+# Identifiant Steam : plus de mot de passe dans la configuration. AMP fait la connexion
+# (App.SteamForceLoginPrompt) et garde le compte ; le script reutilise ensuite la session
+# en cache, exactement comme le template Halo 3. L anonyme reste tente quand aucun compte
+# n est en cache, parce qu il ne coute rien et que le repli CDN prend le relais.
+AMONT="$(cd "${ROOT}.." 2>/dev/null && pwd)/.virtualhome"
+SHOME="${ROOT}steamhome"
+
+compte_amont() {
+    cfg="${AMONT}/Steam/config/config.vdf"
+    [ -f "$cfg" ] || return 1
+    grep -q '"ConnectCache"' "$cfg" || return 1
+    noms=$(tr -d '\r' < "$cfg" | awk '
+        /"Accounts"/ { dedans = 1; next }
+        dedans && /^[ \t]*"[^"]+"[ \t]*$/ { t = $0; gsub(/[ \t"]/, "", t) }
+        dedans && /"SteamID"/ && t != "" { print t; t = "" }
+    ')
+    [ -n "$noms" ] || return 1
+    if [ "$(printf '%s\n' "$noms" | wc -l)" -eq 1 ]; then
+        printf '%s\n' "$noms"
+        return 0
+    fi
+    for n in $noms; do
+        if HOME="$AMONT" timeout 120 "${ROOT}steamcmd.sh" +login "$n" +quit \
+                < /dev/null 2>&1 | grep -Eq "Logging in user '[^']*'.*\.\.\.OK"; then
+            printf '%s\n' "$n"
+            return 0
+        fi
+    done
+    return 1
+}
 
 DEST="${ROOT}steamhome/Steam/steamapps/workshop/content/261550/${ITEM}/DedicatedServer"
 CACHE="${ROOT}cache"
@@ -132,25 +152,25 @@ if [ "$SRC" != "cdn" ]; then
             && tar -xzf "${ROOT}steamcmd.tar.gz" -C "$ROOT" \
             && rm -f "${ROOT}steamcmd.tar.gz"
     fi
-    # Mesure du 16/11 dans un conteneur propre : l objet d atelier Coop n est PAS
-    # telechargeable en anonyme. SteamCMD se connecte, puis repond
-    # "ERROR! Download item 3770450698 failed (Failure)" - un objet d atelier
-    # rattache a un jeu exige une copie possedee. L anonyme reste donc tente
-    # seulement quand aucun compte n est renseigne, ou il ne coute rien : sans lui
-    # le script partait deja sur le CDN.
     atelier() {
-        HOME="${ROOT}steamhome" "${ROOT}steamcmd.sh" "$@" \
+        HOME="$SHOME" "${ROOT}steamcmd.sh" "$@" \
             +workshop_download_item 261550 "$ITEM" validate +quit 2>&1 | tee "$LOG" | tail -4
         grep -q "Success. Downloaded item" "$LOG"
     }
+    # Le contenu atterrit sous le HOME de SteamCMD : celui du cache AMP quand on reutilise
+    # sa session, celui de l instance sinon. On rapatrie pour que la suite du script n ait
+    # qu un seul chemin a connaitre.
+    rapatrier() {
+        src="${AMONT}/Steam/steamapps/workshop/content/261550/${ITEM}"
+        [ -d "$src" ] || return 0
+        [ -d "${DEST}" ] && [ -n "$(ls -A "$DEST" 2>/dev/null)" ] && return 0
+        mkdir -p "$(dirname "$DEST")" && cp -a "$src/." "$(dirname "$DEST")/" 2>/dev/null
+        return 0
+    }
     decide_raison() {
         raison="SteamCMD n a pas confirme le telechargement"
-        if grep -qiE "Two-factor code mismatch|Invalid Two-factor" "$LOG"; then
-            raison="code Steam Guard perime ou errone (inutile quand la session existe : vider le champ et relancer)"
-        elif grep -qiE "Steam Guard code required|Two-factor code required|need two-factor" "$LOG"; then
-            raison="Steam demande un code Steam Guard et aucun n est renseigne (premiere connexion sur cette instance)"
-        elif grep -qiE "Invalid Password|Cached credentials not found|Account Logon Denied|Two-factor|Rate Limit" "$LOG"; then
-            raison="authentification Steam refusee"
+        if grep -qiE "Invalid Password|Cached credentials not found|Account Logon Denied|Rate Limit" "$LOG"; then
+            raison="aucune session Steam en cache : cliquer Update depuis AMP et choisir l identifiant qui possede le jeu"
         elif grep -qiE "Download item [0-9]+ failed" "$LOG"; then
             raison="compte sans copie du jeu, ou objet non publie"
         elif grep -qiE "not available|Failure" "$LOG"; then
@@ -158,51 +178,29 @@ if [ "$SRC" != "cdn" ]; then
         fi
     }
     if [ -x "${ROOT}steamcmd.sh" ]; then
-        if [ -n "$SU" ]; then
-            # Compte renseigne : on va droit au but. Mesure du 16/11 : l anonyme
-            # ne suffit PAS pour cet objet (SteamCMD repond "Download item ...
-            # failed (Failure)"), l atelier Coop exige une copie possedee du jeu.
-            echo "    connexion avec le compte Steam"
-            echo "    si Steam demande un code de verification, il s affiche sur le mobile"
-            if [ -n "$SP" ]; then
-                atelier +login "$SU" "$SP" && steam_ok=1
-            else
-                atelier +login "$SU" && steam_ok=1
-            fi
-            # Un code Steam Guard n est demande qu a la premiere connexion : les
-            # fichiers de sentry conserves dans steamhome rendent les suivantes
-            # gratuites. L envoyer d office casse donc une session valide - mesure
-            # du 16/11 : "ERROR (Two-factor code mismatch)" sur une instance ou la
-            # meme connexion sans code venait de reussir. On ne presente le code
-            # que si Steam le reclame, et une seule fois.
-            if [ "$steam_ok" != "1" ] && [ -n "$SG" ] \
-                && grep -qiE "Two-factor code required|Steam Guard code|need two-factor|Enter the current code" "$LOG" \
-                && ! grep -qiE "Two-factor code mismatch|Invalid Two-factor" "$LOG"; then
-                echo "    Steam demande un code : nouvelle tentative avec le code fourni"
-                if [ -n "$SP" ]; then
-                    atelier +login "$SU" "$SP" "$SG" && steam_ok=1
-                else
-                    atelier +login "$SU" "$SG" && steam_ok=1
-                fi
-            fi
+        if SU=$(compte_amont); then
+            echo "    session Steam de l instance reutilisee : $SU"
+            SHOME="$AMONT"
+            atelier +login "$SU" && steam_ok=1
             if [ "$steam_ok" = "1" ]; then
                 echo "    atelier : OK (compte)"
             else
                 decide_raison
             fi
         else
-            echo "    aucun compte renseigne, tentative anonyme"
+            echo "    aucune session Steam en cache, tentative anonyme"
             if atelier +login anonymous; then
                 steam_ok=1
                 echo "    atelier : OK (anonyme)"
             else
-                raison="aucun compte Steam renseigne"
-                echo "    anonyme refuse (l atelier Coop exige une copie du jeu) : $raison"
+                raison="aucune session Steam en cache (l atelier Coop exige une copie du jeu)"
+                echo "    anonyme refuse : $raison"
             fi
         fi
     else
         raison="SteamCMD introuvable"
     fi
+    rapatrier
     if [ "$steam_ok" = "1" ] && [ ! -f "$DEST/BannerlordCoopServer.exe" ]; then
         steam_ok=0
         raison="serveur absent apres le telechargement"
