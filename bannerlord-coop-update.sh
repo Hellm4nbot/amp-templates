@@ -161,9 +161,23 @@ if [ "$SRC" != "cdn" ]; then
             && tar -xzf "${ROOT}steamcmd.tar.gz" -C "$ROOT" \
             && rm -f "${ROOT}steamcmd.tar.gz"
     fi
+    # Sortie en direct : le filtrage precedent (tail -4) ne montrait rien tant que steamcmd
+    # n avait pas termine, et une validation de 6 Go passe pour un blocage. On ne garde que
+    # les lignes utiles, ligne par ligne. Plus de validate : steamcmd verifie deja par
+    # manifeste, et revalider 6 Go a chaque update coutait plusieurs minutes pour rien.
     atelier() {
-        HOME="$SHOME" "${ROOT}steamcmd.sh" "$@" \
-            +workshop_download_item 261550 "$ITEM" validate +quit 2>&1 | tee "$LOG" | tail -4
+        # steamcmd lance sans terminal bufferise sa sortie par blocs : rien n apparait
+        # avant la fin, et une validation de 6 Go passe pour un blocage. On lui donne un
+        # pseudo-terminal quand script est disponible, et on ne garde que les lignes utiles.
+        filtre() {
+            tee "$LOG" | grep --line-buffered -E "Logging in|Downloading item|Success\\. Downloaded|ERROR|FAILED|failed" | sed 's/^/    /'
+        }
+        if command -v script >/dev/null 2>&1; then
+            script -qec "env HOME='$SHOME' '${ROOT}steamcmd.sh' $* +workshop_download_item 261550 '$ITEM' +quit" /dev/null 2>&1 | filtre
+        else
+            HOME="$SHOME" "${ROOT}steamcmd.sh" "$@" \
+                +workshop_download_item 261550 "$ITEM" +quit 2>&1 | filtre
+        fi
         grep -q "Success. Downloaded item" "$LOG"
     }
     # Le contenu atterrit sous le HOME de SteamCMD : celui du cache AMP quand on reutilise
