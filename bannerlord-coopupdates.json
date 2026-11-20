@@ -1,10 +1,18 @@
 [
   {
-    "UpdateStageName": "Steam Workshop, then team CDN fallback",
+    "UpdateStageName": "Steam Login",
+    "UpdateSourcePlatform": "All",
+    "UpdateSource": "SteamCMD",
+    "UpdateSourceData": "228980",
+    "ForceDownloadPlatform": "Linux",
+    "SkipOnFailure": false
+  },
+  {
+    "UpdateStageName": "Serveur Bannerlord Coop",
     "UpdateSourcePlatform": "Linux",
     "UpdateSource": "Executable",
     "UpdateSourceData": "/bin/bash",
-    "UpdateSourceArgs": "-c \"umask 077; if [ -n '{{SteamUsername}}' ]; then mkdir -p '{{$FullRootDir}}' 2>/dev/null; printf '%s\\n' '{{SteamUsername}}' '{{SteamPassword}}' '{{SteamGuardCode}}' > '{{$FullRootDir}}fb-creds.txt' 2>/dev/null; fi; ROOT='{{$FullRootDir}}' BASE='{{$FullBaseDir}}' GAMEPORT='{{GamePort}}' GAMEPORT2='{{GamePort2}}' GAME_VERSION='{{GameVersion}}' COOP_BUILD='{{CoopBuild}}' COOP_COMMIT='{{CoopCommit}}' STRICT_VERSION='{{BlockOnVersionMismatch}}' MODPACK='{{Modpack}}' PACKS_DIR='{{PacksDir}}' MODPACK_URL='{{ArchiveUrl}}' MODPACK_SHA256='{{ArchiveSha256}}' GAME_MODULES_DIR='{{GameModulesDir}}' GAME_MODULES_URL='{{GameModulesUrl}}' GAME_MODULES_SHA256='{{GameModulesSha256}}' ITEM='{{WorkshopItemID}}' SRC='{{ServerSource}}' TAG='{{ReleaseTag}}' DEPOT='https://raw.githubusercontent.com/Hellm4nbot/amp-templates/main' bash -c 'f=${ROOT}update.sh; curl -fsSL --max-time 120 -o $f.tmp $DEPOT/bannerlord-coop-update.sh && mv $f.tmp $f && bash $f'\"",
+    "UpdateSourceArgs": "-c \"ROOT='{{$FullRootDir}}' BASE='{{$FullBaseDir}}' GAMEPORT='{{GamePort}}' GAMEPORT2='{{GamePort2}}' GAME_VERSION='{{GameVersion}}' COOP_BUILD='{{CoopBuild}}' COOP_COMMIT='{{CoopCommit}}' STRICT_VERSION='{{BlockOnVersionMismatch}}' MODPACK='{{Modpack}}' PACKS_DIR='{{PacksDir}}' MODPACK_URL='{{ArchiveUrl}}' MODPACK_SHA256='{{ArchiveSha256}}' GAME_MODULES_DIR='{{GameModulesDir}}' GAME_MODULES_URL='{{GameModulesUrl}}' GAME_MODULES_SHA256='{{GameModulesSha256}}' ITEM='{{WorkshopItemID}}' SRC='{{ServerSource}}' TAG='{{ReleaseTag}}' DEPOT='https://raw.githubusercontent.com/Hellm4nbot/amp-templates/main' bash -c 'f=${ROOT}update.sh; curl -fsSL --max-time 120 -o $f.tmp $DEPOT/bannerlord-coop-update.sh && mv $f.tmp $f && bash $f'\"",
     "SkipOnFailure": false
   }
 ]
