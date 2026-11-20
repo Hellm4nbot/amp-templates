@@ -5,7 +5,7 @@
     "UpdateSource": "SteamCMD",
     "UpdateSourceData": "228980",
     "ForceDownloadPlatform": "Linux",
-    "SkipOnFailure": false
+    "SkipOnFailure": true
   },
   {
     "UpdateStageName": "Serveur Bannerlord Coop",
