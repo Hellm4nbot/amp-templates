@@ -117,13 +117,13 @@ compte_amont() {
             dedans && /"SteamID"/ && t != "" { print t; t = "" }
         ')
         [ -n "$noms" ] || continue
-        if [ "$(printf '%s\n' "$noms" | wc -l)" -eq 1 ]; then
-            CACHE_HOME="$base"
-            printf '%s\n' "$noms"
-            return 0
-        fi
+        # Un nom de compte dans un config.vdf ne prouve rien : le jeton peut etre revoque,
+        # ou appartenir a une autre installation de steamcmd. On sonde donc chaque compte,
+        # meme unique, avec une limite de temps courte, et on passe au home suivant si la
+        # session ne repond pas. Sans cela, un jeton mort produisait un login silencieux
+        # qui tournait indefiniment.
         for n in $noms; do
-            if HOME="$base" timeout 120 "${ROOT}steamcmd.sh" +login "$n" +quit \
+            if HOME="$base" timeout 45 "${ROOT}steamcmd.sh" +login "$n" +quit \
                     < /dev/null 2>&1 | grep -Eq "Logging in user '[^']*'.*\.\.\.OK"; then
                 CACHE_HOME="$base"
                 printf '%s\n' "$n"
@@ -173,9 +173,9 @@ if [ "$SRC" != "cdn" ]; then
             tee "$LOG" | grep --line-buffered -E "Logging in|Downloading item|Success\\. Downloaded|ERROR|FAILED|failed" | sed 's/^/    /'
         }
         if command -v script >/dev/null 2>&1; then
-            script -qec "env HOME='$SHOME' '${ROOT}steamcmd.sh' $* +workshop_download_item 261550 '$ITEM' +quit" /dev/null 2>&1 | filtre
+            script -qec "timeout 1800 env HOME='$SHOME' '${ROOT}steamcmd.sh' $* +workshop_download_item 261550 '$ITEM' +quit" /dev/null 2>&1 | filtre
         else
-            HOME="$SHOME" "${ROOT}steamcmd.sh" "$@" \
+            timeout 1800 env HOME="$SHOME" "${ROOT}steamcmd.sh" "$@" \
                 +workshop_download_item 261550 "$ITEM" +quit 2>&1 | filtre
         fi
         grep -q "Success. Downloaded item" "$LOG"
