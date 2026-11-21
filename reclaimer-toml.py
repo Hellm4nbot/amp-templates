@@ -254,6 +254,29 @@ if n('LOAD_TIMEOUT', 30) != 30:
     ecrire('load_timeout = %d' % n('LOAD_TIMEOUT', 30))
 
 
+def modificateurs(ennemis=True):
+    """Modifiers communs a la campagne Halo 3 et a la campagne ODST."""
+    mods = []
+    if ennemis:
+        if n('MOD_HEALTH', 100) != 100:
+            mods.append('health_percent = %d' % n('MOD_HEALTH', 100))
+        if n('MOD_DAMAGE', 100) != 100:
+            mods.append('damage_percent = %d' % n('MOD_DAMAGE', 100))
+        if n('MOD_HEALTH_PER_PLAYER'):
+            mods.append('health_per_player_percent = %d' % n('MOD_HEALTH_PER_PLAYER'))
+        if n('MOD_DAMAGE_PER_PLAYER'):
+            mods.append('damage_per_player_percent = %d' % n('MOD_DAMAGE_PER_PLAYER'))
+        if s('MOD_SCORING'):
+            mods.append('scoring = ' + q(s('MOD_SCORING')))
+    if n('MOD_SKULLS'):
+        mods.append('skulls = %d' % n('MOD_SKULLS'))
+    if b('MOD_SPRINT'):
+        mods.append('sprint = true')
+        if n('MOD_SPRINT_STAMINA'):
+            mods.append('sprint_stamina_seconds = %d' % n('MOD_SPRINT_STAMINA'))
+    return mods
+
+
 if mode == 'multi':
     if s('PLAYLIST_FILE'):
         ecrire('playlist = ' + q(s('PLAYLIST_FILE')))
@@ -270,23 +293,7 @@ elif mode == 'campagne':
         parties.append('insertion = %d' % n('CAMPAIGN_INSERTION'))
     if b('CAMPAIGN_CUSTOM_CHARACTERS'):
         parties.append('custom_characters = true')
-    mods = []
-    if n('MOD_HEALTH', 100) != 100:
-        mods.append('health_percent = %d' % n('MOD_HEALTH', 100))
-    if n('MOD_DAMAGE', 100) != 100:
-        mods.append('damage_percent = %d' % n('MOD_DAMAGE', 100))
-    if n('MOD_HEALTH_PER_PLAYER'):
-        mods.append('health_per_player_percent = %d' % n('MOD_HEALTH_PER_PLAYER'))
-    if n('MOD_DAMAGE_PER_PLAYER'):
-        mods.append('damage_per_player_percent = %d' % n('MOD_DAMAGE_PER_PLAYER'))
-    if n('MOD_SKULLS'):
-        mods.append('skulls = %d' % n('MOD_SKULLS'))
-    if s('MOD_SCORING'):
-        mods.append('scoring = ' + q(s('MOD_SCORING')))
-    if b('MOD_SPRINT'):
-        mods.append('sprint = true')
-        if n('MOD_SPRINT_STAMINA'):
-            mods.append('sprint_stamina_seconds = %d' % n('MOD_SPRINT_STAMINA'))
+    mods = modificateurs()
     if mods:
         parties.append('modifiers = { ' + ', '.join(mods) + ' }')
     ecrire('campaign = { ' + ', '.join(parties) + ' }')
@@ -299,8 +306,34 @@ elif mode == 'odst':
             parties.append('variant = ' + q(s('ODST_VARIANT')))
     if n('ODST_INSERTION') > 0:
         parties.append('insertion = %d' % n('ODST_INSERTION'))
-    if s('ODST_MODE') != 'firefight' and not b('ODST_STORY_CHARACTERS', True):
-        parties.append('story_characters = false')
+    if s('ODST_MODE') == 'firefight':
+        # En Firefight, seuls le sprint et le tir allie comptent : les cranes
+        # passent par les options, pas par les modifiers.
+        mods = modificateurs(ennemis=False)
+        if mods:
+            parties.append('modifiers = { ' + ', '.join(mods) + ' }')
+        options = []
+        for morceau in (s('ODST_OPTIONS') or '').replace(';', ',').split(','):
+            if '=' not in morceau:
+                continue
+            cle, valeur = morceau.split('=', 1)
+            cle = cle.strip().strip('"')
+            valeur = valeur.strip()
+            if not cle:
+                continue
+            try:
+                float(valeur)
+                options.append('"%s" = %s' % (cle, valeur))
+            except ValueError:
+                options.append('"%s" = %s' % (cle, q(valeur)))
+        if options:
+            parties.append('options = { ' + ', '.join(options) + ' }')
+    else:
+        if not b('ODST_STORY_CHARACTERS', True):
+            parties.append('story_characters = false')
+        mods = modificateurs()
+        if mods:
+            parties.append('modifiers = { ' + ', '.join(mods) + ' }')
     ecrire('odst = { ' + ', '.join(parties) + ' }')
 elif mode == 'reach':
     parties = ['map = ' + q(s('REACH_MAP', 'm10')), 'campaign = true']
