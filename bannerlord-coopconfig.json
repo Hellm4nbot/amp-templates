@@ -1143,7 +1143,7 @@
     "DisplayName": "Repartir de zero au prochain demarrage",
     "Category": "Bannerlord Coop:stadia_controller",
     "Subcategory": "Monde et sauvegardes:public:2",
-    "Description": "Coche puis demarre : la partie en cours est archivee dans sauvegardes/, supprimee, et le monde de depart est reinstalle. Se desactive tout seul apres un demarrage — decocher le reglage pour pouvoir s en resservir. Sans ce reglage, deposer un fichier vide nomme RESET dans le dossier monde/ fait la meme chose.",
+    "Description": "Coche puis demarre : la partie en cours est archivee dans sauvegardes/, supprimee, et le monde de depart est reinstalle. Ne se declenche qu une fois : le lanceur pose un marqueur (monde/.reset-fait), donc redemarrer avec la case encore cochee ne detruit pas le monde neuf. Pour refaire une remise a zero : decocher, demarrer une fois (le marqueur disparait), puis recocher. Sans ce reglage, deposer un fichier vide nomme RESET dans le dossier monde/ fait la meme chose.",
     "Keywords": "repartir de zero au prochain demarrage",
     "DefaultValue": "false",
     "IncludeInCommandLine": false,
