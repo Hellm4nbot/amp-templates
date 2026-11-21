@@ -237,6 +237,10 @@ mesure_copie() {
 # regarde donc avant de commencer, et on s arrete avec la marche a suivre.
 PACKSDIR="${PACKS_DIR:-${ROOT}packs}"
 PACKJSON="${PACKSDIR}/${MODPACK:-vanilla}.json"
+# raw.githubusercontent repond depuis un cache de cinq minutes : un Update lance juste
+# apres un commit peut rejouer l ancienne version d un outil. C est pourquoi le script
+# lui-meme est recupere par l API GitHub (cache d une minute, cf. le stage d update du
+# kvp) et non par raw ; les outils et les packs, qui changent rarement, restent sur raw.
 if [ ! -f "$PACKJSON" ]; then
     mkdir -p "$PACKSDIR" 2>/dev/null || true
     curl -fsSL --max-time 60 -o "${PACKJSON}.tmp" \
