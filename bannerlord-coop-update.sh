@@ -152,12 +152,78 @@ echo "============================================================"
 
 mkdir -p "$ROOT" "$DEST" "$CACHE" "${ROOT}steamhome" || exit 1
 
+# ---- suivi des etapes longues --------------------------------------------
+# Le panneau n affiche que ce que le script ecrit. Une etape de six gigots reste
+# donc muette pendant trois minutes et ressemble exactement a un blocage — c est
+# ce qui est arrive le 21/11, ou un telechargement d atelier en cours a ete pris
+# pour une panne. Ce veilleur imprime une ligne toutes les quinze secondes, et
+# seulement pendant l etape concernee.
+SUIVI_PID=""
+suivre() {
+    ( while :; do
+        sleep 15
+        eval "$1" 2>/dev/null
+      done ) &
+    SUIVI_PID=$!
+}
+arreter_suivi() {
+    if [ -n "${SUIVI_PID:-}" ]; then
+        kill "$SUIVI_PID" 2>/dev/null
+        wait "$SUIVI_PID" 2>/dev/null
+        SUIVI_PID=""
+    fi
+}
+trap 'arreter_suivi' EXIT INT TERM
+
+lisible() {
+    python3 -c 'import sys
+n = float(sys.argv[1] or 0)
+if n >= 1024 ** 3:
+    print("%.1f Go" % (n / 1024 ** 3))
+elif n >= 1024 ** 2:
+    print("%.0f Mo" % (n / 1024 ** 2))
+else:
+    print("%.0f Ko" % (n / 1024))' "${1:-0}" 2>/dev/null || echo "? Mo"
+}
+
+mesure_atelier() {
+    local n l
+    n=$(du -sb "$1" 2>/dev/null | cut -f1)
+    l=$(tail -1 "$LOG" 2>/dev/null | tr -d '\r' | cut -c1-80)
+    echo "      atelier : $(lisible "${n:-0}") ecrits — ${l:-(en cours)}"
+}
+
+mesure_telechargement() {
+    local f t
+    [ "${2:-0}" -gt 0 ] || return 0
+    f=$(stat -c%s "$1" 2>/dev/null || echo 0)
+    t="$2"
+    echo "      telechargement : $((f * 100 / t)) % ($(lisible "$f") / $(lisible "$t"))"
+}
+
+mesure_extraction() {
+    local n
+    n=$(find "$1" -type f 2>/dev/null | wc -l)
+    echo "      extraction : $n fichiers ecrits ($(lisible "$(du -sb "$1" 2>/dev/null | cut -f1)"))"
+}
+
+mesure_copie() {
+    local a b
+    b=$(du -sb "$1" 2>/dev/null | cut -f1)
+    a=$(du -sb "$2" 2>/dev/null | cut -f1)
+    [ "${b:-0}" -gt 0 ] || return 0
+    echo "      copie : $((a * 100 / b)) % ($(lisible "$a") / $(lisible "$b"))"
+}
+# -------------------------------------------------------------------------
+
+
 steam_ok=0
 raison=""
 
 if [ "$SRC" != "cdn" ]; then
     echo
     echo "--- 1. atelier Steam ---"
+    suivre "mesure_atelier \"${AMP_HOME:-/home/amp}/Steam/steamapps/workshop/content/261550/${ITEM}\""
     if [ ! -x "${ROOT}steamcmd.sh" ] && [ -z "$SC_AMP" ]; then
         echo "    installation de SteamCMD"
         wget -qO "${ROOT}steamcmd.tar.gz" https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz \
@@ -294,6 +360,7 @@ if [ "$SRC" != "cdn" ]; then
         [ -z "$raison" ] && raison="echec inconnu"
         echo "    atelier : ECHEC ($raison)"
     fi
+    arreter_suivi
 fi
 
 if [ "$steam_ok" = "0" ]; then
@@ -365,6 +432,8 @@ PY
     echo "    release : $ATAG"
 
     ARCH="${CACHE}/${ANAME}"
+    TAILLE_ARCH=$(curl -fsSLI --max-time 60 "$AURL" 2>/dev/null | tr -d '\r' \
+        | awk 'tolower($1)=="content-length:"{v=$2} END{print v+0}')
     if [ -f "$ARCH" ] && [ "$(sha256sum "$ARCH" | cut -d' ' -f1)" = "$ASHA" ]; then
         echo "    archive deja en cache, empreinte conforme"
     else
@@ -380,7 +449,9 @@ PY
                 echo "    source de secours : $U"
             fi
             rm -f "${ARCH}.part"
+            suivre "mesure_telechargement \"${ARCH}.part\" \"${TAILLE_ARCH:-0}\""
             wget -qO "${ARCH}.part" "$U"
+            arreter_suivi
             if [ ! -s "${ARCH}.part" ]; then
                 echo "    source injoignable"
                 continue
@@ -460,10 +531,12 @@ PY
     rm -rf "$STAGE"
     mkdir -p "$STAGE"
     echo "    extraction en cours, comptez trois minutes pour 4,5 Go"
+    suivre "mesure_extraction \"$STAGE\""
     mkdir -p "${CACHE}/xdg"
     WINEPREFIX="${ROOT}.wine" WINEDEBUG="-all" XDG_CACHE_HOME="${CACHE}/xdg" \
         XDG_CONFIG_HOME="${CACHE}/xdg" "$WINE" "$SEVEN" x "$ARCH" -o"$STAGE" -y \
         > "${CACHE}/7z.log" 2>&1
+    arreter_suivi
     if [ ! -f "${STAGE}/BannerlordCoopServer.exe" ]; then
         echo "    extraction echouee"
         tail -12 "${CACHE}/7z.log"
@@ -567,10 +640,13 @@ PY
     fi
     [ -n "$MODS_SAUVE" ] && echo "    mods mis a l ecart :$MODS_SAUVE"
     find "$DEST" -mindepth 1 -maxdepth 1 -exec rm -rf {} + 2>/dev/null
+    suivre "mesure_copie \"$STAGE\" \"$DEST\""
     if ! cp -a "${STAGE}/." "$DEST/"; then
+        arreter_suivi
         echo "    copie vers $DEST echouee"
         exit 1
     fi
+    arreter_suivi
     if [ -n "$MODS_SAUVE" ]; then
         mkdir -p "$DEST/engine/Modules"
         for nom in $MODS_SAUVE; do
@@ -821,7 +897,7 @@ OUTILS="${ROOT}tools"
 PACKSDIR="${PACKS_DIR:-${ROOT}packs}"
 mkdir -p "$OUTILS" "$PACKSDIR" || { echo "[modpack] ERREUR : creation de $OUTILS impossible"; exit 1; }
 DEPOT="https://raw.githubusercontent.com/Hellm4nbot/amp-templates/main"
-for f in tools/modpack.py tools/modpack-install.sh bannerlord-coop-launch.sh; do
+for f in tools/modpack.py tools/modconfig.py tools/modpack-install.sh bannerlord-coop-launch.sh; do
     cible="${ROOT}${f}"
     mkdir -p "$(dirname "$cible")" 2>/dev/null || true
     if curl -fsSL --max-time 60 -o "$cible.tmp" "$DEPOT/$f"; then

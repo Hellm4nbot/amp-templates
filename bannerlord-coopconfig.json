@@ -418,8 +418,7 @@
       "Easy": "Easy",
       "Realistic": "Realistic"
     },
-    "InputType": "enum",
-    "ParamFieldName": "$.difficulty.playerReceivedDamage"
+    "InputType": "enum"
   },
   {
     "FieldName": "mc_playerTroopsReceivedDamage",
@@ -434,8 +433,7 @@
       "Easy": "Easy",
       "Realistic": "Realistic"
     },
-    "InputType": "enum",
-    "ParamFieldName": "$.difficulty.playerTroopsReceivedDamage"
+    "InputType": "enum"
   },
   {
     "FieldName": "mc_combatAIDifficulty",
@@ -450,8 +448,7 @@
       "Easy": "Easy",
       "Realistic": "Realistic"
     },
-    "InputType": "enum",
-    "ParamFieldName": "$.difficulty.combatAIDifficulty"
+    "InputType": "enum"
   },
   {
     "FieldName": "mc_recruitmentDifficulty",
@@ -466,8 +463,7 @@
       "Easy": "Easy",
       "Realistic": "Realistic"
     },
-    "InputType": "enum",
-    "ParamFieldName": "$.difficulty.recruitmentDifficulty"
+    "InputType": "enum"
   },
   {
     "FieldName": "mc_playerMapMovementSpeed",
@@ -482,8 +478,7 @@
       "Easy": "Easy",
       "Realistic": "Realistic"
     },
-    "InputType": "enum",
-    "ParamFieldName": "$.difficulty.playerMapMovementSpeed"
+    "InputType": "enum"
   },
   {
     "FieldName": "mc_stealthAndDisguiseDifficulty",
@@ -498,8 +493,7 @@
       "Easy": "Easy",
       "Realistic": "Realistic"
     },
-    "InputType": "enum",
-    "ParamFieldName": "$.difficulty.stealthAndDisguiseDifficulty"
+    "InputType": "enum"
   },
   {
     "FieldName": "mc_persuasionSuccessChance",
@@ -514,8 +508,7 @@
       "Easy": "Easy",
       "Realistic": "Realistic"
     },
-    "InputType": "enum",
-    "ParamFieldName": "$.difficulty.persuasionSuccessChance"
+    "InputType": "enum"
   },
   {
     "FieldName": "mc_clanMemberDeathChance",
@@ -530,8 +523,7 @@
       "Easy": "Easy",
       "Realistic": "Realistic"
     },
-    "InputType": "enum",
-    "ParamFieldName": "$.difficulty.clanMemberDeathChance"
+    "InputType": "enum"
   },
   {
     "FieldName": "mc_battleDeath",
@@ -546,8 +538,7 @@
       "Easy": "Easy",
       "Realistic": "Realistic"
     },
-    "InputType": "enum",
-    "ParamFieldName": "$.difficulty.battleDeath"
+    "InputType": "enum"
   },
   {
     "FieldName": "mc_birthAndDeath",
@@ -561,8 +552,7 @@
       "False": "false",
       "True": "true"
     },
-    "InputType": "checkbox",
-    "ParamFieldName": "$.difficulty.birthAndDeath"
+    "InputType": "checkbox"
   },
   {
     "FieldName": "mc_autoAllocateClanMemberPerks",
@@ -576,8 +566,7 @@
       "False": "false",
       "True": "true"
     },
-    "InputType": "checkbox",
-    "ParamFieldName": "$.difficulty.autoAllocateClanMemberPerks"
+    "InputType": "checkbox"
   },
   {
     "FieldName": "mc_battleSize",
@@ -591,7 +580,6 @@
     "InputType": "number",
     "MaxValue": "1000",
     "MinValue": "200",
-    "ParamFieldName": "$.modOptions.battleSize",
     "Suffix": "troops"
   },
   {
@@ -606,8 +594,7 @@
       "False": "false",
       "True": "true"
     },
-    "InputType": "checkbox",
-    "ParamFieldName": "$.modOptions.fastForwardEnabled"
+    "InputType": "checkbox"
   },
   {
     "FieldName": "mc_autoPauseEnabled",
@@ -621,8 +608,7 @@
       "False": "false",
       "True": "true"
     },
-    "InputType": "checkbox",
-    "ParamFieldName": "$.modOptions.autoPauseEnabled"
+    "InputType": "checkbox"
   },
   {
     "FieldName": "mc_clientsCanUseCheats",
@@ -636,8 +622,7 @@
       "False": "false",
       "True": "true"
     },
-    "InputType": "checkbox",
-    "ParamFieldName": "$.modOptions.clientsCanUseCheats"
+    "InputType": "checkbox"
   },
   {
     "FieldName": "mc_goldFoodInfluenceChangeInSettlements",
@@ -651,8 +636,7 @@
       "False": "false",
       "True": "true"
     },
-    "InputType": "checkbox",
-    "ParamFieldName": "$.modOptions.goldFoodInfluenceChangeInSettlements"
+    "InputType": "checkbox"
   },
   {
     "FieldName": "mc_goldFoodInfluenceChangeInBattles",
@@ -667,8 +651,7 @@
       "OneDayMax": "One Day Max",
       "Enabled": "Enabled"
     },
-    "InputType": "enum",
-    "ParamFieldName": "$.modOptions.goldFoodInfluenceChangeInBattles"
+    "InputType": "enum"
   },
   {
     "FieldName": "mc_goldFoodInfluenceChangeForDisconnectedPlayers",
@@ -682,8 +665,7 @@
       "False": "false",
       "True": "true"
     },
-    "InputType": "checkbox",
-    "ParamFieldName": "$.modOptions.goldFoodInfluenceChangeForDisconnectedPlayers"
+    "InputType": "checkbox"
   },
   {
     "FieldName": "mc_playerBattleAiJoinWindowHours",
@@ -697,7 +679,6 @@
     "InputType": "number",
     "MaxValue": "720",
     "MinValue": "0",
-    "ParamFieldName": "$.modOptions.playerBattleAiJoinWindowHours",
     "Suffix": "hours"
   },
   {
@@ -712,8 +693,7 @@
       "False": "false",
       "True": "true"
     },
-    "InputType": "checkbox",
-    "ParamFieldName": "$.modOptions.speedLimitWhilePlayersInBattle"
+    "InputType": "checkbox"
   },
   {
     "FieldName": "mc_wandererLimit",
@@ -727,7 +707,6 @@
     "InputType": "number",
     "MaxValue": "500",
     "MinValue": "0",
-    "ParamFieldName": "$.modOptions.wandererLimit",
     "Suffix": "wanderers"
   },
   {
@@ -742,8 +721,7 @@
       "False": "false",
       "True": "true"
     },
-    "InputType": "checkbox",
-    "ParamFieldName": "$.modOptions.wandererLimitScalesWithPlayers"
+    "InputType": "checkbox"
   },
   {
     "FieldName": "mc_playerKingdomClanTierRequired",
@@ -757,7 +735,6 @@
     "InputType": "number",
     "MaxValue": "6",
     "MinValue": "0",
-    "ParamFieldName": "$.modOptions.playerKingdomClanTierRequired",
     "Suffix": "tier"
   },
   {
@@ -772,8 +749,7 @@
       "False": "false",
       "True": "true"
     },
-    "InputType": "checkbox",
-    "ParamFieldName": "$.modOptions.smithingStaminaRecoveryOutsideSettlements"
+    "InputType": "checkbox"
   },
   {
     "FieldName": "mc_smithingStaminaRecoveryMultiplier",
@@ -784,8 +760,7 @@
     "Keywords": "smithingstaminarecoverymultiplier",
     "DefaultValue": "0.1",
     "EnumValues": {},
-    "InputType": "number",
-    "ParamFieldName": "$.modOptions.smithingStaminaRecoveryMultiplier"
+    "InputType": "number"
   },
   {
     "FieldName": "mc_maximumLootersMultiplier",
@@ -796,8 +771,7 @@
     "Keywords": "maximumlootersmultiplier",
     "DefaultValue": "1.0",
     "EnumValues": {},
-    "InputType": "number",
-    "ParamFieldName": "$.modOptions.maximumLootersMultiplier"
+    "InputType": "number"
   },
   {
     "FieldName": "mc_looterPartySizeMultiplier",
@@ -808,8 +782,7 @@
     "Keywords": "looterpartysizemultiplier",
     "DefaultValue": "1.0",
     "EnumValues": {},
-    "InputType": "number",
-    "ParamFieldName": "$.modOptions.looterPartySizeMultiplier"
+    "InputType": "number"
   },
   {
     "FieldName": "mc_lordDefectionRetries",
@@ -824,8 +797,7 @@
       "NeverExpire": "Never Expire",
       "AlwaysRetry": "Always Retry"
     },
-    "InputType": "enum",
-    "ParamFieldName": "$.modOptions.lordDefectionRetries"
+    "InputType": "enum"
   },
   {
     "FieldName": "mc_enableHeroExecutions",
@@ -839,8 +811,7 @@
       "False": "false",
       "True": "true"
     },
-    "InputType": "checkbox",
-    "ParamFieldName": "$.modOptions.enableHeroExecutions"
+    "InputType": "checkbox"
   },
   {
     "FieldName": "mc_enablePlayerClanMemberExecutions",
@@ -854,8 +825,7 @@
       "False": "false",
       "True": "true"
     },
-    "InputType": "checkbox",
-    "ParamFieldName": "$.modOptions.enablePlayerClanMemberExecutions"
+    "InputType": "checkbox"
   },
   {
     "FieldName": "mc_showPlayerNameplates",
@@ -869,8 +839,7 @@
       "False": "false",
       "True": "true"
     },
-    "InputType": "checkbox",
-    "ParamFieldName": "$.modOptions.showPlayerNameplates"
+    "InputType": "checkbox"
   },
   {
     "FieldName": "mc_playerWoundedBattleEntry",
@@ -884,8 +853,216 @@
       "False": "false",
       "True": "true"
     },
-    "InputType": "checkbox",
-    "ParamFieldName": "$.modOptions.playerWoundedBattleEntry"
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_voiceEnabled",
+    "DisplayName": "Proximity Voice",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Enables proximity voice for every player. Runtime changes are session-only. Needs a microphone at each player's end",
+    "Keywords": "voiceenabled",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_allowClientTimeControls",
+    "DisplayName": "Players Control Time",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Players can pause or change the game speed. Off: only the host can, and the game still pauses by itself while someone is joining and when nobody is online",
+    "Keywords": "allowclienttimecontrols",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_blockAiWarDeclarationsOnOfflinePlayers",
+    "DisplayName": "No AI War on Offline Players",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "AI kingdoms stop proposing wars and alliance calls against a player-ruled kingdom while none of its players are online. Existing wars and votes already in progress are untouched",
+    "Keywords": "blockaiwardeclarationsonofflineplayers",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_postBattleAiAmnestySeconds",
+    "DisplayName": "Post Battle AI Amnesty",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Real seconds during which AI parties leave a player alone after a battle, including while paused. 0 = off, a player can be attacked as soon as the loot screen closes",
+    "Keywords": "postbattleaiamnestyseconds",
+    "DefaultValue": "0",
+    "EnumValues": {},
+    "InputType": "number",
+    "Suffix": "s"
+  },
+  {
+    "FieldName": "mc_ensureUnaffiliatedWanderers",
+    "DisplayName": "Keep Wanderers Available",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Keeps a pool of unaffiliated wanderers to recruit. Off: wandererLimit becomes a hard cap that counts wanderers already recruited",
+    "Keywords": "ensureunaffiliatedwanderers",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_spawnRateWanderers",
+    "DisplayName": "Wanderer Spawn Rate",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Wanderers spawned per in-game day. Vanilla is 1. Below 1 means none spawn any more",
+    "Keywords": "spawnratewanderers",
+    "DefaultValue": "1",
+    "EnumValues": {},
+    "InputType": "number"
+  },
+  {
+    "FieldName": "mc_coopClansEnabled",
+    "DisplayName": "Coop Clans",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Players can join another player's clan or propose a player marriage. Turning it off does not dissolve clans that already exist",
+    "Keywords": "coopclansenabled",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_enablePlayerExecutions",
+    "DisplayName": "Allow Player Executions",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Players can execute each other, the only requirement being to hold the other as a prisoner. Has no effect unless hero executions are allowed too",
+    "Keywords": "enableplayerexecutions",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_kingdomDecisionVoteTimeoutSeconds",
+    "DisplayName": "Kingdom Vote Timeout",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Seconds players have to vote on a kingdom decision. 60 by default, and anything at or below 0 falls back to 60",
+    "Keywords": "kingdomdecisionvotetimeoutseconds",
+    "DefaultValue": "60",
+    "EnumValues": {},
+    "InputType": "number",
+    "Suffix": "s"
+  },
+  {
+    "FieldName": "mc_clansAfterKingdomDestruction",
+    "DisplayName": "Clans After Kingdom Falls",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Vanilla: clans still in a kingdom are destroyed with it, and independent clans follow the vanilla 28 day rule. KeepClans: every clan survives as an independent clan",
+    "Keywords": "clansafterkingdomdestruction",
+    "DefaultValue": "Vanilla",
+    "EnumValues": {
+      "Vanilla": "Vanilla",
+      "KeepClans": "KeepClans"
+    },
+    "InputType": "enum"
+  },
+  {
+    "FieldName": "mc_preferredBattleHosts",
+    "DisplayName": "Preferred Battle Hosts",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Steam IDs of the players who should host battles, in order of preference, separated by commas. The battle host runs the fight for everyone, so list the best upload first. Empty: whoever finishes loading first hosts",
+    "Keywords": "preferredbattlehosts",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "InputType": "text"
+  },
+  {
+    "FieldName": "mc_pvpBlockLeave",
+    "DisplayName": "Block Leave When Caught",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "A player caught by an enemy player cannot walk away from the meeting. The caught player goes free if the other one does nothing for 30 seconds, or after the meeting timeout when one is set",
+    "Keywords": "pvpblockleave",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_pvpResponseTimerSeconds",
+    "DisplayName": "PvP Answer Timeout",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Seconds a player has to answer another player in a meeting. 0 = off. A caught player who lets it run out gets the battle, as if refusing; other unanswered meetings simply end",
+    "Keywords": "pvpresponsetimerseconds",
+    "DefaultValue": "0",
+    "EnumValues": {},
+    "InputType": "number",
+    "Suffix": "s"
+  },
+  {
+    "FieldName": "mc_maxClansPerKingdom",
+    "DisplayName": "Max Clans per Kingdom",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Caps how many clans one kingdom may hold, so it cannot swallow every clan on a big server. The ruling clan counts. 0 = no limit",
+    "Keywords": "maxclansperkingdom",
+    "DefaultValue": "0",
+    "EnumValues": {},
+    "InputType": "number"
+  },
+  {
+    "FieldName": "mc_maxClansPerKingdomCountsMercenaries",
+    "DisplayName": "Mercenaries Count in Cap",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Mercenary clans count toward the clan cap above. Off: a full kingdom can still hire them, and a player can still sign on as one",
+    "Keywords": "maxclansperkingdomcountsmercenaries",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_warSails",
+    "DisplayName": "War Sails (NavalDLC)",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Runs the dedicated server with NavalDLC. Off by default. The campaign must have been created with War Sails: a normal save started in this mode stops on Exit 9, and a War Sails save refuses to load without it. NavalDLC is added by the server itself, never put it in the module list",
+    "Keywords": "warsails",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
   },
   {
     "FieldName": "GameVersion",
@@ -972,5 +1149,53 @@
     "IncludeInCommandLine": false,
     "InputType": "checkbox",
     "ParamField": ""
+  },
+  {
+    "FieldName": "mc_mapFullVolumeDistance",
+    "DisplayName": "Voice: Full Volume on Map",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Voix de proximite:record_voice_over:1",
+    "Description": "Distance in metres, on the campaign map, up to which a player's voice is heard at full volume",
+    "Keywords": "mapfullvolumedistance",
+    "DefaultValue": "5",
+    "EnumValues": {},
+    "InputType": "number",
+    "Suffix": "m"
+  },
+  {
+    "FieldName": "mc_mapMaximumDistance",
+    "DisplayName": "Voice: Max Range on Map",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Voix de proximite:record_voice_over:1",
+    "Description": "Distance in metres beyond which a player is not heard at all on the campaign map",
+    "Keywords": "mapmaximumdistance",
+    "DefaultValue": "20",
+    "EnumValues": {},
+    "InputType": "number",
+    "Suffix": "m"
+  },
+  {
+    "FieldName": "mc_sceneFullVolumeDistance",
+    "DisplayName": "Voice: Full Volume in Mission",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Voix de proximite:record_voice_over:1",
+    "Description": "Distance in metres, inside a battle or a scene, up to which a player's voice is heard at full volume",
+    "Keywords": "scenefullvolumedistance",
+    "DefaultValue": "10",
+    "EnumValues": {},
+    "InputType": "number",
+    "Suffix": "m"
+  },
+  {
+    "FieldName": "mc_sceneMaximumDistance",
+    "DisplayName": "Voice: Max Range in Mission",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Voix de proximite:record_voice_over:1",
+    "Description": "Distance in metres beyond which a player is not heard at all inside a battle or a scene",
+    "Keywords": "scenemaximumdistance",
+    "DefaultValue": "50",
+    "EnumValues": {},
+    "InputType": "number",
+    "Suffix": "m"
   }
 ]

@@ -178,6 +178,28 @@ elif [ -f "$DATA/mod-config.json" ]; then
         || log "reglages du mod absents : Coop utilisera ses valeurs par defaut"
 fi
 
+# Reglages du mod exposes au panneau (warSails compris) : le panneau ne peut pas les
+# ecrire lui-meme — AMP fusionne les champs « $.modOptions.* » dans server-config.json,
+# ou ces chemins n existent pas (mesure du 21/11 : « 34 JSONPath target(s) not found »,
+# et aucun mod-config.json cree). Chaque reglage arrive ici sous la forme d une variable
+# MC_<section>_<cle> posee par le template ; tools/modconfig.py ecrit la cle dans le seul
+# fichier que Coop lit, sans toucher aux commentaires, aux virgules finales ni au BOM.
+OUTIL_CONFIG="$ROOT/tools/modconfig.py"
+PAIRES="$ROOT/cache/reglages-mod.txt"
+mkdir -p "$(dirname "$PAIRES")" 2>/dev/null || true
+env | grep '^MC_' | sed 's/^MC_//' | sed 's/_/./' > "$PAIRES" 2>/dev/null || true
+if [ -f "$OUTIL_CONFIG" ] && [ -s "$PAIRES" ]; then
+    MC_MESSAGE=$(python3 "$OUTIL_CONFIG" ecrire "$MCFG" "$PAIRES" 2>&1)
+    log "reglages du mod : $MC_MESSAGE"
+    log "  fichier : $MCFG"
+else
+    log "reglages du mod : outil absent ($OUTIL_CONFIG), lancer un Update"
+fi
+if [ "${MC_modOptions_warSails:-false}" = "true" ]; then
+    log "  War Sails actif : la campagne doit avoir ete creee avec la DLC."
+    log "  une campagne normale s arrete sur Exit 9 dans ce mode, et inversement."
+fi
+
 # --- 0. monde de depart du pack ---------------------------------------------
 # Un pack a monde custom ne peut pas creer sa campagne sur un serveur dedie : le monde
 # vient d une machine joueur. On en garde une copie vierge dans monde/, et on la remet
