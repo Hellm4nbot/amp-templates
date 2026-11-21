@@ -29,6 +29,16 @@
     "SkipOnFailure": false
   },
   {
+    "UpdateStageName": "Depot Halo 3",
+    "UpdateSourcePlatform": "Linux",
+    "UpdateSource": "Executable",
+    "UpdateSourceData": "/bin/bash",
+    "UpdateSourceArgs": "-c \"printf %s 'IyEvYmluL2Jhc2gKc2V0IC1lCmI9IiQxIgpkZXBvdD0iJDIiCnNjPS9hbXAvLmFtcC9zdGVhbWNtZC9zdGVhbWNtZC5zaAppZiBbICEgLXggIiRzYyIgXTsgdGhlbgogICAgZWNobyAic3RlYW1jbWQgZCBBTVAgaW50cm91dmFibGUgZGFucyAvYW1wLy5hbXAvc3RlYW1jbWQiCiAgICBleGl0IDEKZmkKY2ZnPSIkSE9NRS9TdGVhbS9jb25maWcvY29uZmlnLnZkZiIKaWYgWyAhIC1mICIkY2ZnIiBdOyB0aGVuCiAgICBlY2hvICJhdWN1bmUgc2Vzc2lvbiBTdGVhbSBlbiBjYWNoZSAoJGNmZyBhYnNlbnQpIDogY2xpcXVlciBVcGRhdGUgZGVwdWlzIEFNUCBldCBjaG9pc2lyIGxlIGNvbXB0ZSBxdWkgcG9zc2VkZSBNQ0MiCiAgICBleGl0IDEKZmkKY29tcHRlPSQoc2VkIC1uICcvIkFjY291bnRzIi8sL15bWzpzcGFjZTpdXSp9L3AnICIkY2ZnIiB8IGdyZXAgLW9FICciW14iXSsiJyB8IHNlZCAtbiAnMnAnIHwgdHIgLWQgJyInKQppZiBbIC16ICIkY29tcHRlIiBdOyB0aGVuCiAgICBlY2hvICJhdWN1biBjb21wdGUgbGlzaWJsZSBkYW5zICRjZmciCiAgICBleGl0IDEKZmkKZWNobyAiY29tcHRlIGVuIGNhY2hlIDogJGNvbXB0ZSIKIiRzYyIgK2ZvcmNlX2luc3RhbGxfZGlyICIkYi9nYW1lIiArbG9naW4gIiRjb21wdGUiICtkb3dubG9hZF9kZXBvdCA5NzY3MzAgIiRkZXBvdCIgK3F1aXQKc3JjPSIvYW1wLy5hbXAvc3RlYW1jbWQvc3RlYW1hcHBzL2NvbnRlbnQvYXBwXzk3NjczMC9kZXBvdF8ke2RlcG90fSIKaWYgWyAhIC1kICIkc3JjIiBdOyB0aGVuCiAgICBlY2hvICJkZXBvdCAkZGVwb3QgYWJzZW50IGFwcmVzIHRlbGVjaGFyZ2VtZW50ICgkc3JjKSIKICAgIGV4aXQgMQpmaQpjcCAtYSAiJHNyYyIvLiAiJGIvZ2FtZSIvCmVjaG8gImRlcG90ICRkZXBvdCBpbnN0YWxsZSBkYW5zIGdhbWUvIgpscyAtMSAiJGIvZ2FtZS9oYWxvMyIgMj4vZGV2L251bGwgfCBoZWFkIC01Cg==' | base64 -d > /tmp/halo-depot.sh; bash /tmp/halo-depot.sh '{{$FullBaseDir}}' '{{IncludeCampaignFiles}}'\"",
+    "UpdateSourceConditionSetting": "DownloadGameFiles",
+    "UpdateSourceConditionValue": "true",
+    "SkipOnFailure": false
+  },
+  {
     "UpdateStageName": "Halo 3 Installation",
     "UpdateSourcePlatform": "Windows",
     "UpdateSource": "Executable",
