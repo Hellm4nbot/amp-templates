@@ -142,6 +142,30 @@
     "Placeholder": "latest"
   },
   {
+    "FieldName": "ServerMirrorUrl",
+    "DisplayName": "Miroir du paquet serveur",
+    "Category": "Server Update:cloud_download",
+    "Subcategory": "Source:source:1",
+    "Description": "URL d une copie du paquet serveur (.7z), utilisee seulement si le CDN de la team echoue. L archive telechargee est verifiee par l empreinte du manifeste de la release : un miroir qui sert autre chose est ecarte au lieu d etre installe. Vide : aucun secours.",
+    "Keywords": "miroir,mirror,fallback,secours,cdn,7z",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "InputType": "text",
+    "Placeholder": "https://.../BannerlordCoop-DedicatedServer-Win64-v0.1.8.7z"
+  },
+  {
+    "FieldName": "ClientMirrorUrl",
+    "DisplayName": "Miroir du client",
+    "Category": "Server Update:cloud_download",
+    "Subcategory": "Source:source:1",
+    "Description": "URL du zip client affichee aux joueurs a la place de celle de la release. Le client n est jamais telecharge par le serveur : ce champ ne change que la ligne imprimee a la fin de l update. Vide : l URL officielle est affichee.",
+    "Keywords": "miroir,mirror,client,joueurs,zip",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "InputType": "text",
+    "Placeholder": "https://.../BannerlordCoop-v0.1.8.zip"
+  },
+  {
     "FieldName": "$GamePort",
     "DisplayName": "Coop Join Port",
     "Category": "Bannerlord Coop:stadia_controller",
