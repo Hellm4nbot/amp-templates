@@ -301,7 +301,7 @@
     "DisplayName": "Mission ODST",
     "Category": "Reclaimer:videogame_asset",
     "Subcategory": "Mode de jeu:videogame_asset:2",
-    "Description": "Mission par titre, fichier ou numero ; pour Firefight, le numero de la carte (5000 pour Crater Night).",
+    "Description": "Campagne : mission par titre, nom de fichier ou numero (c100 Prepare to Drop 4100, h100 Mombasa Streets 5000, sc100 Tayari Plaza 6100, sc110 Uplift Reserve 6110, sc120 Kizingo Boulevard 6120, sc130 ONI Alpha Site 6130, sc140 NMPD HQ 6140, sc150 Kikowani Station 6150, l200 Data Hive 5200, l300 Coastal Highway 5300, c200 Epilogue 4200). Firefight : le numero de la carte, Crater 6100, Crater Night 5000, Lost Platoon 6110, Rally Point 6120, Rally Night 5000, Security Zone 6130, Alpha Site 6130, Windward 6140, Chasm Ten 5200, Last Exit 5300.",
     "Keywords": "odstmission",
     "FieldName": "OdstMission",
     "InputType": "text",
@@ -313,7 +313,7 @@
     "DisplayName": "Depart ODST",
     "Category": "Reclaimer:videogame_asset",
     "Subcategory": "Mode de jeu:videogame_asset:2",
-    "Description": "Point de depart de la mission, ou celui de la carte en Firefight.",
+    "Description": "Campagne : 0 pour le debut de la mission. Firefight : le point de depart propre a la carte, Crater 4, Crater Night 7, Lost Platoon 4, Rally Point 5, Rally Night 8, Security Zone 4, Alpha Site 5, Windward 5, Chasm Ten 6, Last Exit 7.",
     "Keywords": "odstinsertion",
     "FieldName": "OdstInsertion",
     "InputType": "number",
@@ -1388,5 +1388,17 @@
       "False": "false",
       "True": "true"
     }
+  },
+  {
+    "DisplayName": "Options Firefight",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mode de jeu:videogame_asset:2",
+    "Description": "Reglages du Firefight, separes par des virgules, sous la forme nom=valeur : firefight.team_lives=3, firefight.max_lives=10, firefight.minutes=30, firefight.camera=2, skulls.famine=1, bonus_skulls.iron=1. Vide : les valeurs du type de partie. Firefight seulement.",
+    "Keywords": "firefight,options,vies,minutes,camera",
+    "FieldName": "OdstOptions",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": "firefight.team_lives=3, firefight.minutes=30"
   }
 ]
