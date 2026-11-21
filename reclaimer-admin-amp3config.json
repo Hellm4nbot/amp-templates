@@ -1,0 +1,1394 @@
+[
+  {
+    "DisplayName": "Nom du serveur",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Serveur:dns:1",
+    "Description": "Nom affiche dans le navigateur de serveurs et dans le lobby.",
+    "Keywords": "servername",
+    "FieldName": "ServerName",
+    "InputType": "text",
+    "DefaultValue": "Reclaimer (AMP3)",
+    "EnumValues": {},
+    "Placeholder": "Reclaimer (AMP3)"
+  },
+  {
+    "DisplayName": "Nom de l'hote",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Serveur:dns:1",
+    "Description": "Nom affiche sous chaque serveur, sur sa carte et dans son lobby. Vide : le nom du serveur.",
+    "Keywords": "hostname",
+    "FieldName": "HostName",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Joueurs maximum",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Serveur:dns:1",
+    "Description": "Joueurs admis en meme temps, ecran partage inclus. Un serveur campagne, ODST ou Reach en accepte 16 au plus.",
+    "Keywords": "$maxusers",
+    "FieldName": "$MaxUsers",
+    "InputType": "number",
+    "DefaultValue": "16",
+    "EnumValues": {},
+    "MinValue": "1",
+    "MaxValue": "128",
+    "Suffix": "joueurs"
+  },
+  {
+    "DisplayName": "Joueurs minimum avant lancement",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Serveur:dns:1",
+    "Description": "Joueurs attendus dans le lobby avant un vote ou un demarrage automatique.",
+    "Keywords": "minplayers",
+    "FieldName": "MinPlayers",
+    "InputType": "number",
+    "DefaultValue": "1",
+    "EnumValues": {},
+    "MinValue": "1",
+    "MaxValue": "128"
+  },
+  {
+    "DisplayName": "Mot de passe d'acces",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Serveur:dns:1",
+    "Description": "Mot de passe demande pour rejoindre. Vide : serveur ouvert.",
+    "Keywords": "joinpassword",
+    "FieldName": "JoinPassword",
+    "InputType": "password",
+    "DefaultValue": "",
+    "EnumValues": {}
+  },
+  {
+    "DisplayName": "Serveur masque",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Serveur:dns:1",
+    "Description": "En ligne mais absent de la liste : les joueurs rejoignent par adresse.",
+    "Keywords": "hidden",
+    "FieldName": "Hidden",
+    "InputType": "checkbox",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Message d'accueil",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Serveur:dns:1",
+    "Description": "Message lu par chaque joueur en arrivant. Separer plusieurs lignes par | (cinq au plus). Les apostrophes sont a remplacer par un tiret.",
+    "Keywords": "welcomemessage",
+    "FieldName": "WelcomeMessage",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Administrateurs",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Serveur:dns:1",
+    "Description": "Identifiants de joueurs (64 caracteres hexa), separes par des virgules : kick et ban sur tous les serveurs.",
+    "Keywords": "admins",
+    "FieldName": "Admins",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Moderateurs",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Serveur:dns:1",
+    "Description": "Identifiants de joueurs qui tiennent le role Mod (ban limite dans le temps, mute, fin de partie).",
+    "Keywords": "moderators",
+    "FieldName": "Moderators",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Immunises contre le vote",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Serveur:dns:1",
+    "Description": "Identifiants de joueurs qu'aucun vote ne peut exclure, sans etre administrateurs.",
+    "Keywords": "votekickimmune",
+    "FieldName": "VoteKickImmune",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Adresse publique",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Serveur:dns:1",
+    "Description": "Adresse ou nom DNS que les joueurs utilisent. Vide : l'adresse detectee par le routeur ou les maitres.",
+    "Keywords": "publicaddress",
+    "FieldName": "PublicAddress",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Adresse locale d ecoute",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Serveur:dns:1",
+    "Description": "Adresse locale d'ecoute des ports de jeu et du maitre. :: pour tout, 127.0.0.1 pour la machine seule.",
+    "Keywords": "bindaddress",
+    "FieldName": "BindAddress",
+    "InputType": "text",
+    "DefaultValue": "::",
+    "EnumValues": {},
+    "Placeholder": "::"
+  },
+  {
+    "DisplayName": "Mode du serveur",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mode de jeu:videogame_asset:2",
+    "Description": "Choisit le bloc ecrit dans dedicated.toml. Un serveur campagne ne peut pas aussi porter playlist, variant, map ou game. La campagne Halo 3 exige le depot 976738.",
+    "Keywords": "servermode",
+    "FieldName": "ServerMode",
+    "InputType": "enum",
+    "DefaultValue": "multi",
+    "EnumValues": {
+      "multi": "Multijoueur",
+      "campagne": "Campagne (coop)",
+      "odst": "Halo 3: ODST",
+      "reach": "Halo: Reach"
+    }
+  },
+  {
+    "DisplayName": "Carte",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mode de jeu:videogame_asset:2",
+    "Description": "Carte multijoueur, telle que dedicated content la liste. Un mode Megalo se nomme avec GameType.",
+    "Keywords": "mapname",
+    "FieldName": "MapName",
+    "InputType": "text",
+    "DefaultValue": "guardian",
+    "EnumValues": {},
+    "Placeholder": "guardian"
+  },
+  {
+    "DisplayName": "Type de partie",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mode de jeu:videogame_asset:2",
+    "Description": "Type de partie ou mode Megalo : Slayer, CTF, Gun Game, Flood Infection, UNSC vs Covenant vs Flood...",
+    "Keywords": "gametype",
+    "FieldName": "GameType",
+    "InputType": "text",
+    "DefaultValue": "Slayer",
+    "EnumValues": {},
+    "Placeholder": "Slayer"
+  },
+  {
+    "DisplayName": "Playlist",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mode de jeu:videogame_asset:2",
+    "Description": "Fichier de playlist dans playlists/ : rotation soumise au vote des joueurs. Prioritaire sur la carte et le type.",
+    "Keywords": "playlistfile",
+    "FieldName": "PlaylistFile",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Variante enregistree",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mode de jeu:videogame_asset:2",
+    "Description": "Variante de jeu ou de carte (.json) posee dans content/ ou playlists/.",
+    "Keywords": "variantfile",
+    "FieldName": "VariantFile",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Jeu de la campagne",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mode de jeu:videogame_asset:2",
+    "Description": "Jeu dont la campagne est jouee. Chaque jeu exige ses propres fichiers dans game/.",
+    "Keywords": "campaigngame",
+    "FieldName": "CampaignGame",
+    "InputType": "enum",
+    "DefaultValue": "halo3",
+    "EnumValues": {
+      "halo3": "Halo 3",
+      "halo1": "Halo: Combat Evolved",
+      "halo2": "Halo 2",
+      "odst": "Halo 3: ODST",
+      "reach": "Halo: Reach"
+    }
+  },
+  {
+    "DisplayName": "Mission de depart",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mode de jeu:videogame_asset:2",
+    "Description": "Mission par son titre, son nom de fichier ou son numero. dedicated content liste celles disponibles.",
+    "Keywords": "campaignmission",
+    "FieldName": "CampaignMission",
+    "InputType": "text",
+    "DefaultValue": "Sierra 117",
+    "EnumValues": {},
+    "Placeholder": "Sierra 117"
+  },
+  {
+    "DisplayName": "Difficulte",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mode de jeu:videogame_asset:2",
+    "Description": "Difficulte de la campagne.",
+    "Keywords": "campaigndifficulty",
+    "FieldName": "CampaignDifficulty",
+    "InputType": "enum",
+    "DefaultValue": "normal",
+    "EnumValues": {
+      "easy": "Facile",
+      "normal": "Normale",
+      "heroic": "Heroique",
+      "legendary": "Legendaire"
+    }
+  },
+  {
+    "DisplayName": "Point de depart",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mode de jeu:videogame_asset:2",
+    "Description": "0 pour le debut de la mission, puis les points de ralliement dans l'ordre de la page Campagne.",
+    "Keywords": "campaigninsertion",
+    "FieldName": "CampaignInsertion",
+    "InputType": "number",
+    "DefaultValue": "0",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "20"
+  },
+  {
+    "DisplayName": "Personnages personnels",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mode de jeu:videogame_asset:2",
+    "Description": "Chacun joue son propre Spartan ou Elite au lieu du Master Chief et de l'Arbiter.",
+    "Keywords": "customcharacters",
+    "FieldName": "CustomCharacters",
+    "InputType": "checkbox",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Mode ODST",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mode de jeu:videogame_asset:2",
+    "Description": "Campagne ou Firefight. Exige les fichiers ODST dans game/.",
+    "Keywords": "odstmode",
+    "FieldName": "OdstMode",
+    "InputType": "enum",
+    "DefaultValue": "campagne",
+    "EnumValues": {
+      "campagne": "Campagne",
+      "firefight": "Firefight"
+    }
+  },
+  {
+    "DisplayName": "Mission ODST",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mode de jeu:videogame_asset:2",
+    "Description": "Mission par titre, fichier ou numero ; pour Firefight, le numero de la carte (5000 pour Crater Night).",
+    "Keywords": "odstmission",
+    "FieldName": "OdstMission",
+    "InputType": "text",
+    "DefaultValue": "Tayari Plaza",
+    "EnumValues": {},
+    "Placeholder": "Tayari Plaza"
+  },
+  {
+    "DisplayName": "Depart ODST",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mode de jeu:videogame_asset:2",
+    "Description": "Point de depart de la mission, ou celui de la carte en Firefight.",
+    "Keywords": "odstinsertion",
+    "FieldName": "OdstInsertion",
+    "InputType": "number",
+    "DefaultValue": "0",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "20"
+  },
+  {
+    "DisplayName": "Variante Firefight",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mode de jeu:videogame_asset:2",
+    "Description": "Type de partie du Firefight, par son nom de fichier dans halo3odst/game_variants.",
+    "Keywords": "odstvariant",
+    "FieldName": "OdstVariant",
+    "InputType": "enum",
+    "DefaultValue": "odst_ff_standard_1set",
+    "EnumValues": {
+      "odst_ff_standard_1set": "Standard",
+      "odst_ff_classic": "Classic",
+      "odst_ff_drone_wars_1round": "Drone Wars",
+      "odst_ff_fiestafight_1set": "Fiesta",
+      "odst_ff_floodfight": "Floodfight",
+      "odst_ff_gruntpocalypse_1round": "Gruntpocalypse",
+      "odst_ff_robocalypse_1round": "Robocalypse",
+      "odst_ff_rocketfight_1set": "Rocketfight",
+      "odst_ff_sniperfight_1set": "Sniperfight"
+    }
+  },
+  {
+    "DisplayName": "Difficulte ODST",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mode de jeu:videogame_asset:2",
+    "Description": "Difficulte de la campagne ODST.",
+    "Keywords": "odstdifficulty",
+    "FieldName": "OdstDifficulty",
+    "InputType": "enum",
+    "DefaultValue": "normal",
+    "EnumValues": {
+      "easy": "Facile",
+      "normal": "Normale",
+      "heroic": "Heroique",
+      "legendary": "Legendaire"
+    }
+  },
+  {
+    "DisplayName": "Personnages de l histoire",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mode de jeu:videogame_asset:2",
+    "Description": "Chacun joue le personnage de la mission (Rookie, Buck, Dutch, Mickey, Romeo) au lieu du sien.",
+    "Keywords": "odststorycharacters",
+    "FieldName": "OdstStoryCharacters",
+    "InputType": "checkbox",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Mission ou carte Reach",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mode de jeu:videogame_asset:2",
+    "Description": "Mission de Halo: Reach par nom de fichier ou titre (m10, Winter Contingency) ou carte Firefight (ff20_courtyard).",
+    "Keywords": "reachmap",
+    "FieldName": "ReachMap",
+    "InputType": "text",
+    "DefaultValue": "m10",
+    "EnumValues": {},
+    "Placeholder": "m10"
+  },
+  {
+    "DisplayName": "Firefight Reach",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mode de jeu:videogame_asset:2",
+    "Description": "Vide : la mission est jouee en campagne. Sinon, Firefight avec cette variante.",
+    "Keywords": "reachfirefight",
+    "FieldName": "ReachFirefight",
+    "InputType": "enum",
+    "DefaultValue": "",
+    "EnumValues": {
+      "": "Aucun (campagne)",
+      "firefight_new": "Firefight",
+      "firefight_classic": "Classic",
+      "firefight_gen": "Generator",
+      "firefight_versus": "Versus",
+      "firefight_score_attack": "Score Attack",
+      "firefight_rocketfight": "Rocketfight",
+      "firefight_gruntpocalypse": "Gruntpocalypse"
+    }
+  },
+  {
+    "DisplayName": "PV des ennemis",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Modifiers campagne:tune:3",
+    "Description": "De 25 a 1000, par pas de 25. 100 est la valeur du jeu.",
+    "Keywords": "modhealth",
+    "FieldName": "ModHealth",
+    "InputType": "number",
+    "DefaultValue": "100",
+    "EnumValues": {},
+    "MinValue": "25",
+    "MaxValue": "1000",
+    "Suffix": "%"
+  },
+  {
+    "DisplayName": "Degats des ennemis",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Modifiers campagne:tune:3",
+    "Description": "De 25 a 1000, par pas de 25.",
+    "Keywords": "moddamage",
+    "FieldName": "ModDamage",
+    "InputType": "number",
+    "DefaultValue": "100",
+    "EnumValues": {},
+    "MinValue": "25",
+    "MaxValue": "1000",
+    "Suffix": "%"
+  },
+  {
+    "DisplayName": "PV par joueur en plus",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Modifiers campagne:tune:3",
+    "Description": "De 0 a 100, par pas de 5 : de combien les PV ennemis augmentent par joueur supplementaire.",
+    "Keywords": "modhealthperplayer",
+    "FieldName": "ModHealthPerPlayer",
+    "InputType": "number",
+    "DefaultValue": "0",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "100",
+    "Suffix": "%"
+  },
+  {
+    "DisplayName": "Degats par joueur en plus",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Modifiers campagne:tune:3",
+    "Description": "De 0 a 100, par pas de 5.",
+    "Keywords": "moddamageperplayer",
+    "FieldName": "ModDamagePerPlayer",
+    "InputType": "number",
+    "DefaultValue": "0",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "100",
+    "Suffix": "%"
+  },
+  {
+    "DisplayName": "Cranes",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Modifiers campagne:tune:3",
+    "Description": "Somme des cranes actifs : 1 pour Iron, 512 pour Assassin, 513 pour les deux. 0 : aucun.",
+    "Keywords": "modskulls",
+    "FieldName": "ModSkulls",
+    "InputType": "number",
+    "DefaultValue": "0",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "65535"
+  },
+  {
+    "DisplayName": "Score",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Modifiers campagne:tune:3",
+    "Description": "Score de campagne.",
+    "Keywords": "modscoring",
+    "FieldName": "ModScoring",
+    "InputType": "enum",
+    "DefaultValue": "",
+    "EnumValues": {
+      "": "Desactive",
+      "off": "Desactive",
+      "team": "Par equipe",
+      "free_for_all": "Chacun pour soi"
+    }
+  },
+  {
+    "DisplayName": "Sprint",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Modifiers campagne:tune:3",
+    "Description": "Active le sprint en campagne.",
+    "Keywords": "modsprint",
+    "FieldName": "ModSprint",
+    "InputType": "checkbox",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Endurance du sprint",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Modifiers campagne:tune:3",
+    "Description": "Secondes de sprint avant epuisement. 0 : la valeur par defaut du moteur.",
+    "Keywords": "modsprintstamina",
+    "FieldName": "ModSprintStamina",
+    "InputType": "number",
+    "DefaultValue": "0",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "60"
+  },
+  {
+    "DisplayName": "Modele reseau",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Partie:sports_esports:4",
+    "Description": "Modele de replication en multijoueur. Un changement redemarre le serveur des qu'il est vide.",
+    "Keywords": "networkmodel",
+    "FieldName": "NetworkModel",
+    "InputType": "enum",
+    "DefaultValue": "enhanced",
+    "EnumValues": {
+      "enhanced": "Enhanced (recommande)",
+      "classic": "Classic (celui de Halo 3)"
+    }
+  },
+  {
+    "DisplayName": "Reseau coop",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Partie:sports_esports:4",
+    "Description": "Comment les parties coop se jouent : campagne, ODST, Firefight. Redemarrage necessaire.",
+    "Keywords": "coopnetwork",
+    "FieldName": "CoopNetwork",
+    "InputType": "enum",
+    "DefaultValue": "lockstep",
+    "EnumValues": {
+      "lockstep": "Lockstep 60",
+      "lockstep30": "Lockstep 30",
+      "host": "Host (experimental)"
+    }
+  },
+  {
+    "DisplayName": "Ticks par seconde",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Partie:sports_esports:4",
+    "Description": "Ticks du serveur en multijoueur. Les jeux des joueurs restent a 60.",
+    "Keywords": "tickrate",
+    "FieldName": "TickRate",
+    "InputType": "enum",
+    "DefaultValue": "60",
+    "EnumValues": {
+      "60": "60",
+      "30": "30 (economise le processeur)"
+    }
+  },
+  {
+    "DisplayName": "Camera",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Partie:sports_esports:4",
+    "Description": "Vue imposee aux joueurs.",
+    "Keywords": "camera",
+    "FieldName": "Camera",
+    "InputType": "enum",
+    "DefaultValue": "first_person",
+    "EnumValues": {
+      "first_person": "Premiere personne",
+      "third_person": "Troisieme personne",
+      "player_choice": "Au choix du joueur"
+    }
+  },
+  {
+    "DisplayName": "Changement d equipe",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Partie:sports_esports:4",
+    "Description": "Comment les joueurs changent d'equipe.",
+    "Keywords": "teamchanging",
+    "FieldName": "TeamChanging",
+    "InputType": "enum",
+    "DefaultValue": "balanced",
+    "EnumValues": {
+      "balanced": "Equilibre",
+      "game_type": "Selon le type de partie",
+      "off": "Interdit"
+    }
+  },
+  {
+    "DisplayName": "Tir allie",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Partie:sports_esports:4",
+    "Description": "Autorise les degats entre coequipiers.",
+    "Keywords": "friendlyfire",
+    "FieldName": "FriendlyFire",
+    "InputType": "checkbox",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Votes",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Partie:sports_esports:4",
+    "Description": "Autorise les votes (changer de carte, exclure, terminer la partie).",
+    "Keywords": "votes",
+    "FieldName": "Votes",
+    "InputType": "checkbox",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Personnage impose",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Partie:sports_esports:4",
+    "Description": "Impose un personnage a tous les joueurs, sur les cartes de Halo 3.",
+    "Keywords": "forcemodel",
+    "FieldName": "ForceModel",
+    "InputType": "enum",
+    "DefaultValue": "",
+    "EnumValues": {
+      "": "Au choix",
+      "spartan": "Spartan",
+      "elite": "Elite"
+    }
+  },
+  {
+    "DisplayName": "HUD de la carte",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Partie:sports_esports:4",
+    "Description": "Chaque joueur voit le HUD du personnage de la carte, quel que soit son personnage.",
+    "Keywords": "maphud",
+    "FieldName": "MapHud",
+    "InputType": "checkbox",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Points de reapparition d origine",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Partie:sports_esports:4",
+    "Description": "Ajoute les points de reapparition des variantes d'origine de Bungie aux cartes jouees sans carte sauvegardee.",
+    "Keywords": "stockmapdefaults",
+    "FieldName": "StockMapDefaults",
+    "InputType": "checkbox",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Manche maintenue",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Partie:sports_esports:4",
+    "Description": "Garde la manche en cours quand un depart laisse trop peu de joueurs, jusqu'a la limite de temps ou de score.",
+    "Keywords": "roundoutlasts",
+    "FieldName": "RoundOutlasts",
+    "InputType": "checkbox",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Ecran de fin",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Partie:sports_esports:4",
+    "Description": "Secondes d'affichage de l'ecran de fin avant la partie suivante.",
+    "Keywords": "postgameseconds",
+    "FieldName": "PostGameSeconds",
+    "InputType": "number",
+    "DefaultValue": "15",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "120"
+  },
+  {
+    "DisplayName": "Compte a rebours",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Partie:sports_esports:4",
+    "Description": "Secondes de compte a rebours une fois le lobby suffisamment rempli.",
+    "Keywords": "startcountdown",
+    "FieldName": "StartCountdown",
+    "InputType": "number",
+    "DefaultValue": "3",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "60"
+  },
+  {
+    "DisplayName": "Confiance aux jeux des joueurs",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Partie:sports_esports:4",
+    "Description": "En coop : quand tous les jeux derivent d'un coup, le serveur adopte celui d'un joueur. Decocher pour l'empecher.",
+    "Keywords": "trustplayergames",
+    "FieldName": "TrustPlayerGames",
+    "InputType": "checkbox",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Vote pour passer une cinematique",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Partie:sports_esports:4",
+    "Description": "Pourcentage de joueurs devant voter pour passer une cinematique.",
+    "Keywords": "campaignskipvote",
+    "FieldName": "CampaignSkipVote",
+    "InputType": "number",
+    "DefaultValue": "33",
+    "EnumValues": {},
+    "MinValue": "1",
+    "MaxValue": "100",
+    "Suffix": "%"
+  },
+  {
+    "DisplayName": "Delai de chargement",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Partie:sports_esports:4",
+    "Description": "En coop : secondes pendant lesquelles un joueur peut retarder la partie suivante avant d'etre retire. 0 : aucune limite.",
+    "Keywords": "loadtimeout",
+    "FieldName": "LoadTimeout",
+    "InputType": "number",
+    "DefaultValue": "30",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "600",
+    "Suffix": "s"
+  },
+  {
+    "DisplayName": "Antitriche",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Acces:shield:5",
+    "Description": "Controle des evenements reserves a un hote.",
+    "Keywords": "anticheat",
+    "FieldName": "AntiCheat",
+    "InputType": "enum",
+    "DefaultValue": "enforce",
+    "EnumValues": {
+      "enforce": "Refuser et exclure",
+      "detect": "Refuser et signaler",
+      "off": "Aucun controle"
+    }
+  },
+  {
+    "DisplayName": "Bloquer les VPN",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Acces:shield:5",
+    "Description": "Refuse les joueurs passant par un VPN, un proxy ou un hebergeur.",
+    "Keywords": "blockvpn",
+    "FieldName": "BlockVPN",
+    "InputType": "checkbox",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Listes VPN",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Acces:shield:5",
+    "Description": "Adresses http(s) ou fichiers de plages a refuser, separes par des virgules. default garde les listes du projet.",
+    "Keywords": "vpnlists",
+    "FieldName": "VpnLists",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Reseaux refuses",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Acces:shield:5",
+    "Description": "Reseaux refuses en entier, sous la forme 64500 ou AS64500, separes par des virgules.",
+    "Keywords": "vpnasns",
+    "FieldName": "VpnAsns",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Table ASN",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Acces:shield:5",
+    "Description": "Table qui associe une adresse a son reseau : une adresse http(s) ou un fichier au meme format.",
+    "Keywords": "vpnasntable",
+    "FieldName": "VpnAsnTable",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Refus par defaut",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Acces:shield:5",
+    "Description": "Tant qu'aucune liste n'est arrivee, refuse tout le monde sauf les administrateurs et les joueurs autorises.",
+    "Keywords": "vpnfailclosed",
+    "FieldName": "VpnFailClosed",
+    "InputType": "checkbox",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Entrees",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Acces:shield:5",
+    "Description": "ouvertes : tout le monde entre. File : les joueurs retenus par un filtre attendent leur tour. Fermees : personne n'entre.",
+    "Keywords": "joins",
+    "FieldName": "Joins",
+    "InputType": "enum",
+    "DefaultValue": "open",
+    "EnumValues": {
+      "open": "Ouvertes",
+      "queue": "File d attente",
+      "closed": "Fermees"
+    }
+  },
+  {
+    "DisplayName": "Filtres d entree",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Acces:shield:5",
+    "Description": "Phases pendant lesquelles les nouveaux joueurs sont retenus : vote, countdown, loading, in_game, post_game. Separes par des virgules.",
+    "Keywords": "joingates",
+    "FieldName": "JoinGates",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Places en file",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Acces:shield:5",
+    "Description": "Joueurs que la file peut retenir, 7 au plus, en plus des joueurs maximum.",
+    "Keywords": "queuemax",
+    "FieldName": "QueueMax",
+    "InputType": "number",
+    "DefaultValue": "7",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "7"
+  },
+  {
+    "DisplayName": "Places VIP",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Acces:shield:5",
+    "Description": "Joueurs que la file VIP peut retenir, 3 au plus.",
+    "Keywords": "vipqueuemax",
+    "FieldName": "VipQueueMax",
+    "InputType": "number",
+    "DefaultValue": "3",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "3"
+  },
+  {
+    "DisplayName": "Priorite VIP",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Acces:shield:5",
+    "Description": "Part des places, en pourcentage, que prend la file VIP quand les deux files attendent.",
+    "Keywords": "vippriority",
+    "FieldName": "VipPriority",
+    "InputType": "number",
+    "DefaultValue": "75",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "100",
+    "Suffix": "%"
+  },
+  {
+    "DisplayName": "Anti-famine",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Acces:shield:5",
+    "Description": "Secondes apres lesquelles un joueur qui attend prend la place suivante, quelle que soit sa file.",
+    "Keywords": "queuestarveafter",
+    "FieldName": "QueueStarveAfter",
+    "InputType": "number",
+    "DefaultValue": "600",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "7200",
+    "Suffix": "s"
+  },
+  {
+    "DisplayName": "Attente maximale",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Acces:shield:5",
+    "Description": "Secondes apres lesquelles un joueur sans place est relache. 0 : aucune limite.",
+    "Keywords": "queuemaxwait",
+    "FieldName": "QueueMaxWait",
+    "InputType": "number",
+    "DefaultValue": "3600",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "7200",
+    "Suffix": "s"
+  },
+  {
+    "DisplayName": "Ping maximal",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Acces:shield:5",
+    "Description": "Ping maximal a l'entree, jusqu'a 1000 ms. 0 accepte tout le monde.",
+    "Keywords": "maxping",
+    "FieldName": "MaxPing",
+    "InputType": "number",
+    "DefaultValue": "0",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "1000",
+    "Suffix": "ms"
+  },
+  {
+    "DisplayName": "Journal de chat",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Acces:shield:5",
+    "Description": "Garde le chat texte du serveur dans un fichier par jour.",
+    "Keywords": "chatlog",
+    "FieldName": "ChatLog",
+    "InputType": "checkbox",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Autoriser les bots",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Bots:smart_toy:6",
+    "Description": "Laisse les bots rejoindre : ceux du serveur, et le binaire reclaimer-bot s'il a le role bots.run.",
+    "Keywords": "allowbots",
+    "FieldName": "AllowBots",
+    "InputType": "checkbox",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Bots combattants",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Bots:smart_toy:6",
+    "Description": "Joueurs combattants heberges par le serveur en multijoueur. Ils occupent des places dans les joueurs maximum.",
+    "Keywords": "combatbots",
+    "FieldName": "CombatBots",
+    "InputType": "number",
+    "DefaultValue": "0",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "128"
+  },
+  {
+    "DisplayName": "Bots pilotes",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Bots:smart_toy:6",
+    "Description": "Parmi les bots combattants, combien conduisent et pilotent des vehicules.",
+    "Keywords": "botpilots",
+    "FieldName": "BotPilots",
+    "InputType": "number",
+    "DefaultValue": "0",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "128"
+  },
+  {
+    "DisplayName": "Telecharger les mods",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mods:extension:7",
+    "Description": "Telecharge les objets d'atelier listes ci-dessous dans content/Mods/Workshop/<id>.",
+    "Keywords": "downloadworkshopitems",
+    "FieldName": "DownloadWorkshopItems",
+    "InputType": "checkbox",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Objets d atelier",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mods:extension:7",
+    "Description": "Identifiants d'objets d'atelier, separes par des virgules, 64 au plus. Une collection n'est pas un objet : lister chaque identifiant.",
+    "Keywords": "workshopitems",
+    "FieldName": "WorkshopItems",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Verification des mises a jour",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mods:extension:7",
+    "Description": "Minutes entre deux recherches de nouvelles versions des objets installes, 5 au minimum. 0 : jamais.",
+    "Keywords": "workshopupdateminutes",
+    "FieldName": "WorkshopUpdateMinutes",
+    "InputType": "number",
+    "DefaultValue": "60",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "1440",
+    "Suffix": "min"
+  },
+  {
+    "DisplayName": "SteamCMD",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mods:extension:7",
+    "Description": "Chemin du programme SteamCMD. Vide : celui d'AMP est utilise s'il existe, sinon l'application Steam de la machine.",
+    "Keywords": "steamcmdpath",
+    "FieldName": "SteamcmdPath",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Compte Steam",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mods:extension:7",
+    "Description": "Compte avec lequel SteamCMD est connecte, proprietaire de MCC. Vide : celui de la session en cache d'AMP. Jamais de mot de passe.",
+    "Keywords": "steamusername",
+    "FieldName": "SteamUsername",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Partager les mods",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mods:extension:7",
+    "Description": "Les joueurs a qui il manque un mod le telechargent depuis le serveur, au lieu du Workshop.",
+    "Keywords": "sharemods",
+    "FieldName": "ShareMods",
+    "InputType": "checkbox",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Debit de partage",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Mods:extension:7",
+    "Description": "Limite d'emission des telechargements servis par le serveur. 0 : aucune limite.",
+    "Keywords": "sharerate",
+    "FieldName": "ShareRate",
+    "InputType": "number",
+    "DefaultValue": "20",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "1000",
+    "Suffix": "Mbit/s"
+  },
+  {
+    "DisplayName": "Qui edite en Forge",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Forge:construction:8",
+    "Description": "En mode game_type, suit le reglage Allow editing du type de partie. En roles, seuls les joueurs dont le role tient forge.edit passent en moniteur.",
+    "Keywords": "forgeedit",
+    "FieldName": "ForgeEdit",
+    "InputType": "enum",
+    "DefaultValue": "game_type",
+    "EnumValues": {
+      "game_type": "Selon le type de partie",
+      "roles": "Selon les roles"
+    }
+  },
+  {
+    "DisplayName": "Primitives Reclaimer",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Forge:construction:8",
+    "Description": "Ajoute les primitives de Project Reclaimer a la palette Forge.",
+    "Keywords": "forgeprimitives",
+    "FieldName": "ForgePrimitives",
+    "InputType": "checkbox",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Objets ODST en Forge",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Forge:construction:8",
+    "Description": "Ajoute les objets de Halo 3: ODST a la palette des cartes de Halo 3. Les parties exigent alors ODST.",
+    "Keywords": "odstobjects",
+    "FieldName": "OdstObjects",
+    "InputType": "checkbox",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Objets Halo 3 en Forge",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Forge:construction:8",
+    "Description": "Garde les objets de Halo 3 dans la palette des cartes ODST.",
+    "Keywords": "halo3objects",
+    "FieldName": "Halo3Objects",
+    "InputType": "checkbox",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Mods en Forge",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Forge:construction:8",
+    "Description": "Mods dont les objets rejoignent la palette, par titre, dossier de paquet ou workshop:<id>, separes par des virgules.",
+    "Keywords": "forgemods",
+    "FieldName": "ForgeMods",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Mot de passe console",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Exploitation:monitoring:9",
+    "Description": "Active la console distante : 8 a 128 caracteres. Vide : console desactivee.",
+    "Keywords": "rconpassword",
+    "FieldName": "RconPassword",
+    "InputType": "password",
+    "DefaultValue": "",
+    "EnumValues": {}
+  },
+  {
+    "DisplayName": "Adresse de la console",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Exploitation:monitoring:9",
+    "Description": "Adresse d'ecoute de la console. 0.0.0.0 : tout le reseau.",
+    "Keywords": "rconaddress",
+    "FieldName": "RconAddress",
+    "InputType": "text",
+    "DefaultValue": "127.0.0.1",
+    "EnumValues": {},
+    "Placeholder": "127.0.0.1"
+  },
+  {
+    "DisplayName": "Port de console dedie",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Exploitation:monitoring:9",
+    "Description": "Port TCP de la console pour ce serveur, 1024 ou plus. 0 : le numero du port de jeu.",
+    "Keywords": "rconport",
+    "FieldName": "RconPort",
+    "InputType": "number",
+    "DefaultValue": "0",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "65535"
+  },
+  {
+    "DisplayName": "Metriques HTTP",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Exploitation:monitoring:9",
+    "Description": "Adresse de bouclage, par exemple 127.0.0.1:9310, ou le serveur repond a GET /health et GET /metrics.",
+    "Keywords": "metricshttp",
+    "FieldName": "MetricsHttp",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Maitre local",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Exploitation:monitoring:9",
+    "Description": "Fait tourner le maitre de cette machine, sur le port ci-dessous.",
+    "Keywords": "masterenabled",
+    "FieldName": "MasterEnabled",
+    "InputType": "checkbox",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Port du maitre",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Exploitation:monitoring:9",
+    "Description": "Port TCP et UDP du maitre. Les navigateurs de serveurs des joueurs le cherchent a 49175.",
+    "Keywords": "masterport",
+    "FieldName": "MasterPort",
+    "InputType": "number",
+    "DefaultValue": "49175",
+    "EnumValues": {},
+    "MinValue": "1024",
+    "MaxValue": "65535"
+  },
+  {
+    "DisplayName": "Maitres pairs",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Exploitation:monitoring:9",
+    "Description": "Autres maitres sous la forme http://hote:port, separes par des virgules. Chaque serveur s'y declare aussi.",
+    "Keywords": "masterpeers",
+    "FieldName": "MasterPeers",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Origine du maitre",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Exploitation:monitoring:9",
+    "Description": "Adresse par laquelle les autres joignent ce maitre, sous la forme http://hote:port.",
+    "Keywords": "masterorigin",
+    "FieldName": "MasterOrigin",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Statistiques",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Exploitation:monitoring:9",
+    "Description": "Envoie les parties terminees au service public de statistiques. Decoche pour n'envoyer nulle part.",
+    "Keywords": "statsreporting",
+    "FieldName": "StatsReporting",
+    "InputType": "checkbox",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Copies des rapports",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Exploitation:monitoring:9",
+    "Description": "Jusqu'a 8 services supplementaires qui recoivent une copie de chaque rapport signe, separes par des virgules.",
+    "Keywords": "statscopies",
+    "FieldName": "StatsCopies",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Films de serveur",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Exploitation:monitoring:9",
+    "Description": "Destinataires des films enregistres par le serveur, separes par des virgules.",
+    "Keywords": "filmreceivers",
+    "FieldName": "FilmReceivers",
+    "InputType": "text",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "Placeholder": ""
+  },
+  {
+    "DisplayName": "Debit d envoi des films",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Exploitation:monitoring:9",
+    "Description": "Limite d'envoi des films, en Kbit/s. 0 : aucune limite.",
+    "Keywords": "filmuploadkbps",
+    "FieldName": "FilmUploadKbps",
+    "InputType": "number",
+    "DefaultValue": "0",
+    "EnumValues": {},
+    "MinValue": "0",
+    "MaxValue": "100000"
+  },
+  {
+    "DisplayName": "Ouvrir les ports par UPnP",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Exploitation:monitoring:9",
+    "Description": "Demande au routeur d'ouvrir les ports par UPnP ou PCP. A laisser de cote sur un serveur dedie.",
+    "Keywords": "upnp",
+    "FieldName": "Upnp",
+    "InputType": "checkbox",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Mise a jour automatique",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Exploitation:monitoring:9",
+    "Description": "Installe les nouvelles versions stables et redemarre les serveurs, ce qui interrompt les parties. A decocher pour garder la meme version que les joueurs.",
+    "Keywords": "autoupdate",
+    "FieldName": "AutoUpdate",
+    "InputType": "checkbox",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Rechargement automatique",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Exploitation:monitoring:9",
+    "Description": "Applique a chaud les modifications du fichier, des playlists et du dossier content.",
+    "Keywords": "autoreload",
+    "FieldName": "AutoReload",
+    "InputType": "checkbox",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Telecharger les fichiers du jeu",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Sources:cloud_download:10",
+    "Description": "Recupere les fichiers MCC necessaires par le steamcmd d'AMP et sa session en cache, sans mot de passe.",
+    "Keywords": "downloadgamefiles",
+    "FieldName": "DownloadGameFiles",
+    "InputType": "checkbox",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  },
+  {
+    "DisplayName": "Depot du jeu",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Sources:cloud_download:10",
+    "Description": "976738 est celui que la documentation du mod demande : campagne incluse. 976739 suffit au multijoueur seul.",
+    "Keywords": "gamedepot",
+    "FieldName": "GameDepot",
+    "InputType": "enum",
+    "DefaultValue": "976738",
+    "EnumValues": {
+      "976738": "Halo 3 multijoueur et campagne",
+      "976739": "Halo 3 multijoueur seul (pas de campagne)"
+    }
+  },
+  {
+    "DisplayName": "Version du serveur",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Sources:cloud_download:10",
+    "Description": "latest, ou un tag precis (v0.10.8) pour rester sur la meme version que les joueurs.",
+    "Keywords": "versiontag",
+    "FieldName": "VersionTag",
+    "InputType": "text",
+    "DefaultValue": "latest",
+    "EnumValues": {},
+    "Placeholder": "latest"
+  },
+  {
+    "DisplayName": "Verifier l empreinte",
+    "Category": "Reclaimer:videogame_asset",
+    "Subcategory": "Sources:cloud_download:10",
+    "Description": "Compare l'archive telechargee au fichier SHA256SUMS.txt de la release.",
+    "Keywords": "verifychecksum",
+    "FieldName": "VerifyChecksum",
+    "InputType": "checkbox",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    }
+  }
+]
