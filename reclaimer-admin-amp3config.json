@@ -1355,7 +1355,7 @@
     "DisplayName": "Depot du jeu",
     "Category": "Reclaimer:videogame_asset",
     "Subcategory": "Sources:cloud_download:10",
-    "Description": "Identifiants de depots MCC a installer, separes par des virgules. Mesures : 976738 = Halo 3 multijoueur et campagne (campaign.map present, celui que la documentation demande), 976739 = Halo 3 multijoueur seul, 976731 = Halo: Reach, 976733 et 976734 = Halo: Combat Evolved, 976735 = Halo 2, 976737 = groundhog (paquet commun). ODST correspond au dernier depot non teste, 976736 : a confirmer par un telechargement avant de le proposer.",
+    "Description": "Identifiants de depots MCC a installer, separes par des virgules. Mesures : 976738 = Halo 3 multijoueur et campagne (campaign.map present, celui que la documentation demande), 976739 = Halo 3 multijoueur seul, 976731 = Halo: Reach, 976733 et 976734 = Halo: Combat Evolved, 976735 et 976736 = Halo 2, 976737 = groundhog (paquet commun). ODST n'a ete trouve dans aucun depot teste : le dernier candidat, 976732, est en cours de verification.",
     "Keywords": "gamedepot",
     "FieldName": "GameDepot",
     "InputType": "text",
