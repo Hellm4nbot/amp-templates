@@ -34,6 +34,43 @@ LOG="$ROOT/steamcmd-last.log"
 
 log() { echo "[coodsz-steam] $*"; }
 
+# --- 0. La session Steam d AMP, quand elle existe ---
+# Mesure du 21/11 sur AMP 3 : AMP installe son steamcmd dans .amp/steamcmd et garde
+# un home persistant dont la session en cache est reutilisable (ConnectCache dans
+# config.vdf). L objet Coop s est telecharge par ce chemin, 6 481 424 135 octets,
+# sans mot de passe. C est donc le chemin prefere ; les identifiants restent le
+# repli quand l instance n a jamais ouvert de session.
+SC_AMP=""
+for cand in /amp/.amp/steamcmd/steamcmd.sh "$ROOT../.amp/steamcmd/steamcmd.sh"; do
+    if [ -x "$cand" ]; then SC_AMP="$cand"; break; fi
+done
+COMPTE_AMP=""
+AMP_HOME=""
+for h in "$HOME" /home/amp "$ROOT../.amp/home" "$ROOT.virtualhome"; do
+    vdf="$h/Steam/config/config.vdf"
+    [ -f "$vdf" ] || continue
+    compte=$(sed -n '/"Accounts"/,/^[[:space:]]*}/p' "$vdf" | grep -oE '"[^"]+"' | sed -n '2p' | tr -d '"')
+    if [ -n "$compte" ] && grep -q "ConnectCache" "$vdf"; then
+        COMPTE_AMP="$compte"
+        AMP_HOME="$h"
+        break
+    fi
+done
+AMP_OK=0
+if [ -n "$SC_AMP" ] && [ -n "$COMPTE_AMP" ]; then
+    log "session Steam d AMP reutilisee : $COMPTE_AMP"
+    HOME="$AMP_HOME" "$SC_AMP" +login "$COMPTE_AMP" \
+        +workshop_download_item 261550 "$ITEM" +quit 2>&1 | tee "$LOG"
+    if grep -q "Success. Downloaded item" "$LOG" 2>/dev/null; then
+        AMP_OK=1
+        HOME_SC="$AMP_HOME"
+        log "atelier recupere par la session d AMP, sans mot de passe"
+    else
+        log "session d AMP insuffisante : on passe aux identifiants"
+    fi
+fi
+
+if [ "$AMP_OK" = "0" ]; then
 if [ -z "$SUSER" ]; then
     log "aucun compte Steam renseigne (reglage « Steam Username ») : etape ignoree, ce n'est pas une erreur."
     log "les fichiers du serveur dedie ne sont pas recuperes ; renseigne le compte puis relance Update."
@@ -106,6 +143,8 @@ if [ "$APRES" = "present" ] && [ "$AVANT" = "absent" ]; then
 elif [ "$APRES" = "absent" ] && [ -n "$SPASS" ]; then
     log "aucune session enregistree par SteamCMD : le mot de passe sera redemande au prochain update"
     log "  (mesure : aucun fichier ssfn* n'est ecrit dans ce conteneur, quelle que soit la connexion)"
+fi
+
 fi
 
 CONTENT="$HOME_SC/Steam/steamapps/workshop/content/261550"
