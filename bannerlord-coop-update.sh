@@ -105,6 +105,29 @@ if [ -f "$CRED" ]; then
     rm -f "$CRED"
 fi
 
+# Chemin prefere : le steamcmd d AMP et la session qu il a lui-meme ouverte.
+# Mesure du 21/11 sur une instance AMP3 : AMP installe son steamcmd dans
+# /amp/.amp/steamcmd et garde le home correspondant ; sa session en cache y est
+# reutilisable telle quelle, sans mot de passe ni code. L objet Coop a ete
+# telecharge par ce chemin : 6 481 424 135 octets, "Logging in using cached
+# credentials".
+SC_AMP=""
+for cand in /amp/.amp/steamcmd/steamcmd.sh "${ROOT}../.amp/steamcmd/steamcmd.sh"; do
+    if [ -x "$cand" ]; then SC_AMP="$cand"; break; fi
+done
+COMPTE_AMP=""
+AMP_HOME=""
+for h in "$HOME" /home/amp "${ROOT}../.amp/home" "${ROOT}.virtualhome"; do
+    vdf="$h/Steam/config/config.vdf"
+    [ -f "$vdf" ] || continue
+    compte=$(sed -n '/"Accounts"/,/^[[:space:]]*}/p' "$vdf" | grep -oE '"[^"]+"' | sed -n '2p' | tr -d '"')
+    if [ -n "$compte" ] && grep -q "ConnectCache" "$vdf"; then
+        COMPTE_AMP="$compte"
+        AMP_HOME="$h"
+        break
+    fi
+done
+
 DEST="${ROOT}steamhome/Steam/steamapps/workshop/content/261550/${ITEM}/DedicatedServer"
 CACHE="${ROOT}cache"
 LOG="${ROOT}steamcmd-last.log"
@@ -126,7 +149,7 @@ raison=""
 if [ "$SRC" != "cdn" ]; then
     echo
     echo "--- 1. atelier Steam ---"
-    if [ ! -x "${ROOT}steamcmd.sh" ]; then
+    if [ ! -x "${ROOT}steamcmd.sh" ] && [ -z "$SC_AMP" ]; then
         echo "    installation de SteamCMD"
         wget -qO "${ROOT}steamcmd.tar.gz" https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz \
             && tar -xzf "${ROOT}steamcmd.tar.gz" -C "$ROOT" \
@@ -143,6 +166,11 @@ if [ "$SRC" != "cdn" ]; then
             +workshop_download_item 261550 "$ITEM" validate +quit 2>&1 | tee "$LOG" | tail -4
         grep -q "Success. Downloaded item" "$LOG"
     }
+    atelier_amp() {
+        HOME="$AMP_HOME" "$SC_AMP" +login "$COMPTE_AMP" \
+            +workshop_download_item 261550 "$ITEM" +quit 2>&1 | tee "$LOG" | tail -4
+        grep -q "Success. Downloaded item" "$LOG"
+    }
     decide_raison() {
         raison="SteamCMD n a pas confirme le telechargement"
         if grep -qiE "Two-factor code mismatch|Invalid Two-factor" "$LOG"; then
@@ -157,7 +185,18 @@ if [ "$SRC" != "cdn" ]; then
             raison="objet d atelier indisponible ou en attente d approbation"
         fi
     }
-    if [ -x "${ROOT}steamcmd.sh" ]; then
+    if [ -n "$SC_AMP" ] && [ -n "$COMPTE_AMP" ]; then
+        echo "    session Steam d AMP reutilisee : $COMPTE_AMP"
+        if atelier_amp; then
+            steam_ok=1
+            DEST="$AMP_HOME/Steam/steamapps/workshop/content/261550/${ITEM}/DedicatedServer"
+            echo "    atelier : OK (session AMP)"
+        else
+            decide_raison
+            echo "    session AMP insuffisante : $raison"
+        fi
+    fi
+    if [ "$steam_ok" = "0" ] && [ -x "${ROOT}steamcmd.sh" ]; then
         if [ -n "$SU" ]; then
             # Compte renseigne : on va droit au but. Mesure du 16/11 : l anonyme
             # ne suffit PAS pour cet objet (SteamCMD repond "Download item ...
