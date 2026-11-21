@@ -1355,7 +1355,7 @@
     "DisplayName": "Depot du jeu",
     "Category": "Reclaimer:videogame_asset",
     "Subcategory": "Sources:cloud_download:10",
-    "Description": "Identifiants de depots MCC a installer, separes par des virgules. 976738 = Halo 3 multijoueur et campagne (celui que la documentation du mod demande), 976739 = multijoueur seul. ODST demande un depot supplementaire, a ajouter quand son identifiant est confirme.",
+    "Description": "Identifiants de depots MCC a installer, separes par des virgules. Mesure : 976738 = Halo 3 multijoueur et campagne (campaign.map present, celui que la documentation demande), 976739 = Halo 3 multijoueur seul, 976733 et 976734 = Halo: Combat Evolved. ODST demande un depot supplementaire, a ajouter quand son identifiant sera confirme.",
     "Keywords": "gamedepot",
     "FieldName": "GameDepot",
     "InputType": "text",
