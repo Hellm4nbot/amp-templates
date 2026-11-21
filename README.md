@@ -13,8 +13,10 @@ un seul `manifest.json` à la racine, tous les fichiers de template au même niv
 | Template | Préfixe des fichiers | Source |
 |---|---|---|
 | Bannerlord Coop Dedicated Server | `bannerlord-coop*` | copie de `rhinotastic/bannerlord-coop-amp-template`, métadonnées adaptées |
+| Bannerlord Coop Dedicated Server (CDN fallback) | `bannerlord-coop-cdn*` | créé ici : même serveur, atelier puis CDN de la team |
+| Bannerlord Coop Dedicated Server v2 (CDN) | `blcoop2*` | **archivé** — voir `archive/README.md` |
 | RimWorld Multiplayer (RWMT) | `rwmt*` | créé ici, à partir du binaire `Server-beta.zip` |
-| Coodsz Coop Server Tool (AMP 3) | `coodszcoop*` | créé ici : outil Windows WPF sous Wine, interface dans le navigateur par noVNC |
+| Coodsz Coop Server Tool (AMP 3) | `coodszcoop*` | **archivé** — voir `archive/README.md` |
 
 ## Installation dans AMP
 
@@ -359,7 +361,7 @@ Validé de bout en bout le 1er novembre 2026 sur AMP 2.8.0.4 : runtime 8.0.15 in
 dans `rwmt/dotnet`, wrapper PTY fonctionnel, serveur en écoute, journal affichant les
 deux lignes de bootstrap.
 
-## Coodsz Coop Server Tool (AMP 3, interface graphique sous Wine)
+## Coodsz Coop Server Tool (AMP 3, interface graphique sous Wine) — ARCHIVÉ
 
 L'outil Coodsz n'existe que pour Windows, en WPF. Il tourne donc sous Wine dans un écran
 virtuel Xvfb, et son interface est servie dans le navigateur par noVNC : AMP pilote le
