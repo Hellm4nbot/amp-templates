@@ -1355,15 +1355,13 @@
     "DisplayName": "Depot du jeu",
     "Category": "Reclaimer:videogame_asset",
     "Subcategory": "Sources:cloud_download:10",
-    "Description": "976738 est celui que la documentation du mod demande : campagne incluse. 976739 suffit au multijoueur seul.",
+    "Description": "Identifiants de depots MCC a installer, separes par des virgules. 976738 = Halo 3 multijoueur et campagne (celui que la documentation du mod demande), 976739 = multijoueur seul. ODST demande un depot supplementaire, a ajouter quand son identifiant est confirme.",
     "Keywords": "gamedepot",
     "FieldName": "GameDepot",
-    "InputType": "enum",
+    "InputType": "text",
     "DefaultValue": "976738",
-    "EnumValues": {
-      "976738": "Halo 3 multijoueur et campagne",
-      "976739": "Halo 3 multijoueur seul (pas de campagne)"
-    }
+    "EnumValues": {},
+    "Placeholder": "976738, 976737"
   },
   {
     "DisplayName": "Version du serveur",
