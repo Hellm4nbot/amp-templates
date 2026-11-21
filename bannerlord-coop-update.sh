@@ -106,7 +106,7 @@ compte_amont() {
     # conteneur (les stages SteamCMD d AMP), .virtualhome (anciennes versions), ou le
     # steamhome de l instance. On les essaie dans cet ordre et on retient celui qui
     # contient une session utilisable.
-    for base in "$HOME" "$AMONT" "${ROOT}.virtualhome" "${ROOT}steamhome"; do
+    for base in "$HOME" "/home/amp" "${AMONT}" "${ROOT}.virtualhome" "${ROOT}../.amp/home" "${ROOT}steamhome"; do
         [ -n "$base" ] || continue
         cfg="${base}/Steam/config/config.vdf"
         [ -f "$cfg" ] || continue
@@ -130,6 +130,15 @@ compte_amont() {
                 return 0
             fi
         done
+    done
+    echo "    emplacements examines (aucune session utilisable) :" >&2
+    for base in "$HOME" "/home/amp" "${AMONT}" "${ROOT}.virtualhome" "${ROOT}../.amp/home" "${ROOT}steamhome"; do
+        cfg="${base}/Steam/config/config.vdf"
+        if [ -f "$cfg" ]; then
+            echo "      $cfg (present, sans ConnectCache ou refusee)" >&2
+        else
+            echo "      $base : pas de Steam/config/config.vdf" >&2
+        fi
     done
     return 1
 }
