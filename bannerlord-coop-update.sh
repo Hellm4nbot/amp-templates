@@ -94,54 +94,16 @@ valeur = donnees.get(sys.argv[3], "")
 print("" if valeur is None else valeur)
 PYJSONC
 
-# Identifiant Steam : plus de mot de passe dans la configuration. AMP fait la connexion
-# (App.SteamForceLoginPrompt) et garde le compte ; le script reutilise ensuite la session
-# en cache, exactement comme le template Halo 3. L anonyme reste tente quand aucun compte
-# n est en cache, parce qu il ne coute rien et que le repli CDN prend le relais.
-AMONT="$(cd "${ROOT}.." 2>/dev/null && pwd)/.virtualhome"
-SHOME="${ROOT}steamhome"
-
-compte_amont() {
-    # Le cache peut vivre a trois endroits selon qui a fait la connexion : le HOME du
-    # conteneur (les stages SteamCMD d AMP), .virtualhome (anciennes versions), ou le
-    # steamhome de l instance. On les essaie dans cet ordre et on retient celui qui
-    # contient une session utilisable.
-    for base in "$HOME" "/home/amp" "${AMONT}" "${ROOT}.virtualhome" "${ROOT}../.amp/home" "${ROOT}steamhome"; do
-        [ -n "$base" ] || continue
-        cfg="${base}/Steam/config/config.vdf"
-        [ -f "$cfg" ] || continue
-        grep -q '"ConnectCache"' "$cfg" || continue
-        noms=$(tr -d '\r' < "$cfg" | awk '
-            /"Accounts"/ { dedans = 1; next }
-            dedans && /^[ \t]*"[^"]+"[ \t]*$/ { t = $0; gsub(/[ \t"]/, "", t) }
-            dedans && /"SteamID"/ && t != "" { print t; t = "" }
-        ')
-        [ -n "$noms" ] || continue
-        # Un nom de compte dans un config.vdf ne prouve rien : le jeton peut etre revoque,
-        # ou appartenir a une autre installation de steamcmd. On sonde donc chaque compte,
-        # meme unique, avec une limite de temps courte, et on passe au home suivant si la
-        # session ne repond pas. Sans cela, un jeton mort produisait un login silencieux
-        # qui tournait indefiniment.
-        for n in $noms; do
-            if HOME="$base" timeout 45 "${ROOT}steamcmd.sh" +login "$n" +quit \
-                    < /dev/null 2>&1 | grep -Eq "Logging in user '[^']*'.*\.\.\.OK"; then
-                CACHE_HOME="$base"
-                printf '%s\n' "$n"
-                return 0
-            fi
-        done
-    done
-    echo "    emplacements examines (aucune session utilisable) :" >&2
-    for base in "$HOME" "/home/amp" "${AMONT}" "${ROOT}.virtualhome" "${ROOT}../.amp/home" "${ROOT}steamhome"; do
-        cfg="${base}/Steam/config/config.vdf"
-        if [ -f "$cfg" ]; then
-            echo "      $cfg (present, sans ConnectCache ou refusee)" >&2
-        else
-            echo "      $base : pas de Steam/config/config.vdf" >&2
-        fi
-    done
-    return 1
-}
+CRED="${ROOT}fb-creds.txt"
+SU=""
+SP=""
+SG=""
+if [ -f "$CRED" ]; then
+    SU=$(sed -n 1p "$CRED")
+    SP=$(sed -n 2p "$CRED")
+    SG=$(sed -n 3p "$CRED")
+    rm -f "$CRED"
+fi
 
 DEST="${ROOT}steamhome/Steam/steamapps/workshop/content/261550/${ITEM}/DedicatedServer"
 CACHE="${ROOT}cache"
@@ -170,43 +132,25 @@ if [ "$SRC" != "cdn" ]; then
             && tar -xzf "${ROOT}steamcmd.tar.gz" -C "$ROOT" \
             && rm -f "${ROOT}steamcmd.tar.gz"
     fi
-    # Sortie en direct : le filtrage precedent (tail -4) ne montrait rien tant que steamcmd
-    # n avait pas termine, et une validation de 6 Go passe pour un blocage. On ne garde que
-    # les lignes utiles, ligne par ligne. Plus de validate : steamcmd verifie deja par
-    # manifeste, et revalider 6 Go a chaque update coutait plusieurs minutes pour rien.
+    # Mesure du 16/11 dans un conteneur propre : l objet d atelier Coop n est PAS
+    # telechargeable en anonyme. SteamCMD se connecte, puis repond
+    # "ERROR! Download item 3770450698 failed (Failure)" - un objet d atelier
+    # rattache a un jeu exige une copie possedee. L anonyme reste donc tente
+    # seulement quand aucun compte n est renseigne, ou il ne coute rien : sans lui
+    # le script partait deja sur le CDN.
     atelier() {
-        # steamcmd lance sans terminal bufferise sa sortie par blocs : rien n apparait
-        # avant la fin, et une validation de 6 Go passe pour un blocage. On lui donne un
-        # pseudo-terminal quand script est disponible, et on ne garde que les lignes utiles.
-        filtre() {
-            tee "$LOG" | grep --line-buffered -E "Logging in|Downloading item|Success\\. Downloaded|ERROR|FAILED|failed" | sed 's/^/    /'
-        }
-        if command -v script >/dev/null 2>&1; then
-            script -qec "timeout 1800 env HOME='$SHOME' '${ROOT}steamcmd.sh' $* +workshop_download_item 261550 '$ITEM' +quit" /dev/null 2>&1 | filtre
-        else
-            timeout 1800 env HOME="$SHOME" "${ROOT}steamcmd.sh" "$@" \
-                +workshop_download_item 261550 "$ITEM" +quit 2>&1 | filtre
-        fi
+        HOME="${ROOT}steamhome" "${ROOT}steamcmd.sh" "$@" \
+            +workshop_download_item 261550 "$ITEM" validate +quit 2>&1 | tee "$LOG" | tail -4
         grep -q "Success. Downloaded item" "$LOG"
-    }
-    # Le contenu atterrit sous le HOME de SteamCMD : celui du cache AMP quand on reutilise
-    # sa session, celui de l instance sinon. On rapatrie pour que la suite du script n ait
-    # qu un seul chemin a connaitre.
-    rapatrier() {
-        [ -d "${DEST}" ] && [ -n "$(ls -A "$DEST" 2>/dev/null)" ] && return 0
-        for base in "${CACHE_HOME:-}" "$SHOME" "${AMONT}"; do
-            [ -n "$base" ] || continue
-            src="${base}/Steam/steamapps/workshop/content/261550/${ITEM}"
-            [ -d "$src" ] || continue
-            mkdir -p "$(dirname "$DEST")" && cp -a "$src/." "$(dirname "$DEST")/" 2>/dev/null
-            return 0
-        done
-        return 0
     }
     decide_raison() {
         raison="SteamCMD n a pas confirme le telechargement"
-        if grep -qiE "Invalid Password|Cached credentials not found|Account Logon Denied|Rate Limit" "$LOG"; then
-            raison="aucune session Steam en cache : cliquer Update depuis AMP et choisir l identifiant qui possede le jeu"
+        if grep -qiE "Two-factor code mismatch|Invalid Two-factor" "$LOG"; then
+            raison="code Steam Guard perime ou errone (inutile quand la session existe : vider le champ et relancer)"
+        elif grep -qiE "Steam Guard code required|Two-factor code required|need two-factor" "$LOG"; then
+            raison="Steam demande un code Steam Guard et aucun n est renseigne (premiere connexion sur cette instance)"
+        elif grep -qiE "Invalid Password|Cached credentials not found|Account Logon Denied|Two-factor|Rate Limit" "$LOG"; then
+            raison="authentification Steam refusee"
         elif grep -qiE "Download item [0-9]+ failed" "$LOG"; then
             raison="compte sans copie du jeu, ou objet non publie"
         elif grep -qiE "not available|Failure" "$LOG"; then
@@ -214,29 +158,51 @@ if [ "$SRC" != "cdn" ]; then
         fi
     }
     if [ -x "${ROOT}steamcmd.sh" ]; then
-        if SU=$(compte_amont); then
-            echo "    session Steam de l instance reutilisee : $SU"
-            SHOME="${CACHE_HOME:-$SHOME}"
-            atelier +login "$SU" && steam_ok=1
+        if [ -n "$SU" ]; then
+            # Compte renseigne : on va droit au but. Mesure du 16/11 : l anonyme
+            # ne suffit PAS pour cet objet (SteamCMD repond "Download item ...
+            # failed (Failure)"), l atelier Coop exige une copie possedee du jeu.
+            echo "    connexion avec le compte Steam"
+            echo "    si Steam demande un code de verification, il s affiche sur le mobile"
+            if [ -n "$SP" ]; then
+                atelier +login "$SU" "$SP" && steam_ok=1
+            else
+                atelier +login "$SU" && steam_ok=1
+            fi
+            # Un code Steam Guard n est demande qu a la premiere connexion : les
+            # fichiers de sentry conserves dans steamhome rendent les suivantes
+            # gratuites. L envoyer d office casse donc une session valide - mesure
+            # du 16/11 : "ERROR (Two-factor code mismatch)" sur une instance ou la
+            # meme connexion sans code venait de reussir. On ne presente le code
+            # que si Steam le reclame, et une seule fois.
+            if [ "$steam_ok" != "1" ] && [ -n "$SG" ] \
+                && grep -qiE "Two-factor code required|Steam Guard code|need two-factor|Enter the current code" "$LOG" \
+                && ! grep -qiE "Two-factor code mismatch|Invalid Two-factor" "$LOG"; then
+                echo "    Steam demande un code : nouvelle tentative avec le code fourni"
+                if [ -n "$SP" ]; then
+                    atelier +login "$SU" "$SP" "$SG" && steam_ok=1
+                else
+                    atelier +login "$SU" "$SG" && steam_ok=1
+                fi
+            fi
             if [ "$steam_ok" = "1" ]; then
                 echo "    atelier : OK (compte)"
             else
                 decide_raison
             fi
         else
-            echo "    aucune session Steam en cache, tentative anonyme"
+            echo "    aucun compte renseigne, tentative anonyme"
             if atelier +login anonymous; then
                 steam_ok=1
                 echo "    atelier : OK (anonyme)"
             else
-                raison="aucune session Steam en cache (l atelier Coop exige une copie du jeu)"
-                echo "    anonyme refuse : $raison"
+                raison="aucun compte Steam renseigne"
+                echo "    anonyme refuse (l atelier Coop exige une copie du jeu) : $raison"
             fi
         fi
     else
         raison="SteamCMD introuvable"
     fi
-    rapatrier
     if [ "$steam_ok" = "1" ] && [ ! -f "$DEST/BannerlordCoopServer.exe" ]; then
         steam_ok=0
         raison="serveur absent apres le telechargement"
