@@ -230,6 +230,60 @@ mesure_copie() {
 }
 # -------------------------------------------------------------------------
 
+# --- 0. verification avant les six gigots ---------------------------------
+# Le pack reclame des modules du jeu que le paquet serveur ne livre pas. Sans eux,
+# l update echoue tout a la fin — apres avoir telecharge et extrait 6,5 Go pour rien
+# (vu deux fois le 21/11 sur une instance neuve, ou game-modules etait vide). On
+# regarde donc avant de commencer, et on s arrete avec la marche a suivre.
+PACKSDIR="${PACKS_DIR:-${ROOT}packs}"
+PACKJSON="${PACKSDIR}/${MODPACK:-vanilla}.json"
+if [ ! -f "$PACKJSON" ]; then
+    mkdir -p "$PACKSDIR" 2>/dev/null || true
+    curl -fsSL --max-time 60 -o "${PACKJSON}.tmp" \
+        "https://raw.githubusercontent.com/Hellm4nbot/amp-templates/main/modpacks/${MODPACK:-vanilla}.json" 2>/dev/null \
+        && mv "${PACKJSON}.tmp" "$PACKJSON" || rm -f "${PACKJSON}.tmp"
+fi
+if [ -f "$PACKJSON" ]; then
+    PREFLIGHT=$(python3 - "$PACKJSON" "${ROOT}game-modules" "${GAME_MODULES_URL:-}" <<'PY' 2>/dev/null
+import json
+import os
+import sys
+
+pack, dossier, url = sys.argv[1], sys.argv[2], sys.argv[3]
+try:
+    d = json.load(open(pack, encoding="utf-8"))
+except Exception:
+    print("OK")
+    raise SystemExit(0)
+attendus = [m["id"] for m in d.get("modules", [])
+            if isinstance(m.get("source"), dict) and m["source"].get("jeu")]
+if not attendus:
+    print("OK")
+    raise SystemExit(0)
+zips = []
+if os.path.isdir(dossier):
+    zips = [f for f in os.listdir(dossier) if f.lower().endswith(".zip")]
+manquants = [m for m in attendus if not os.path.isdir(os.path.join(dossier, m))]
+if not manquants or zips or url:
+    print("OK")
+    raise SystemExit(0)
+print("MANQUE " + " ".join(manquants))
+PY
+)
+    case "${PREFLIGHT:-OK}" in
+        MANQUE*)
+            echo
+            echo "ECHEC avant tout telechargement : modules du jeu absents pour le pack ${MODPACK:-vanilla}."
+            echo "  attendus : ${PREFLIGHT#MANQUE }"
+            echo "  remede 1 : deposer jeu-modules-1.5.7.zip dans ${ROOT}game-modules/"
+            echo "             (un zip pose la est deballe automatiquement)"
+            echo "  remede 2 : renseigner « URL des modules du jeu » et son empreinte dans le panneau"
+            echo "  rien n a ete telecharge."
+            exit 1
+            ;;
+    esac
+fi
+
 
 steam_ok=0
 raison=""
