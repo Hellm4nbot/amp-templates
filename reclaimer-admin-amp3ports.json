@@ -1,0 +1,16 @@
+[
+    {
+        "Protocol": "Both",
+        "Port": 49176,
+        "Ref": "GamePort",
+        "Name": "Port de jeu et de console",
+        "Description": "UDP pour le jeu. La console distante ecoute sur le meme numero en TCP."
+    },
+    {
+        "Protocol": "TCP",
+        "Port": 49175,
+        "Ref": "MasterPort",
+        "Name": "Port du navigateur de serveurs",
+        "Description": "Port que les navigateurs de serveurs interrogent pour lister ce serveur."
+    }
+]
