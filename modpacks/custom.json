@@ -1,18 +1,18 @@
 {
   "nom": "custom",
   "libelle": "Pack minimal : Coop + deux modules du jeu (temoins)",
-  "jeu": "1.4.8",
-  "coop": "0.1.7",
+  "jeu": "1.5.7",
+  "coop": "0.1.8",
   "monde": "auto",
-  "note": "Pack de validation du chemin modde. Il ne contient aucun mod d interface : ni MCM, ni UIExtenderEx, ni ButterLib, qui sont precisement ce qui empeche un serveur sans ecran de demarrer. Ce qu il exerce : le starter TaleWorlds.Starter.DotNetCore avec le jeton _MODULES_ et un ordre de modules different du vanilla. CustomBattle vient de l installation du jeu de l operateur (DedicatedServerType=none). BirthAndDeath n y figure pas : Coop refuse la DLC (« DLC is not supported ») et gere lui-meme les naissances et les morts par son propre reglage birthAndDeath, dans CoopData/mod-config.json.",
+  "note": "Pack de validation du chemin modde. Il ne contient aucun mod d interface : ni MCM, ni UIExtenderEx, ni ButterLib, qui sont precisement ce qui empeche un serveur sans ecran de demarrer. Ce qu il exerce : le starter TaleWorlds.Starter.DotNetCore avec le jeton _MODULES_ et un ordre de modules different du vanilla. StoryMode et CustomBattle viennent de l installation du jeu de l operateur (DedicatedServerType=none) : Coop 0.1.8 les declare tous les deux en v1.5.7, le paquet serveur ne les livre pas. BirthAndDeath n y figure pas : Coop refuse la DLC (« DLC is not supported ») et gere lui-meme les naissances et les morts par son propre reglage birthAndDeath, dans CoopData/mod-config.json. NavalDLC n y figure pas non plus : le paquet la livre et le serveur l ajoute seul quand modOptions.warSails vaut true.",
   "sources": {
     "modules_du_jeu": {
       "type": "archive",
       "url": "",
-      "sha256": "",
-      "taille": 0,
+      "sha256": "c6710e81eb22d57b717507c94c361713f04da4448ec750bd99fa540f4aec7d6c",
+      "taille": 53591206,
       "destination": "game-modules",
-      "remarque": "modules officiels du jeu (CustomBattle, BirthAndDeath) : non redistribues. Renseigner l url et l empreinte depuis le panneau, ou deposer l archive dans le dossier des modules du jeu."
+      "remarque": "StoryMode + CustomBattle extraits de Bannerlord 1.5.7 (branche public, buildid 26566465). Non redistribues: deposer le zip dans le dossier des modules du jeu (il est deballe automatiquement), ou renseigner l url et l empreinte depuis le panneau."
     }
   },
   "modules": [
@@ -31,6 +31,12 @@
       }
     },
     {
+      "id": "StoryMode",
+      "source": {
+        "jeu": true
+      }
+    },
+    {
       "id": "SandBox",
       "source": "engine"
     },
@@ -44,27 +50,27 @@
     }
   ],
   "joueurs": {
-    "jeu": "1.4.8",
+    "jeu": "1.5.7",
     "installer": [
       {
         "nom": "Bannerlord",
-        "version": "1.4.8",
+        "version": "1.5.7",
         "ou": "Steam",
         "lien": "https://steamdb.info/app/261550/patchnotes/"
       },
       {
         "nom": "Mod Coop",
-        "version": "0.1.7 (commit ecd4c479)",
+        "version": "0.1.8 (commit ff01e7c6)",
         "ou": "atelier Steam item 3770450698",
         "lien": "https://steamcommunity.com/sharedfiles/filedetails/?id=3770450698"
       }
     ],
     "etapes": [
-      "Installer Bannerlord 1.4.8 et le mod Coop du meme build que le serveur.",
-      "Copier CustomBattle depuis l installation du jeu dans le dossier Modules. Ne PAS activer la DLC BirthAndDeath : Coop la refuse.",
-      "Activer les modules dans cet ordre : Native, SandBoxCore, CustomBattle, SandBox, BirthAndDeath, DedicatedServer.Windows, Coop.",
-      "Creer une campagne, atteindre la carte, sauvegarder, puis copier le .sav dans le dossier d import du serveur."
+      "Installer Bannerlord 1.5.7 et le mod Coop du meme build que le serveur.",
+      "Copier StoryMode et CustomBattle depuis l installation du jeu dans le dossier Modules du serveur (le pack les installe, mais le serveur doit les avoir).",
+      "Laisser la DLC Birth and Aging Options desactivee: Coop la refuse. Les naissances viennent du reglage birthAndDeath du serveur.",
+      "Creer une campagne, atteindre la carte, sauvegarder, puis copier le .sav et son .json dans le dossier d import du serveur."
     ]
   },
-  "avertissement": "Pack temoin. Coop refuse explicitement le module DLC BirthAndDeath : les naissances et les morts s activent par birthAndDeath=true dans mod-config.json, cote serveur, sans aucun module. Un joueur qui garde la DLC activee cote client ne pourra pas se joindre."
+  "avertissement": "Pack temoin. Coop refuse explicitement le module DLC BirthAndDeath: les naissances et les morts s activent par birthAndDeath=true dans mod-config.json, cote serveur, sans aucun module. Un joueur qui garde la DLC activee cote client ne pourra pas se joindre."
 }

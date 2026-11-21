@@ -740,7 +740,7 @@ echo "  adresse a donner aux joueurs : celle affichee par le panneau pour cette 
 echo "    reseau local pour les joueurs chez vous, adresse publique pour les autres"
 echo "    ne pas confondre avec le port moteur, qui ne sert pas aux joueurs"
 echo "  ports a ouvrir sur le routeur : ${GAMEPORT} et $((GAMEPORT + 1)), en UDP, vers cette machine"
-echo "  cote joueur : Bannerlord ${JEU_NORM:-1.4.8} (numero de build libre), mod Coop ${COOP_ID:-0.1.7} identique"
+echo "  cote joueur : Bannerlord ${JEU_NORM:-1.5.7} (numero de build libre), mod Coop ${COOP_ID:-0.1.8} identique"
 echo "                l adresse se saisit dans l ecran de connexion du client Coop"
 
 echo
