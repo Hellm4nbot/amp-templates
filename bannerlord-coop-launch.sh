@@ -239,9 +239,20 @@ CIBLE_MONDE="$SAVES/$SAVE.sav"
 # Repartir de zero : le reglage du panneau (MondeReset) ou, pour les instances dont la
 # configuration est figee, un fichier monde/RESET. La partie en cours est archivee avant
 # d etre supprimee, et le monde de depart est reinstalle juste apres.
+# AMP rend les cases a cocher en « True » / « False », pas en minuscules : comparer a
+# "true" en dur laissait la case sans effet (constate le 21/11, reset demande, monde
+# inchange). On accepte donc les deux casses et les formes usuelles.
+vrai() {
+    case "$(printf '%s' "${1:-}" | tr 'A-Z' 'a-z')" in
+        true|1|yes|oui|on) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+RESET_DEMANDE=0
+vrai "${MONDE_RESET:-false}" && RESET_DEMANDE=1
 RESET_MARQUE="$ROOT/monde/.reset-fait"
-if [ -f "$ROOT/monde/RESET" ] || [ "${MONDE_RESET:-false}" = "true" ]; then
-    if [ "${MONDE_RESET:-false}" = "true" ] && [ -f "$RESET_MARQUE" ]; then
+if [ -f "$ROOT/monde/RESET" ] || [ "$RESET_DEMANDE" = "1" ]; then
+    if [ "$RESET_DEMANDE" = "1" ] && [ -f "$RESET_MARQUE" ]; then
         log "monde deja remis a zero : decocher le reglage pour pouvoir le refaire"
     elif [ -f "$CIBLE_MONDE" ] || [ -f "$CIBLE_MONDE.json" ] || [ -f "$ROOT/monde/RESET" ]; then
         ARCHIVE="$ROOT/sauvegardes/$(date +%Y%m%d-%H%M)-reset"
@@ -251,7 +262,9 @@ if [ -f "$ROOT/monde/RESET" ] || [ "${MONDE_RESET:-false}" = "true" ]; then
         done
         rm -f "$CIBLE_MONDE" "$CIBLE_MONDE.json" "$ROOT/monde/RESET"
         log "remise a zero : partie archivee dans sauvegardes/$(basename "$ARCHIVE")/ puis supprimee"
-        [ "${MONDE_RESET:-false}" = "true" ] && : > "$RESET_MARQUE"
+        [ "$RESET_DEMANDE" = "1" ] && : > "$RESET_MARQUE"
+    else
+        log "remise a zero demandee, mais aucune partie a archiver : rien a faire"
     fi
 elif [ -f "$RESET_MARQUE" ]; then
     rm -f "$RESET_MARQUE"
