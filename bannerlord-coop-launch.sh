@@ -70,7 +70,7 @@ if [ -d "$DOSSIER_JOURNAUX" ] && [ -w "$DOSSIER_JOURNAUX" ]; then
     # aux cinq premieres boites, on les ecrit a part. Cinq captures suffisent a nommer la
     # cause sans ajouter de volume ensuite.
     exec > >(awk -v J="$JOURNAL" -v I="$JOURNAL.incidents" '
-        BEGIN { bruit = 0; n = 0; captures = 0 }
+        BEGIN { bruit = 0; n = 0; captures = 0; exml = 0; eev = 0; eop = 0 }
         {
             tampon[n % 80] = $0
             n++
@@ -92,12 +92,38 @@ if [ -d "$DOSSIER_JOURNAUX" ] && [ -w "$DOSSIER_JOURNAUX" ]; then
             }
             next
         }
+        /^[[:space:]]*$/ { next }
+        /attribute is not declared|^Node: |^Line: |^XML Path/ {
+            exml++
+            print > J; fflush(J)
+            if (exml % 200 == 1) {
+                ligne = sprintf("[coop] bruit du mod : %d lignes XML ecartees de la console (gardees dans le journal)", exml)
+                print ligne; fflush(); print ligne > J; fflush(J)
+            }
+            next
+        }
+        /Could not find the event index/ {
+            eev++
+            print > J; fflush(J)
+            if (eev % 500 == 1) {
+                ligne = sprintf("[coop] bruit du mod : %d lignes « event index » ecartees de la console", eev)
+                print ligne; fflush(); print ligne > J; fflush(J)
+            }
+            next
+        }
+        /\[DedicatedServer Engine\] opening / {
+            eop++
+            print > J; fflush(J)
+            next
+        }
         { print; fflush(); print > J; fflush(J) }
         END {
             if (bruit > 0) {
                 ligne = sprintf("[coop] bruit TAOM : %d incidents de tick au total", bruit)
                 print ligne > J; fflush(J)
             }
+            ligne = sprintf("[coop] bruit du mod : %d lignes XML, %d « event index » et %d ouvertures de fichiers ecartees de la console", exml, eev, eop)
+            print ligne; fflush(); print ligne > J; fflush(J)
             if (captures > 0) {
                 ligne = sprintf("[coop] captures d incident : %d dans %s.incidents", captures, J)
                 print ligne > J; fflush(J)
@@ -442,21 +468,41 @@ export COOP_DATA_DIR="C:\\users\\$UTILISATEUR\\Documents\\Mount and Blade II Ban
 # la fin de ce fichier et on ne reemet que les lignes qui comptent.
 LOGCOOP="$DATA/logs/Coop_server.log"
 relais_journal() {
-    # tail -F suit les rotations et attend le fichier s il n existe pas encore. On ne
-    # surveille plus la vie du shell : /usr/bin/wine lance le serveur puis rend la main,
-    # donc le pid du shell mourait aussitot et le relais s arretait avant d avoir lu quoi
-    # que ce soit — vu le 21/11, console muette alors que le serveur tournait. Le relais
-    # disparait avec le conteneur, ce qui suffit.
-    tail -n 0 -F "$1" 2>/dev/null | while IFS= read -r l; do
-        l=${l%$'\r'}
-        case "$l" in
-            *"Server listening on UDP"*) echo "[coop] ===== SERVEUR PRET : ecoute sur UDP $PORT =====" ;;
-            *"is changing to MapState"*) echo "[coop] campagne chargee" ;;
-            *ServerRunningState*)        echo "[coop] etat : en marche, en attente de joueurs" ;;
-            *"difficulty (effective)"*)  echo "[coop] $(printf '%s' "${l#*] }" | cut -c1-150)" ;;
-            *" ERR "*)                   echo "[coop] ERREUR MOD : $(printf '%s' "${l#*] }" | cut -c1-150)" ;;
-            *"Mission state:"*)          echo "[coop] battement : $(printf '%s' "${l#*] }" | cut -c1-120)" ;;
-        esac
+    # Lecture par sondage, pas par tail -F : sur cette instance le tail suivait bien le
+    # bon fichier sans jamais rien remettre (console figee alors que le journal du mod
+    # venait d ecrire « Server listening on UDP port 4206 »). On lit donc les octets
+    # ajoutes toutes les trois secondes, en reperant le fichier par son inode : quand le
+    # mod fait tourner son journal (.prev.log), l inode change et on relit depuis zero.
+    f="$1"
+    marque=""
+    pos=0
+    while :; do
+        if [ -f "$f" ]; then
+            ino=$(stat -c%i "$f" 2>/dev/null || echo 0)
+            taille=$(stat -c%s "$f" 2>/dev/null || echo 0)
+            if [ -z "$marque" ]; then
+                marque="$ino"        # premier passage : on repart de la fin du fichier
+                pos="$taille"
+            elif [ "$ino" != "$marque" ]; then
+                marque="$ino"        # journal remplace : on le lit depuis le debut
+                pos=0
+            fi
+            if [ "$taille" -gt "$pos" ]; then
+                tail -c +$((pos + 1)) "$f" 2>/dev/null | while IFS= read -r l; do
+                    l=${l%$'\r'}
+                    case "$l" in
+                        *"Server listening on UDP"*) echo "[coop] ===== SERVEUR PRET : ecoute sur UDP $PORT =====" ;;
+                        *"is changing to MapState"*) echo "[coop] campagne chargee" ;;
+                        *ServerRunningState*)        echo "[coop] etat : en marche, en attente de joueurs" ;;
+                        *"difficulty (effective)"*)  echo "[coop] $(printf '%s' "${l#*] }" | cut -c1-150)" ;;
+                        *" ERR "*)                   echo "[coop] ERREUR MOD : $(printf '%s' "${l#*] }" | cut -c1-150)" ;;
+                        *"Mission state:"*)          echo "[coop] battement : $(printf '%s' "${l#*] }" | cut -c1-120)" ;;
+                    esac
+                done
+                pos="$taille"
+            fi
+        fi
+        sleep 3
     done
 }
 relais_journal "$LOGCOOP" &
