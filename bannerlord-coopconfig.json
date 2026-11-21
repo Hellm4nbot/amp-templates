@@ -287,11 +287,47 @@
     "InputType": "checkbox"
   },
   {
+    "FieldName": "SteamUsername",
+    "DisplayName": "Steam Username",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Steam:cloud_download:4",
+    "Description": "Steam account used to download the mod from the Workshop. The account must own Mount & Blade II: Bannerlord. Required before the first update",
+    "Keywords": "steam,username,account,login",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "IncludeInCommandLine": false,
+    "InputType": "text"
+  },
+  {
+    "FieldName": "SteamPassword",
+    "DisplayName": "Steam Password",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Steam:cloud_download:4",
+    "Description": "Only needed for the first login. Once SteamCMD has cached a login token you can clear this field and updates will keep working. Avoid passwords containing single quotes",
+    "Keywords": "steam,password,login",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "IncludeInCommandLine": false,
+    "InputType": "password"
+  },
+  {
+    "FieldName": "SteamGuardCode",
+    "DisplayName": "Steam Guard Code",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Steam:cloud_download:4",
+    "Description": "Current Steam Guard code, if the account has 2FA enabled. Only needed for the first login - clear it afterwards. Codes expire quickly, so set it immediately before clicking Update",
+    "Keywords": "steam,guard,2fa,mfa,code",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "IncludeInCommandLine": false,
+    "InputType": "text"
+  },
+  {
     "FieldName": "WorkshopItemID",
     "DisplayName": "Workshop Item ID",
     "Category": "Bannerlord Coop:stadia_controller",
     "Subcategory": "Steam:cloud_download:4",
-    "Description": "L atelier Coop exige une copie du jeu. AMP demande le compte au premier Update (bouton « Choisir un identifiant ») et garde la session : plus aucun mot de passe dans la configuration. Le numero est la partie apres id= dans l adresse de l objet.",
+    "Description": "Steam Workshop ID of the Bannerlord Coop mod. Only change this to track a different (e.g. nightly) release",
     "Keywords": "workshop,mod,id,item",
     "DefaultValue": "3770450698",
     "EnumValues": {},
