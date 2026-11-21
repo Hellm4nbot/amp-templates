@@ -187,10 +187,24 @@ else:
 }
 
 mesure_atelier() {
-    local n l
-    n=$(du -sb "$1" 2>/dev/null | cut -f1)
-    l=$(tail -1 "$LOG" 2>/dev/null | tr -d '\r' | cut -c1-80)
-    echo "      atelier : $(lisible "${n:-0}") ecrits — ${l:-(en cours)}"
+    local base="$1" n=0 c v l
+    # Deux endroits compte tenu de la facon dont steamcmd travaille : il ecrit dans
+    # steamapps/downloading puis deplace l objet dans workshop/content. Mesurer
+    # seulement le dossier final affichait « 0 Ko » pendant tout le telechargement,
+    # ce qui se lit exactement comme une panne — vu le 21/11 sur une instance neuve.
+    for c in "$base/Steam/steamapps/downloading" \
+             "$base/Steam/steamapps/workshop/content/261550/${ITEM}"; do
+        [ -e "$c" ] || continue
+        v=$(du -sb "$c" 2>/dev/null | cut -f1)
+        v=${v:-0}
+        [ "$v" -gt "$n" ] && n="$v"
+    done
+    l=$(tail -1 "$LOG" 2>/dev/null | tr -d '\r' | cut -c1-64)
+    if [ "$n" -gt 0 ]; then
+        echo "      atelier : $(lisible "$n") ecrits — ${l}"
+    else
+        echo "      atelier : steamcmd ne publie pas d avancement (${l})"
+    fi
 }
 
 mesure_telechargement() {
