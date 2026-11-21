@@ -442,36 +442,24 @@ export COOP_DATA_DIR="C:\\users\\$UTILISATEUR\\Documents\\Mount and Blade II Ban
 # la fin de ce fichier et on ne reemet que les lignes qui comptent.
 LOGCOOP="$DATA/logs/Coop_server.log"
 relais_journal() {
-    pos=0
-    # Le pid du serveur est passe en argument ($$ du shell avant l exec, qui garde son
-    # pid). PPID ne conviendrait pas : une fois le serveur mort le relais est reparente
-    # a init, PPID vaudrait 1 et la boucle ne s arreterait jamais.
-    parent=$1
-    sleep 3
-    [ -f "$LOGCOOP" ] && pos=$(stat -c%s "$LOGCOOP" 2>/dev/null || echo 0)
-    while kill -0 "$parent" 2>/dev/null; do
-        if [ -f "$LOGCOOP" ]; then
-            taille=$(stat -c%s "$LOGCOOP" 2>/dev/null || echo 0)
-            if [ "$taille" -gt "$pos" ]; then
-                tail -c +$((pos + 1)) "$LOGCOOP" 2>/dev/null | tr -d '\r' | while IFS= read -r l; do
-                    case "$l" in
-                        *"Server listening on UDP"*) echo "[coop] ===== SERVEUR PRET : ecoute sur UDP $PORT =====" ;;
-                        *"is changing to MapState"*) echo "[coop] campagne chargee" ;;
-                        *ServerRunningState*)        echo "[coop] etat : en marche, en attente de joueurs" ;;
-                        *"difficulty (effective)"*)  echo "[coop] $(printf '%s' "${l#*] }" | cut -c1-150)" ;;
-                        *" ERR "*)                   echo "[coop] ERREUR MOD : $(printf '%s' "${l#*] }" | cut -c1-150)" ;;
-                        *"Mission state:"*)          echo "[coop] battement : $(printf '%s' "${l#*] }" | cut -c1-120)" ;;
-                    esac
-                done
-                pos=$taille
-            elif [ "$taille" -lt "$pos" ]; then
-                pos=0
-            fi
-        fi
-        sleep 5
+    # tail -F suit les rotations et attend le fichier s il n existe pas encore. On ne
+    # surveille plus la vie du shell : /usr/bin/wine lance le serveur puis rend la main,
+    # donc le pid du shell mourait aussitot et le relais s arretait avant d avoir lu quoi
+    # que ce soit — vu le 21/11, console muette alors que le serveur tournait. Le relais
+    # disparait avec le conteneur, ce qui suffit.
+    tail -n 0 -F "$1" 2>/dev/null | while IFS= read -r l; do
+        l=${l%$'\r'}
+        case "$l" in
+            *"Server listening on UDP"*) echo "[coop] ===== SERVEUR PRET : ecoute sur UDP $PORT =====" ;;
+            *"is changing to MapState"*) echo "[coop] campagne chargee" ;;
+            *ServerRunningState*)        echo "[coop] etat : en marche, en attente de joueurs" ;;
+            *"difficulty (effective)"*)  echo "[coop] $(printf '%s' "${l#*] }" | cut -c1-150)" ;;
+            *" ERR "*)                   echo "[coop] ERREUR MOD : $(printf '%s' "${l#*] }" | cut -c1-150)" ;;
+            *"Mission state:"*)          echo "[coop] battement : $(printf '%s' "${l#*] }" | cut -c1-120)" ;;
+        esac
     done
 }
-relais_journal $$ &
+relais_journal "$LOGCOOP" &
 log "reperes du mod relayes ici, journal complet : $LOGCOOP"
 
 # /no_watchdog est obligatoire des qu'un mod est present : le moteur signale ses
