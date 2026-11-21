@@ -1,5 +1,13 @@
 [
   {
+    "UpdateStageName": "Steam Login",
+    "UpdateSourcePlatform": "All",
+    "UpdateSource": "SteamCMD",
+    "UpdateSourceData": "228980",
+    "ForceDownloadPlatform": "Linux",
+    "SkipOnFailure": true
+  },
+  {
     "UpdateStageName": "Steam Workshop, then team CDN fallback",
     "UpdateSourcePlatform": "Linux",
     "UpdateSource": "Executable",
