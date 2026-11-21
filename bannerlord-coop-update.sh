@@ -246,6 +246,24 @@ if [ "$SRC" != "cdn" ]; then
         steam_ok=0
         raison="serveur absent apres le telechargement"
     fi
+    # Le paquet d atelier retarde sur les releases : le 21/11/2026 l atelier servait
+    # encore 0.1.7 (jeu 1.4.8) alors que 0.1.8 (jeu 1.5.7) etait publiee sur le CDN et
+    # en attente de revue Steam. Sans ce controle, « auto » prefere silencieusement le
+    # build le plus vieux : le telechargement reussit, donc rien ne signale l ecart, et
+    # le serveur installe est celui que la garde de version refusera ensuite.
+    # On lit la seule chose que le paquet dit de lui-meme — « Game version: » — et on
+    # laisse le repli CDN faire son travail quand elle ne correspond pas a l epingle.
+    if [ "$steam_ok" = "1" ] && [ -n "$GAME_VERSION" ] && [ -f "$DEST/release-info.txt" ]; then
+        JEU_ATELIER=$(tr -d '\r' < "$DEST/release-info.txt" \
+            | sed -n 's/^Game version:[[:space:]]*//p' | head -1 \
+            | sed 's/^.*: Bannerlord[[:space:]]*//; s/^[[:space:]]*[vV]//; s/[[:space:]]*$//')
+        JEU_VOULU=$(printf '%s' "$GAME_VERSION" | sed 's/^[[:space:]]*[vV]//; s/[[:space:]]*$//')
+        if [ -n "$JEU_ATELIER" ] && [ -n "$JEU_VOULU" ] && [ "$JEU_ATELIER" != "$JEU_VOULU" ]; then
+            echo "    atelier : paquet en jeu ${JEU_ATELIER}, l epingle demande ${JEU_VOULU} — build d atelier ecarte"
+            steam_ok=0
+            raison="paquet d atelier en jeu ${JEU_ATELIER} alors que ${JEU_VOULU} est epingle (l atelier retarde sur les releases)"
+        fi
+    fi
     if [ "$steam_ok" = "1" ]; then
         echo "    atelier : OK"
     else
