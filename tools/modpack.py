@@ -1098,18 +1098,30 @@ def exigences_module(dossier):
     except ET.ParseError:
         return exigences
 
+    # Deux balises, deux noms d attribut pour la version : <DependedModule> porte
+    # DependentVersion, <DependedModuleMetadata> porte version. Ne lire que le
+    # second laisse passer une dependance citee sans version — et c est justement
+    # la forme qu utilise Coop depuis 0.1.8 (« DependentVersion="v1.5.7" »), donc
+    # un module de jeu reste en 1.4.8 sans que rien ne le signale.
     vus = set()
-    for balise, cle_id in (("DependedModules/DependedModule", "Id"),
-                           ("DependedModuleMetadatas/DependedModuleMetadata", "id")):
+    for balise, cle_id, cle_version in (
+        ("DependedModules/DependedModule", "Id", ("DependentVersion", "version")),
+        ("DependedModuleMetadatas/DependedModuleMetadata", "id", ("version", "DependentVersion")),
+    ):
         for noeud in racine.findall(balise):
             ident = (noeud.get(cle_id) or "").strip()
             if not ident:
                 continue
             optionnel = (noeud.get("optional") or "").lower() == "true"
+            version = ""
+            for attribut in cle_version:
+                version = (noeud.get(attribut) or "").strip()
+                if version:
+                    break
             exigences.append({
                 "id": ident,
                 "optionnel": optionnel,
-                "version": (noeud.get("version") or "").strip(),
+                "version": version,
                 "ordre": (noeud.get("order") or "").strip(),
             })
             vus.add(ident.lower())
@@ -1165,9 +1177,6 @@ def controler_dependances(manifeste, modules_dir):
         if not os.path.isfile(os.path.join(dossier, "SubModule.xml")):
             continue
         for ex in exigences_module(dossier):
-            if ex["id"].lower() in ("native", "sandboxcore", "sandbox", "storymode",
-                                    "custombattle", "birthanddeath"):
-                pass
             if ex["optionnel"]:
                 continue
             if ex["id"].lower() not in presents:
@@ -1176,12 +1185,15 @@ def controler_dependances(manifeste, modules_dir):
             if ex["version"]:
                 _, version_reelle = presents[ex["id"].lower()]
                 if not version_compatible(version_reelle, ex["version"]):
-                    # Un module absent ne se charge pas ; une version epinglee
-                    # obsolete, si : les builds trainent des epingles perimees
-                    # (LOTRLOME_Armory demande encore Native v1.4.5.* dans une
-                    # archive 2.0.29.5). Avertir, sans bloquer.
+                    # Une epingle perimee d un mod tiers n empeche pas de demarrer :
+                    # les overhauls trainent des versions anciennes (LOTRLOME_Armory
+                    # demande encore Native v1.4.5.* dans une archive 2.0.29.5), donc
+                    # c est un avertissement. Les exigences du mod Coop, elles, sont
+                    # le contrat du serveur : un module de jeu reste en 1.4.8 sous une
+                    # 0.1.8 (jeu 1.5.7) et le serveur refuse de demarrer. Bloquant.
+                    gravite = "bloquant" if ident.lower() == "coop" else "avertissement"
                     problemes.append(
-                        ("avertissement",
+                        (gravite,
                          "%s epingle %s %s — version presente %s"
                          % (ident, ex["id"], ex["version"], version_reelle or "inconnue")))
     return problemes

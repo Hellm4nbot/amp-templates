@@ -4,7 +4,7 @@
     "DisplayName": "URL des modules du jeu",
     "Category": "Bannerlord Coop:stadia_controller",
     "Subcategory": "Sources du pack:cloud_download:3",
-    "Description": "Archive zip contenant les modules officiels de Bannerlord dont le paquet serveur ne dispose pas (CustomBattle, BirthAndDeath). A heberger vous-meme : ces fichiers ne peuvent pas etre redistribues. Remplacable quand ces dossiers changent.",
+    "Description": "Archive zip contenant les modules officiels de Bannerlord dont le paquet serveur ne dispose pas (StoryMode, CustomBattle). A heberger vous-meme : ces fichiers ne peuvent pas etre redistribues. Remplacable quand ces dossiers changent.",
     "Keywords": "url des modules du jeu",
     "DefaultValue": "",
     "IncludeInCommandLine": false,
@@ -28,7 +28,7 @@
     "DisplayName": "Modules du jeu (dossier)",
     "Category": "Bannerlord Coop:stadia_controller",
     "Subcategory": "Sources du pack:cloud_download:3",
-    "Description": "Dossier ou deposer les modules copies de votre installation de Bannerlord 1.4.8 (CustomBattle, BirthAndDeath, StoryMode...). Le paquet serveur Coop ne livre que cinq modules ; un serveur modde a besoin de ceux-la, et ils ne peuvent pas etre redistribues : c est votre copie du jeu qui les fournit.",
+    "Description": "Dossier ou deposer les modules officiels copiees de votre installation de Bannerlord 1.5.7 (StoryMode, CustomBattle). Le paquet serveur Coop 0.1.8 en declare cinq — Native, SandBoxCore, Sandbox, CustomBattle, StoryMode — mais n en livre que trois : les deux autres viennent de votre copie du jeu et ne peuvent pas etre redistribues. Un zip depose ici est deballe automatiquement. Ne PAS y mettre BirthAndDeath ni NavalDLC : Coop refuse la premiere comme module, et la seconde arrive deja dans le paquet et s active par warSails dans mod-config.json.",
     "Keywords": "modules du jeu (dossier)",
     "DefaultValue": "./bannerlordcoop/game-modules/",
     "IncludeInCommandLine": false,
@@ -868,12 +868,12 @@
     "DisplayName": "Game version this build is for",
     "Category": "Server Update:cloud_download",
     "Subcategory": "Versions:verified:1",
-    "Description": "Bannerlord version the installed package was built for, read as 'Game version:' in its release-info.txt and compared after every update. A leading v is ignored, so 1.4.8 and v1.4.8 are the same version. Leave the matching value when you deliberately move to a new game version.",
+    "Description": "Bannerlord version the installed package was built for, read as 'Game version:' in its release-info.txt and compared after every update. A leading v is ignored, so 1.5.7 and v1.5.7 are the same version. Leave the matching value when you deliberately move to a new game version.",
     "Keywords": "version,game,bannerlord,guard",
-    "DefaultValue": "1.4.8",
+    "DefaultValue": "1.5.7",
     "EnumValues": {},
     "InputType": "text",
-    "Placeholder": "1.4.8"
+    "Placeholder": "1.5.7"
   },
   {
     "FieldName": "CoopBuild",
@@ -882,10 +882,10 @@
     "Subcategory": "Versions:verified:1",
     "Description": "Coop release this server is validated on. For an install that came from the team CDN, the resolved release tag is compared to this value after every update. For an install that came from the Workshop, the release-info.txt names a commit instead of a version, so nothing is compared here: use Coop commit below.",
     "Keywords": "version,coop,build,guard",
-    "DefaultValue": "0.1.7",
+    "DefaultValue": "0.1.8",
     "EnumValues": {},
     "InputType": "text",
-    "Placeholder": "0.1.7"
+    "Placeholder": "0.1.8"
   },
   {
     "FieldName": "CoopCommit",
@@ -897,7 +897,7 @@
     "DefaultValue": "",
     "EnumValues": {},
     "InputType": "text",
-    "Placeholder": "ecd4c479b0c35348c13c3ff4710cea87f799aa40"
+    "Placeholder": "ff01e7c6705f0c716633d3d4d839f94f3c0ccae9"
   },
   {
     "FieldName": "BlockOnVersionMismatch",
