@@ -8,7 +8,8 @@
 #
 # Variables fournies par le template : ROOT, BASE, GAMEPORT, GAMEPORT2, GAME_VERSION,
 # COOP_BUILD, COOP_COMMIT, STRICT_VERSION, MODPACK, PACKS_DIR, MODPACK_URL,
-# MODPACK_SHA256, GAME_MODULES_DIR, GAME_MODULES_URL, GAME_MODULES_SHA256, ITEM, SRC, TAG.
+# MODPACK_SHA256, GAME_MODULES_DIR, GAME_MODULES_URL, GAME_MODULES_SHA256, ITEM, SRC, TAG,
+# SERVER_MIRROR_URL, CLIENT_MIRROR_URL.
 
 set -u
 
@@ -28,6 +29,8 @@ GAME_VERSION="${GAME_VERSION:-}"
 COOP_BUILD="${COOP_BUILD:-}"
 COOP_COMMIT="${COOP_COMMIT:-}"
 STRICT_VERSION="${STRICT_VERSION:-0}"
+SERVER_MIRROR_URL="${SERVER_MIRROR_URL:-}"
+CLIENT_MIRROR_URL="${CLIENT_MIRROR_URL:-}"
 
 # Lecteur JSON tolerant, ecrit une fois et reutilise : Coop produit du JSONC
 # (commentaires, virgules finales) et un fichier parfaitement valide echoue
@@ -129,6 +132,12 @@ for h in "$HOME" /home/amp "${ROOT}../.amp/home" "${ROOT}.virtualhome"; do
 done
 
 DEST="${ROOT}steamhome/Steam/steamapps/workshop/content/261550/${ITEM}/DedicatedServer"
+# PKG = ou le paquet vient d etre telecharge, DEST = ou le lancement le lit.
+# Les deux ne coincident pas avec la session d AMP : steamcmd ecrit dans le home
+# d AMP, alors que bannerlord-coop-launch.sh lit ${ROOT}steamhome/... Confondre
+# les deux installe cinq gigots que personne ne lit, et le serveur refuse de
+# demarrer avec « modules manquants » alors que tout est present ailleurs.
+PKG=""
 CACHE="${ROOT}cache"
 LOG="${ROOT}steamcmd-last.log"
 WINE=$(command -v wine 2>/dev/null || echo /usr/bin/wine)
@@ -189,7 +198,7 @@ if [ "$SRC" != "cdn" ]; then
         echo "    session Steam d AMP reutilisee : $COMPTE_AMP"
         if atelier_amp; then
             steam_ok=1
-            DEST="$AMP_HOME/Steam/steamapps/workshop/content/261550/${ITEM}/DedicatedServer"
+            PKG="$AMP_HOME/Steam/steamapps/workshop/content/261550/${ITEM}/DedicatedServer"
             echo "    atelier : OK (session AMP)"
         else
             decide_raison
@@ -242,7 +251,7 @@ if [ "$SRC" != "cdn" ]; then
     else
         raison="SteamCMD introuvable"
     fi
-    if [ "$steam_ok" = "1" ] && [ ! -f "$DEST/BannerlordCoopServer.exe" ]; then
+    if [ "$steam_ok" = "1" ] && [ ! -f "${PKG:-$DEST}/BannerlordCoopServer.exe" ]; then
         steam_ok=0
         raison="serveur absent apres le telechargement"
     fi
@@ -253,8 +262,8 @@ if [ "$SRC" != "cdn" ]; then
     # le serveur installe est celui que la garde de version refusera ensuite.
     # On lit la seule chose que le paquet dit de lui-meme — « Game version: » — et on
     # laisse le repli CDN faire son travail quand elle ne correspond pas a l epingle.
-    if [ "$steam_ok" = "1" ] && [ -n "$GAME_VERSION" ] && [ -f "$DEST/release-info.txt" ]; then
-        JEU_ATELIER=$(tr -d '\r' < "$DEST/release-info.txt" \
+    if [ "$steam_ok" = "1" ] && [ -n "$GAME_VERSION" ] && [ -f "${PKG:-$DEST}/release-info.txt" ]; then
+        JEU_ATELIER=$(tr -d '\r' < "${PKG:-$DEST}/release-info.txt" \
             | sed -n 's/^Game version:[[:space:]]*//p' | head -1 \
             | sed 's/^.*: Bannerlord[[:space:]]*//; s/^[[:space:]]*[vV]//; s/[[:space:]]*$//')
         JEU_VOULU=$(printf '%s' "$GAME_VERSION" | sed 's/^[[:space:]]*[vV]//; s/[[:space:]]*$//')
@@ -262,6 +271,21 @@ if [ "$SRC" != "cdn" ]; then
             echo "    atelier : paquet en jeu ${JEU_ATELIER}, l epingle demande ${JEU_VOULU} — build d atelier ecarte"
             steam_ok=0
             raison="paquet d atelier en jeu ${JEU_ATELIER} alors que ${JEU_VOULU} est epingle (l atelier retarde sur les releases)"
+        fi
+    fi
+    # Le paquet d atelier descend dans le home de steamcmd : on le rapatrie a
+    # l emplacement que lit bannerlord-coop-launch.sh. La copie ecrase les fichiers
+    # du paquet et laisse le reste — les mods ajoutes a la main survivent.
+    if [ "$steam_ok" = "1" ]; then
+        [ -z "$PKG" ] && PKG="$DEST"
+        if [ "$PKG" != "$DEST" ] && [ -d "$PKG" ]; then
+            mkdir -p "$DEST"
+            if cp -a "$PKG/." "$DEST/" 2>/dev/null; then
+                echo "    paquet rapatrie dans ${DEST}"
+            else
+                steam_ok=0
+                raison="copie du paquet d atelier vers ${DEST} impossible"
+            fi
         fi
     fi
     if [ "$steam_ok" = "1" ]; then
@@ -347,13 +371,35 @@ PY
         if [ -f "$ARCH" ]; then
             echo "    archive en cache non conforme, retelechargement"
         fi
-        echo "    telechargement de $(basename "$AURL")"
-        wget -qO "${ARCH}.part" "$AURL"
-        if [ ! -f "${ARCH}.part" ]; then
-            echo "    telechargement echoue"
+        TEL=0
+        for U in "$AURL" "$SERVER_MIRROR_URL"; do
+            [ -n "$U" ] || continue
+            if [ "$U" = "$AURL" ]; then
+                echo "    telechargement de $(basename "$U")"
+            else
+                echo "    source de secours : $U"
+            fi
+            rm -f "${ARCH}.part"
+            wget -qO "${ARCH}.part" "$U"
+            if [ ! -s "${ARCH}.part" ]; then
+                echo "    source injoignable"
+                continue
+            fi
+            H=$(sha256sum "${ARCH}.part" | cut -d' ' -f1)
+            if [ "$H" != "$ASHA" ]; then
+                echo "    empreinte differente : $H"
+                echo "    archive ecartee (un miroir doit servir exactement l archive de la release)"
+                rm -f "${ARCH}.part"
+                continue
+            fi
+            mv -f "${ARCH}.part" "$ARCH"
+            TEL=1
+            break
+        done
+        if [ "$TEL" != "1" ]; then
+            echo "    telechargement echoue sur toutes les sources"
             exit 1
         fi
-        mv -f "${ARCH}.part" "$ARCH"
     fi
 
     GOT=$(sha256sum "$ARCH" | cut -d' ' -f1)
@@ -565,7 +611,10 @@ PY
     echo
     echo "    version installee :"
     grep -E "Built:|Paired Coop:|Game version:" "$DEST/release-info.txt" 2>/dev/null | sed 's/^/      /'
-    if [ -n "$CLIENT" ]; then
+    if [ -n "${CLIENT_MIRROR_URL:-}" ]; then
+        echo "      client pour les joueurs (build libre, mod Coop identique) : $CLIENT_MIRROR_URL"
+        [ -n "$CLIENT" ] && echo "      source officielle de la release : $CLIENT"
+    elif [ -n "$CLIENT" ]; then
         echo "      client pour les joueurs (build libre, mod Coop identique) : $CLIENT"
     fi
 fi
