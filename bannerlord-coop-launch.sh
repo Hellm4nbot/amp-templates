@@ -112,8 +112,8 @@ OUTIL="$ROOT/tools/modpack.py"
 # Version de jeu annoncee aux joueurs. Elle vient du reglage, avec la valeur du template en
 # secours : le bandeau est imprime avant tout le reste, donc la variable doit exister des ici
 # (set -u fait echouer le script sur une variable non definie).
-JEU="${GAME_VERSION:-1.4.8}"
-COOP_ID="${COOP_BUILD:-0.1.7}"
+JEU="${GAME_VERSION:-1.5.7}"
+COOP_ID="${COOP_BUILD:-0.1.8}"
 
 log() { echo "[coop] $*"; }
 erreur() { echo "[coop] ERREUR : $*" >&2; }

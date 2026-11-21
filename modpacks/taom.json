@@ -5,7 +5,7 @@
   "coop": "0.1.7",
   "monde": "prepare",
   "note_monde": "TAOM construit sa carte a la creation de campagne : un serveur dedie ne peut pas creer ce monde. Il faut un .sav cree sur une machine joueur avec exactement ces modules, puis depose dans le dossier d import.",
-  "note": "Ordre repris de Modules/TAOM.Dependencies/last-good-modlist.txt, livre dans l archive : c est la liste que TAOM a validee jusqu au menu principal (2026-09-13). Elle place TAOM_Map AVANT TAOM, contrairement a la metadonnee DependedModuleMetadata de TAOM_Map qui declare « TAOM LoadBeforeThis » : entre une declaration et une liste mesuree, on suit la mesure.",
+  "note": "Ordre repris de Modules/TAOM.Dependencies/last-good-modlist.txt, livre dans l archive : c est la liste que TAOM a validee jusqu au menu principal (2026-09-13). Elle place TAOM_Map AVANT TAOM, contrairement a la metadonnee DependedModuleMetadata de TAOM_Map qui declare « TAOM LoadBeforeThis » : entre une declaration et une liste mesuree, on suit la mesure. ATTENTION : ce pack reste epingle sur 1.4.8 / Coop 0.1.7, son etat mesure. Il n a jamais ete valide sur 1.5.7 : sous un paquet 0.1.8 la garde refuse de demarrer (Coop declare ses cinq modules en v1.5.7), et c est voulu — une campagne TAOM 1.5.7 serait un essai, pas une reference.",
   "sources": {
     "taom_archive": {
       "type": "archive",

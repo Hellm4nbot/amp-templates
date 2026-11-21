@@ -1,9 +1,19 @@
 {
   "nom": "vanilla",
   "libelle": "Vanilla (Coop seul, aucun mod de gameplay)",
-  "jeu": "1.4.8",
-  "coop": "0.1.7",
-  "note": "Ordre reellement utilise par le serveur Coop dedie tel qu'il tourne aujourd'hui. Sert de temoin: si ce pack ne demarre plus, c'est le template qui a casse, pas les mods.",
+  "jeu": "1.5.7",
+  "coop": "0.1.8",
+  "note": "Ordre reellement utilise par le serveur Coop dedie tel qu'il tourne aujourd'hui. Sert de temoin: si ce pack ne demarre plus, c'est le template qui a casse, pas les mods. Depuis 0.1.8 le mod Coop declare cinq modules en v1.5.7 (Native, SandBoxCore, Sandbox, CustomBattle, StoryMode): le paquet serveur en livre trois, les deux derniers viennent de l'installation du jeu de l'operateur. La place de StoryMode et CustomBattle dans l'ordre prolonge l'ordre 0.1.7 valide — c'est le premier demarrage qui la confirme, pas la documentation.",
+  "sources": {
+    "modules_du_jeu": {
+      "type": "archive",
+      "url": "",
+      "sha256": "c6710e81eb22d57b717507c94c361713f04da4448ec750bd99fa540f4aec7d6c",
+      "taille": 53591206,
+      "destination": "game-modules",
+      "remarque": "StoryMode + CustomBattle extraits de Bannerlord 1.5.7 (branche public, buildid 26566465). Non redistribues: deposer le zip dans le dossier des modules du jeu (il est deballe automatiquement), ou renseigner l url et l empreinte depuis le panneau."
+    }
+  },
   "modules": [
     {
       "id": "Native",
@@ -22,29 +32,42 @@
       "source": "engine"
     },
     {
+      "id": "StoryMode",
+      "source": {
+        "jeu": true
+      }
+    },
+    {
+      "id": "CustomBattle",
+      "source": {
+        "jeu": true
+      }
+    },
+    {
       "id": "Coop",
       "source": "engine"
     }
   ],
   "joueurs": {
-    "jeu": "1.4.8",
+    "jeu": "1.5.7",
     "installer": [
       {
         "nom": "Bannerlord",
-        "version": "1.4.8",
+        "version": "1.5.7",
         "ou": "Steam",
         "lien": "https://steamdb.info/app/261550/patchnotes/"
       },
       {
         "nom": "Mod Coop",
-        "version": "0.1.7 (commit ecd4c479)",
+        "version": "0.1.8 (commit ff01e7c6)",
         "ou": "atelier Steam item 3770450698",
         "lien": "https://steamcommunity.com/sharedfiles/filedetails/?id=3770450698"
       }
     ],
     "etapes": [
-      "Installer Bannerlord 1.4.8 et le mod Coop du meme build que le serveur.",
-      "Le serveur cree le monde lui-meme : rien a preparer, aucune sauvegarde a importer.",
+      "Installer Bannerlord 1.5.7 et le mod Coop du meme build que le serveur.",
+      "Laisser Birth and Aging Options (BirthAndDeath) et War Sails (NavalDLC) desactives dans le launcher: Coop refuse les modules DLC, et les naissances passent par le reglage birthAndDeath du serveur.",
+      "Le serveur cree le monde lui-meme: rien a preparer, aucune sauvegarde a importer.",
       "Le joueur saisit l adresse affichee par le panneau dans l ecran de connexion du client Coop."
     ]
   }
