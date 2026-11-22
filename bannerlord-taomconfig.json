@@ -1,0 +1,1201 @@
+[
+  {
+    "FieldName": "GameModulesUrl",
+    "DisplayName": "URL des modules du jeu",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Sources du pack:cloud_download:3",
+    "Description": "Archive zip des modules officiels du jeu quand vous preferez l heberger que la deposer. Le pack epingle deja le zip de reference (StoryMode + CustomBattle de Bannerlord 1.5.7, empreinte dans le manifeste) : ces deux champs ne servent qu a le remplacer, par exemple pour un autre build du jeu ou un hebergement a vous. A heberger vous-meme : ces fichiers ne peuvent pas etre redistribues.",
+    "Keywords": "url des modules du jeu",
+    "DefaultValue": "",
+    "IncludeInCommandLine": false,
+    "InputType": "text",
+    "ParamField": ""
+  },
+  {
+    "FieldName": "GameModulesSha256",
+    "DisplayName": "Empreinte des modules du jeu",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Sources du pack:cloud_download:3",
+    "Description": "sha256 de l archive ci-dessus. Le manifeste en porte deja une : ne renseigner ce champ que si vous remplacez l archive. Vide, l empreinte du manifeste s applique ; sans aucune empreinte connue, l archive est epinglee au premier telechargement et tout changement ulterieur est refuse.",
+    "Keywords": "empreinte des modules du jeu",
+    "DefaultValue": "",
+    "IncludeInCommandLine": false,
+    "InputType": "text",
+    "ParamField": ""
+  },
+  {
+    "FieldName": "GameModulesDir",
+    "DisplayName": "Modules du jeu (dossier)",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Sources du pack:cloud_download:3",
+    "Description": "Dossier ou deposer les modules officiels copiees de votre installation de Bannerlord 1.5.7 (StoryMode, CustomBattle). Le paquet serveur Coop 0.1.8 en declare cinq — Native, SandBoxCore, Sandbox, CustomBattle, StoryMode — mais n en livre que trois : les deux autres viennent de votre copie du jeu et ne peuvent pas etre redistribues. Un zip depose ici est deballe automatiquement. Ne PAS y mettre BirthAndDeath ni NavalDLC : Coop refuse la premiere comme module, et la seconde arrive deja dans le paquet et s active par warSails dans mod-config.json.",
+    "Keywords": "modules du jeu (dossier)",
+    "DefaultValue": "./bannerlordcoop/game-modules/",
+    "IncludeInCommandLine": false,
+    "InputType": "text",
+    "ParamField": ""
+  },
+  {
+    "FieldName": "ArchiveUrl",
+    "DisplayName": "URL de l archive (facultatif)",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Sources du pack:cloud_download:3",
+    "Description": "Prend le pas sur l URL du manifeste : utile quand un nouveau build du pack sort sans que le depot soit mis a jour. Laisser vide pour utiliser le manifeste. Le manifeste d origine n est pas modifie : vider le champ revient a l ancien comportement.",
+    "Keywords": "url de l archive (facultatif)",
+    "DefaultValue": "",
+    "IncludeInCommandLine": false,
+    "InputType": "text",
+    "ParamField": ""
+  },
+  {
+    "FieldName": "ArchiveSha256",
+    "DisplayName": "Empreinte de l archive (facultatif)",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Sources du pack:cloud_download:3",
+    "Description": "sha256 attendu pour l archive ci-dessus. Vide : l archive est epinglee au premier telechargement, et un changement ulterieur est refuse au lieu d etre installe.",
+    "Keywords": "empreinte de l archive (facultatif)",
+    "DefaultValue": "",
+    "IncludeInCommandLine": false,
+    "InputType": "text",
+    "ParamField": ""
+  },
+  {
+    "FieldName": "ImportDir",
+    "DisplayName": "Dossier d import des sauvegardes",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Monde et sauvegardes:public:2",
+    "Description": "Ou deposer un fichier .sav (et son .json si la sauvegarde vient d un serveur Coop) pour l installer dans Game Saves. L en-tete de la sauvegarde est compare aux modules du pack : une sauvegarde creee avec d autres modules est refusee, avec la liste des ecarts.",
+    "Keywords": "dossier d import des sauvegardes",
+    "DefaultValue": "./bannerlordcoop/import/",
+    "IncludeInCommandLine": false,
+    "InputType": "text",
+    "ParamField": ""
+  },
+  {
+    "FieldName": "Modpack",
+    "DisplayName": "Modpack",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Monde et sauvegardes:public:2",
+    "Description": "Jeu de modules charge par le serveur. taom charge l overhaul TAOM 2.0.41 : TAOM.Dependencies, les modules du jeu, LOTRLOME_Armory, TAOM_Map, TAOM, Coop et TAOM.CoopCompat, dans l ordre du staging officiel du depot TAOM. Le serveur ne peut pas creer un monde TAOM : il faut une sauvegarde faite sur une machine joueur avec ces modules exacts. vanilla sert de temoin et reproduit l ordre du template CDN.",
+    "Keywords": "modpack",
+    "DefaultValue": "taom",
+    "EnumValues": {
+      "taom": "TAOM 2.0.41 (Bannerlord 1.5.7)",
+      "vanilla": "Vanilla (Coop seul, temoin)",
+      "custom": "Personnalise (manifeste dans le dossier de packs)"
+    },
+    "IncludeInCommandLine": false,
+    "InputType": "enum",
+    "ParamField": ""
+  },
+  {
+    "FieldName": "PacksDir",
+    "DisplayName": "Dossier des packs",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Monde et sauvegardes:public:2",
+    "Description": "Ou sont lus les manifestes (*.json), les archives de mods et le registre de compatibilite. Une archive deposee ici est utilisee telle quelle apres controle de son empreinte ; sinon le template telecharge l'original.",
+    "Keywords": "dossier des packs",
+    "DefaultValue": "./bannerlordcoop/packs/",
+    "IncludeInCommandLine": false,
+    "InputType": "text",
+    "ParamField": ""
+  },
+  {
+    "FieldName": "AcceptEula",
+    "DisplayName": "Accept the licence on start",
+    "Category": "Server Update:cloud_download",
+    "Subcategory": "Licence:gavel:1",
+    "Description": "Yes by default: a fresh instance writes its eula.txt (with the eula-sha256 of the licence text it ships) on the first start, so the server becomes reachable without anyone answering a console prompt. Set it to No if you want to read the licence first: the server then asks in the console and waits for an answer. Changing the value after the first start has no effect, because eula.txt already exists.",
+    "Keywords": "eula,licence,license,accept,terms",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "true": "Yes, accept on start (default)",
+      "false": "No, ask in the console"
+    },
+    "InputType": "enum"
+  },
+  {
+    "FieldName": "ServerSource",
+    "DisplayName": "Update source",
+    "Category": "Server Update:cloud_download",
+    "Subcategory": "Source:source:1",
+    "Description": "auto: Steam Workshop first, team CDN only if the workshop download fails. steam: workshop only, fail if unavailable. cdn: skip SteamCMD entirely and take the team's release archive, no Steam account needed.",
+    "Keywords": "update,source,steam,workshop,cdn,github",
+    "DefaultValue": "auto",
+    "EnumValues": {
+      "auto": "Auto (workshop, then CDN)",
+      "steam": "Steam Workshop only",
+      "cdn": "Team CDN only"
+    },
+    "InputType": "enum"
+  },
+  {
+    "FieldName": "ReleaseTag",
+    "DisplayName": "Release tag for CDN",
+    "Category": "Server Update:cloud_download",
+    "Subcategory": "Source:source:1",
+    "Description": "Release tag used when fetching from the team CDN, for example v0.1.7. Write latest to resolve the newest GitHub release automatically. Ignored when the update comes from the workshop.",
+    "Keywords": "release,tag,version,cdn",
+    "DefaultValue": "latest",
+    "EnumValues": {},
+    "InputType": "text",
+    "Placeholder": "latest"
+  },
+  {
+    "FieldName": "ServerMirrorUrl",
+    "DisplayName": "Miroir du paquet serveur",
+    "Category": "Server Update:cloud_download",
+    "Subcategory": "Source:source:1",
+    "Description": "URL d une copie du paquet serveur (.7z), utilisee seulement si le CDN de la team echoue. L archive telechargee est verifiee par l empreinte du manifeste de la release : un miroir qui sert autre chose est ecarte au lieu d etre installe. Vide : aucun secours.",
+    "Keywords": "miroir,mirror,fallback,secours,cdn,7z",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "InputType": "text",
+    "Placeholder": "https://.../BannerlordCoop-DedicatedServer-Win64-v0.1.8.7z"
+  },
+  {
+    "FieldName": "ClientMirrorUrl",
+    "DisplayName": "Miroir du client",
+    "Category": "Server Update:cloud_download",
+    "Subcategory": "Source:source:1",
+    "Description": "URL du zip client affichee aux joueurs a la place de celle de la release. Le client n est jamais telecharge par le serveur : ce champ ne change que la ligne imprimee a la fin de l update. Vide : l URL officielle est affichee.",
+    "Keywords": "miroir,mirror,client,joueurs,zip",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "InputType": "text",
+    "Placeholder": "https://.../BannerlordCoop-v0.1.8.zip"
+  },
+  {
+    "FieldName": "$GamePort",
+    "DisplayName": "Coop Join Port",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Serveur:dns:1",
+    "Description": "UDP port coop clients connect to. Managed by AMP's port settings and written into server-config.json",
+    "Keywords": "port,udp,join,connect",
+    "EnumValues": {},
+    "Hidden": true,
+    "InputType": "number",
+    "ParamFieldName": "$.port"
+  },
+  {
+    "FieldName": "saveName",
+    "DisplayName": "Save Name",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Serveur:dns:1",
+    "Description": "Save to host, from the 'Game Saves' folder in the data directory (no .sav extension). If it does not exist, a fresh world is created from default_new_game.sav and saved under this name",
+    "Keywords": "save,world,campaign,savename",
+    "DefaultValue": "saveauto1",
+    "EnumValues": {},
+    "InputType": "text",
+    "ParamFieldName": "$.saveName",
+    "Placeholder": "saveauto1",
+    "Required": true
+  },
+  {
+    "FieldName": "password",
+    "DisplayName": "Server Password",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Serveur:dns:1",
+    "Description": "Connection password (up to 128 characters). Joining players are prompted for it. Leave empty for an open server",
+    "Keywords": "password,private,lock",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "InputType": "password",
+    "ParamFieldName": "$.password"
+  },
+  {
+    "FieldName": "autosaveMinutes",
+    "DisplayName": "Autosave Interval",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Serveur:dns:1",
+    "Description": "Minutes between world autosaves. 0 disables autosaving. Two previous generations are kept as <saveName>.backup1 and .backup2",
+    "Keywords": "autosave,save,interval,minutes",
+    "DefaultValue": "5",
+    "EnumValues": {},
+    "InputType": "number",
+    "MaxValue": "1440",
+    "MinValue": "0",
+    "ParamFieldName": "$.autosaveMinutes",
+    "Placeholder": "5",
+    "Suffix": "min"
+  },
+  {
+    "FieldName": "$MaxUsers",
+    "DisplayName": "Player Limit",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Serveur:dns:1",
+    "Description": "Maximum number of players shown in the AMP status tab. Display only - the Coop mod supports up to 8 players",
+    "Keywords": "maximum,players,limit,slots",
+    "DefaultValue": "8",
+    "EnumValues": {},
+    "InputType": "number",
+    "MaxValue": "8",
+    "MinValue": "1",
+    "ParamFieldName": "MaxNumberOfPlayers",
+    "Placeholder": "8",
+    "Suffix": "players"
+  },
+  {
+    "FieldName": "steam",
+    "DisplayName": "Advertise on Steam",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Serveur:dns:1",
+    "Description": "Advertise this server as a public Steam lobby so players can find it in the Coop server browser and join through Steam friends, with traffic relayed over Steam (no port forwarding needed). This requires a logged-in Steam CLIENT running on the same machine, which a headless AMP container does not have - leave this off and use direct connect on the Coop Join Port",
+    "Keywords": "steam,lobby,advertise,browser,friends",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox",
+    "ParamFieldName": "$.steam"
+  },
+  {
+    "FieldName": "logFile",
+    "DisplayName": "Write Log Files",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Serveur:dns:1",
+    "Description": "Write everything the server prints to logs/coop-server-*.log in the data directory (one file per launch, newest 10 kept). Disable for console output only",
+    "Keywords": "log,logging,file",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox",
+    "ParamFieldName": "$.logFile"
+  },
+  {
+    "FieldName": "Region",
+    "DisplayName": "Region",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Lanceur:rocket_launch:5",
+    "Description": "Region code passed to the engine on startup (--region)",
+    "Keywords": "region,eu,na",
+    "DefaultValue": "EU",
+    "EnumValues": {},
+    "IncludeInCommandLine": false,
+    "InputType": "text",
+    "Placeholder": "EU",
+    "Required": true
+  },
+  {
+    "FieldName": "TraceFlag",
+    "DisplayName": "Engine Diagnostics",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Lanceur:rocket_launch:5",
+    "Description": "Enable MonoMod instrumentation and crash-dump diagnostics (--trace). This slows the server down noticeably - leave it off unless you are capturing evidence for a bug report",
+    "Keywords": "trace,debug,diagnostics,monomod,crash",
+    "DefaultValue": "",
+    "EnumValues": {
+      "False": "",
+      "True": "--trace"
+    },
+    "IncludeInCommandLine": false,
+    "InputType": "checkbox",
+    "ParamFieldName": "trace"
+  },
+  {
+    "FieldName": "NoWatchdog",
+    "DisplayName": "Disable Crash Watchdog",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Lanceur:rocket_launch:5",
+    "Description": "Skip the engine's Watchdog.exe crash collector (--no-watchdog). Watchdog occupies the process's single debugger slot, which is reported to cause severe performance problems under Wine on Linux - leave this ON unless you are capturing a crash dump for a bug report. Turning it off restores crash dumps but may reintroduce the lag",
+    "Keywords": "watchdog,performance,lag,crash,dump",
+    "DefaultValue": "--no-watchdog",
+    "EnumValues": {
+      "False": "",
+      "True": "--no-watchdog"
+    },
+    "IncludeInCommandLine": false,
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "SteamUsername",
+    "DisplayName": "Steam Username",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Steam:cloud_download:4",
+    "Description": "Compte qui possede le jeu. AMP ouvre deja cette session — mesure du 21/11 : « session Steam d AMP reutilisee : hellm4n_ », sans mot de passe ni code. Ce champ ne sert que si cette session manque ou est refusee.",
+    "Keywords": "steam,username,account,login",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "IncludeInCommandLine": false,
+    "InputType": "text"
+  },
+  {
+    "FieldName": "SteamPassword",
+    "DisplayName": "Steam Password",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Steam:cloud_download:4",
+    "Description": "Utilise seulement si la session d AMP est absente ou refusee. Vide dans le cas normal, et le laisser vide est un choix : un mot de passe fourni sans besoin change le chemin de connexion et peut faire reclamer un code Steam Guard.",
+    "Keywords": "steam,password,login",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "IncludeInCommandLine": false,
+    "InputType": "password"
+  },
+  {
+    "FieldName": "SteamGuardCode",
+    "DisplayName": "Steam Guard Code",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Steam:cloud_download:4",
+    "Description": "Code du mobile, une trentaine de secondes. Inutile quand la session d AMP existe, et nuisible : presente d office sur une session valide, Steam repond « Two-factor code mismatch ». Le script ne le presente que si Steam le reclame.",
+    "Keywords": "steam,guard,2fa,mfa,code",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "IncludeInCommandLine": false,
+    "InputType": "text"
+  },
+  {
+    "FieldName": "WorkshopItemID",
+    "DisplayName": "Workshop Item ID",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Steam:cloud_download:4",
+    "Description": "Steam Workshop ID of the Bannerlord Coop mod. Only change this to track a different (e.g. nightly) release. L atelier retarde sur les releases : le build telecharge est compare par sa ligne « Game version: » a l epingle Game version ci-dessus, et un build d atelier plus ancien est ecarte au profit du CDN de la team au lieu d etre installe.",
+    "Keywords": "workshop,mod,id,item",
+    "DefaultValue": "3770450698",
+    "EnumValues": {},
+    "IncludeInCommandLine": false,
+    "InputType": "text",
+    "Placeholder": "3770450698",
+    "Required": true
+  },
+  {
+    "FieldName": "traceTick",
+    "DisplayName": "Trace Campaign Ticks",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Diagnostics:bug_report:6",
+    "Description": "Emit campaign tick breadcrumbs. Very verbose - only enable when asked to capture tick-path evidence for a bug report",
+    "Keywords": "trace,tick,debug",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox",
+    "ParamFieldName": "$.traceTick"
+  },
+  {
+    "FieldName": "tracePublish",
+    "DisplayName": "Trace Publishes",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Diagnostics:bug_report:6",
+    "Description": "Bracket every subscriber publish invocation. A ticking campaign can emit thousands of lines per minute - only enable for a publish-path failure",
+    "Keywords": "trace,publish,debug",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox",
+    "ParamFieldName": "$.tracePublish"
+  },
+  {
+    "FieldName": "traceBandits",
+    "DisplayName": "Trace Bandits",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Diagnostics:bug_report:6",
+    "Description": "Emit one bandit-party AI sample per campaign pulse. Only enable when asked to capture bandit movement or settlement diagnostics",
+    "Keywords": "trace,bandits,debug",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox",
+    "ParamFieldName": "$.traceBandits"
+  },
+  {
+    "FieldName": "mc_playerReceivedDamage",
+    "DisplayName": "Player Damage Taken",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Campaign Difficulty:trending_up:1",
+    "Description": "Damage players take. Very Easy: -75%. Easy: -50%. Realistic: no change",
+    "Keywords": "difficulty,playerreceiveddamage",
+    "DefaultValue": "VeryEasy",
+    "EnumValues": {
+      "VeryEasy": "Very Easy",
+      "Easy": "Easy",
+      "Realistic": "Realistic"
+    },
+    "InputType": "enum"
+  },
+  {
+    "FieldName": "mc_playerTroopsReceivedDamage",
+    "DisplayName": "Player Troop Damage Taken",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Campaign Difficulty:trending_up:1",
+    "Description": "Damage your troops take. Very Easy: -50%. Easy: -25%. Realistic: no change",
+    "Keywords": "difficulty,playertroopsreceiveddamage",
+    "DefaultValue": "VeryEasy",
+    "EnumValues": {
+      "VeryEasy": "Very Easy",
+      "Easy": "Easy",
+      "Realistic": "Realistic"
+    },
+    "InputType": "enum"
+  },
+  {
+    "FieldName": "mc_combatAIDifficulty",
+    "DisplayName": "Combat AI Difficulty",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Campaign Difficulty:trending_up:1",
+    "Description": "Very Easy: Normal. Easy: Veteran. Realistic: Challenging",
+    "Keywords": "difficulty,combataidifficulty",
+    "DefaultValue": "VeryEasy",
+    "EnumValues": {
+      "VeryEasy": "Very Easy",
+      "Easy": "Easy",
+      "Realistic": "Realistic"
+    },
+    "InputType": "enum"
+  },
+  {
+    "FieldName": "mc_recruitmentDifficulty",
+    "DisplayName": "Recruitment Difficulty",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Campaign Difficulty:trending_up:1",
+    "Description": "Troops available from notables. Very Easy: +2. Easy: +1. Realistic: no change",
+    "Keywords": "difficulty,recruitmentdifficulty",
+    "DefaultValue": "VeryEasy",
+    "EnumValues": {
+      "VeryEasy": "Very Easy",
+      "Easy": "Easy",
+      "Realistic": "Realistic"
+    },
+    "InputType": "enum"
+  },
+  {
+    "FieldName": "mc_playerMapMovementSpeed",
+    "DisplayName": "Map Movement Speed",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Campaign Difficulty:trending_up:1",
+    "Description": "Player party speed while travelling. Very Easy: +10%. Easy: +5%. Realistic: no change",
+    "Keywords": "difficulty,playermapmovementspeed",
+    "DefaultValue": "VeryEasy",
+    "EnumValues": {
+      "VeryEasy": "Very Easy",
+      "Easy": "Easy",
+      "Realistic": "Realistic"
+    },
+    "InputType": "enum"
+  },
+  {
+    "FieldName": "mc_stealthAndDisguiseDifficulty",
+    "DisplayName": "Stealth And Disguise",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Campaign Difficulty:trending_up:1",
+    "Description": "Very Easy: Normal. Easy: Veteran. Realistic: Challenging",
+    "Keywords": "difficulty,stealthanddisguisedifficulty",
+    "DefaultValue": "VeryEasy",
+    "EnumValues": {
+      "VeryEasy": "Very Easy",
+      "Easy": "Easy",
+      "Realistic": "Realistic"
+    },
+    "InputType": "enum"
+  },
+  {
+    "FieldName": "mc_persuasionSuccessChance",
+    "DisplayName": "Persuasion Success Chance",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Campaign Difficulty:trending_up:1",
+    "Description": "Very Easy: +10%. Easy: +5%. Realistic: no change",
+    "Keywords": "difficulty,persuasionsuccesschance",
+    "DefaultValue": "VeryEasy",
+    "EnumValues": {
+      "VeryEasy": "Very Easy",
+      "Easy": "Easy",
+      "Realistic": "Realistic"
+    },
+    "InputType": "enum"
+  },
+  {
+    "FieldName": "mc_clanMemberDeathChance",
+    "DisplayName": "Clan Member Death Chance",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Campaign Difficulty:trending_up:1",
+    "Description": "Chance qu un membre de clan joueur meure au combat quand il est blesse. Very Easy : desactive. Easy : reduit de moitie. Realistic : inchange. Independants du reglage Birth And Death.",
+    "Keywords": "difficulty,clanmemberdeathchance",
+    "DefaultValue": "VeryEasy",
+    "EnumValues": {
+      "VeryEasy": "Very Easy",
+      "Easy": "Easy",
+      "Realistic": "Realistic"
+    },
+    "InputType": "enum"
+  },
+  {
+    "FieldName": "mc_battleDeath",
+    "DisplayName": "Battle Death",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Campaign Difficulty:trending_up:1",
+    "Description": "Morts des heros en combat. Very Easy : aucun heros ne meurt au combat. Easy : les heros joueurs ne peuvent pas mourir. Realistic : tous les heros peuvent mourir. Independants du reglage Birth And Death.",
+    "Keywords": "difficulty,battledeath",
+    "DefaultValue": "VeryEasy",
+    "EnumValues": {
+      "VeryEasy": "Very Easy",
+      "Easy": "Easy",
+      "Realistic": "Realistic"
+    },
+    "InputType": "enum"
+  },
+  {
+    "FieldName": "mc_birthAndDeath",
+    "DisplayName": "Birth And Death",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Campaign Difficulty:trending_up:1",
+    "Description": "Naissances, vieillissement et morts naturelles. Gere par Coop lui-meme depuis la 0.1.8, actif par defaut : le module BirthAndDeath du lanceur ne sert qu a exposer les options dans le menu pause et doit rester DESACTIVE des deux cotes (l activer fait refuser la connexion pour mod incompatible). Ne couvre pas les morts au combat : voir Battle Death et Clan Member Death Chance. La valeur est lue au demarrage — redemarrer le serveur apres l avoir changee.",
+    "Keywords": "birth,death,aging",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_autoAllocateClanMemberPerks",
+    "DisplayName": "Auto Allocate Clan Perks",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Campaign Difficulty:trending_up:1",
+    "Description": "Automatically allocate perks for members of player clans",
+    "Keywords": "perks,clan,auto",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_battleSize",
+    "DisplayName": "Battle Size",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Total human troops allocated across both sides of a battle. Lower this if battles run badly",
+    "Keywords": "battlesize",
+    "DefaultValue": "1000",
+    "EnumValues": {},
+    "InputType": "number",
+    "MaxValue": "1000",
+    "MinValue": "200",
+    "Suffix": "troops"
+  },
+  {
+    "FieldName": "mc_fastForwardEnabled",
+    "DisplayName": "Allow Fast Forward",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Allow 2x campaign speed. Fast forward is always blocked while a player is in a battle",
+    "Keywords": "fastforwardenabled",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_autoPauseEnabled",
+    "DisplayName": "Auto Pause",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Pause when all players are occupied in a battle or settlement. The game still auto-pauses for clients catching up and when nobody is online",
+    "Keywords": "autopauseenabled",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_clientsCanUseCheats",
+    "DisplayName": "Clients Can Use Cheats",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Allow clients to cheat in troops, equipment, teleporting etc. Vanilla Bannerlord console commands are always disabled on clients regardless",
+    "Keywords": "clientscanusecheats",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_goldFoodInfluenceChangeInSettlements",
+    "DisplayName": "Gold/Food Change In Settlements",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Or, nourriture et influence qui changent dans les villes. Desactive par defaut chez Coop.",
+    "Keywords": "goldfoodinfluencechangeinsettlements",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_goldFoodInfluenceChangeInBattles",
+    "DisplayName": "Gold/Food Change In Battles",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Or, nourriture et influence en combat : Disabled, OneDayMax ou Enabled. Desactive par defaut.",
+    "Keywords": "goldfoodinfluencechangeinbattles",
+    "DefaultValue": "Disabled",
+    "EnumValues": {
+      "Disabled": "Disabled",
+      "OneDayMax": "One Day Max",
+      "Enabled": "Enabled"
+    },
+    "InputType": "enum"
+  },
+  {
+    "FieldName": "mc_goldFoodInfluenceChangeForDisconnectedPlayers",
+    "DisplayName": "Gold/Food Change While Offline",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Includes income. On: disconnected players still gain and lose gold and food",
+    "Keywords": "goldfoodinfluencechangefordisconnectedplayers",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_playerBattleAiJoinWindowHours",
+    "DisplayName": "AI Battle Join Window",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Heures pendant lesquelles une IA peut rejoindre une bataille de joueur. 6 par defaut.",
+    "Keywords": "playerbattleaijoinwindowhours",
+    "DefaultValue": "6",
+    "EnumValues": {},
+    "InputType": "number",
+    "MaxValue": "720",
+    "MinValue": "0",
+    "Suffix": "hours"
+  },
+  {
+    "FieldName": "mc_speedLimitWhilePlayersInBattle",
+    "DisplayName": "Speed Limit During Battles",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Lock the campaign map to 1x while any player is in a battle",
+    "Keywords": "speedlimitwhileplayersinbattle",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_wandererLimit",
+    "DisplayName": "Wanderer Limit",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "How many wanderers/companions can exist at once. Vanilla is roughly 32",
+    "Keywords": "wandererlimit",
+    "DefaultValue": "32",
+    "EnumValues": {},
+    "InputType": "number",
+    "MaxValue": "500",
+    "MinValue": "0",
+    "Suffix": "wanderers"
+  },
+  {
+    "FieldName": "mc_wandererLimitScalesWithPlayers",
+    "DisplayName": "Scale Wanderers With Players",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Override the fixed limit with one that grows with player count, starting at the vanilla 32. Each clan adds by tier: 0, 0, 5, 5, 5, 10, 10",
+    "Keywords": "wandererlimitscaleswithplayers",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_playerKingdomClanTierRequired",
+    "DisplayName": "Kingdom Clan Tier Required",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Clan tier a player needs to form a kingdom. Vanilla is 4",
+    "Keywords": "playerkingdomclantierrequired",
+    "DefaultValue": "4",
+    "EnumValues": {},
+    "InputType": "number",
+    "MaxValue": "6",
+    "MinValue": "0",
+    "Suffix": "tier"
+  },
+  {
+    "FieldName": "mc_smithingStaminaRecoveryOutsideSettlements",
+    "DisplayName": "Smithing Stamina Outside Settlements",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "On: recover smithing stamina while moving around the map. Off: vanilla behaviour, only while waiting in settlements",
+    "Keywords": "smithingstaminarecoveryoutsidesettlements",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_smithingStaminaRecoveryMultiplier",
+    "DisplayName": "Smithing Stamina Multiplier",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Recuperation d endurance de forge, 0.6 par defaut.",
+    "Keywords": "smithingstaminarecoverymultiplier",
+    "DefaultValue": "0.6",
+    "EnumValues": {},
+    "InputType": "number"
+  },
+  {
+    "FieldName": "mc_maximumLootersMultiplier",
+    "DisplayName": "Bandit Party Count Multiplier",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "How many looter/bandit parties can exist at once. 1 equals the vanilla limit. WARNING: high values cause performance problems",
+    "Keywords": "maximumlootersmultiplier",
+    "DefaultValue": "1.0",
+    "EnumValues": {},
+    "InputType": "number"
+  },
+  {
+    "FieldName": "mc_looterPartySizeMultiplier",
+    "DisplayName": "Bandit Party Size Multiplier",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Size of looter/bandit parties. 1 equals vanilla. Only affects newly spawned parties, not ones already in the save",
+    "Keywords": "looterpartysizemultiplier",
+    "DefaultValue": "1.0",
+    "EnumValues": {},
+    "InputType": "number"
+  },
+  {
+    "FieldName": "mc_lordDefectionRetries",
+    "DisplayName": "Lord Defection Retries",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "How long a lord remembers refusing to defect. Vanilla: blocked for one in-game year. Never Expire: blocked for the session. Always Retry: never blocked",
+    "Keywords": "lorddefectionretries",
+    "DefaultValue": "Vanilla",
+    "EnumValues": {
+      "Vanilla": "Vanilla",
+      "NeverExpire": "Never Expire",
+      "AlwaysRetry": "Always Retry"
+    },
+    "InputType": "enum"
+  },
+  {
+    "FieldName": "mc_enableHeroExecutions",
+    "DisplayName": "Allow Hero Executions",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Executions de heros. Desactive par defaut ; les executions de membres de clan joueur et de joueurs ne fonctionnent que si celui-ci est actif.",
+    "Keywords": "enableheroexecutions",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_enablePlayerClanMemberExecutions",
+    "DisplayName": "Allow Executing Player Clan Members",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Allow executing other players' companions and family. Has no effect if hero executions are off",
+    "Keywords": "enableplayerclanmemberexecutions",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_showPlayerNameplates",
+    "DisplayName": "Player Nameplates",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Allow clients to show nameplates above allied remote players. Off also hides the client-side option",
+    "Keywords": "showplayernameplates",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_playerWoundedBattleEntry",
+    "DisplayName": "Join Battles While Wounded",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Allow players to join battles while wounded",
+    "Keywords": "playerwoundedbattleentry",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_voiceEnabled",
+    "DisplayName": "Proximity Voice",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Enables proximity voice for every player. Runtime changes are session-only. Needs a microphone at each player's end",
+    "Keywords": "voiceenabled",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_allowClientTimeControls",
+    "DisplayName": "Players Control Time",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Players can pause or change the game speed. Off: only the host can, and the game still pauses by itself while someone is joining and when nobody is online",
+    "Keywords": "allowclienttimecontrols",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_blockAiWarDeclarationsOnOfflinePlayers",
+    "DisplayName": "No AI War on Offline Players",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "AI kingdoms stop proposing wars and alliance calls against a player-ruled kingdom while none of its players are online. Existing wars and votes already in progress are untouched",
+    "Keywords": "blockaiwardeclarationsonofflineplayers",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_postBattleAiAmnestySeconds",
+    "DisplayName": "Post Battle AI Amnesty",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Real seconds during which AI parties leave a player alone after a battle, including while paused. 0 = off, a player can be attacked as soon as the loot screen closes",
+    "Keywords": "postbattleaiamnestyseconds",
+    "DefaultValue": "0",
+    "EnumValues": {},
+    "InputType": "number",
+    "Suffix": "s"
+  },
+  {
+    "FieldName": "mc_ensureUnaffiliatedWanderers",
+    "DisplayName": "Keep Wanderers Available",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Keeps a pool of unaffiliated wanderers to recruit. Off: wandererLimit becomes a hard cap that counts wanderers already recruited",
+    "Keywords": "ensureunaffiliatedwanderers",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_spawnRateWanderers",
+    "DisplayName": "Wanderer Spawn Rate",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Wanderers spawned per in-game day. Vanilla is 1. Below 1 means none spawn any more",
+    "Keywords": "spawnratewanderers",
+    "DefaultValue": "1",
+    "EnumValues": {},
+    "InputType": "number"
+  },
+  {
+    "FieldName": "mc_coopClansEnabled",
+    "DisplayName": "Coop Clans",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Players can join another player's clan or propose a player marriage. Turning it off does not dissolve clans that already exist",
+    "Keywords": "coopclansenabled",
+    "DefaultValue": "true",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_enablePlayerExecutions",
+    "DisplayName": "Allow Player Executions",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Players can execute each other, the only requirement being to hold the other as a prisoner. Has no effect unless hero executions are allowed too",
+    "Keywords": "enableplayerexecutions",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_kingdomDecisionVoteTimeoutSeconds",
+    "DisplayName": "Kingdom Vote Timeout",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Seconds players have to vote on a kingdom decision. 60 by default, and anything at or below 0 falls back to 60",
+    "Keywords": "kingdomdecisionvotetimeoutseconds",
+    "DefaultValue": "60",
+    "EnumValues": {},
+    "InputType": "number",
+    "Suffix": "s"
+  },
+  {
+    "FieldName": "mc_clansAfterKingdomDestruction",
+    "DisplayName": "Clans After Kingdom Falls",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Vanilla: clans still in a kingdom are destroyed with it, and independent clans follow the vanilla 28 day rule. KeepClans: every clan survives as an independent clan",
+    "Keywords": "clansafterkingdomdestruction",
+    "DefaultValue": "Vanilla",
+    "EnumValues": {
+      "Vanilla": "Vanilla",
+      "KeepClans": "KeepClans"
+    },
+    "InputType": "enum"
+  },
+  {
+    "FieldName": "mc_preferredBattleHosts",
+    "DisplayName": "Preferred Battle Hosts",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Steam IDs of the players who should host battles, in order of preference, separated by commas. The battle host runs the fight for everyone, so list the best upload first. Empty: whoever finishes loading first hosts",
+    "Keywords": "preferredbattlehosts",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "InputType": "text"
+  },
+  {
+    "FieldName": "mc_pvpBlockLeave",
+    "DisplayName": "Block Leave When Caught",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "A player caught by an enemy player cannot walk away from the meeting. The caught player goes free if the other one does nothing for 30 seconds, or after the meeting timeout when one is set",
+    "Keywords": "pvpblockleave",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_pvpResponseTimerSeconds",
+    "DisplayName": "PvP Answer Timeout",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Seconds a player has to answer another player in a meeting. 0 = off. A caught player who lets it run out gets the battle, as if refusing; other unanswered meetings simply end",
+    "Keywords": "pvpresponsetimerseconds",
+    "DefaultValue": "0",
+    "EnumValues": {},
+    "InputType": "number",
+    "Suffix": "s"
+  },
+  {
+    "FieldName": "mc_maxClansPerKingdom",
+    "DisplayName": "Max Clans per Kingdom",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Caps how many clans one kingdom may hold, so it cannot swallow every clan on a big server. The ruling clan counts. 0 = no limit",
+    "Keywords": "maxclansperkingdom",
+    "DefaultValue": "0",
+    "EnumValues": {},
+    "InputType": "number"
+  },
+  {
+    "FieldName": "mc_maxClansPerKingdomCountsMercenaries",
+    "DisplayName": "Mercenaries Count in Cap",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Mercenary clans count toward the clan cap above. Off: a full kingdom can still hire them, and a player can still sign on as one",
+    "Keywords": "maxclansperkingdomcountsmercenaries",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "mc_warSails",
+    "DisplayName": "War Sails (NavalDLC)",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Mod Options:tune:2",
+    "Description": "Runs the dedicated server with NavalDLC. Off by default. The campaign must have been created with War Sails: a normal save started in this mode stops on Exit 9, and a War Sails save refuses to load without it. NavalDLC is added by the server itself, never put it in the module list",
+    "Keywords": "warsails",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "False": "false",
+      "True": "true"
+    },
+    "InputType": "checkbox"
+  },
+  {
+    "FieldName": "GameVersion",
+    "DisplayName": "Game version this build is for",
+    "Category": "Server Update:cloud_download",
+    "Subcategory": "Versions:verified:1",
+    "Description": "Bannerlord version the installed package was built for, read as 'Game version:' in its release-info.txt and compared after every update. A leading v is ignored, so 1.5.7 and v1.5.7 are the same version. Leave the matching value when you deliberately move to a new game version.",
+    "Keywords": "version,game,bannerlord,guard",
+    "DefaultValue": "1.5.7",
+    "EnumValues": {},
+    "InputType": "text",
+    "Placeholder": "1.5.7"
+  },
+  {
+    "FieldName": "CoopBuild",
+    "DisplayName": "Coop build this server is validated on",
+    "Category": "Server Update:cloud_download",
+    "Subcategory": "Versions:verified:1",
+    "Description": "Coop release this server is validated on. For an install that came from the team CDN, the resolved release tag is compared to this value after every update. For an install that came from the Workshop, the release-info.txt names a commit instead of a version, so nothing is compared here: use Coop commit below.",
+    "Keywords": "version,coop,build,guard",
+    "DefaultValue": "0.1.8",
+    "EnumValues": {},
+    "InputType": "text",
+    "Placeholder": "0.1.8"
+  },
+  {
+    "FieldName": "CoopCommit",
+    "DisplayName": "Coop commit this server is validated on (optional)",
+    "Category": "Server Update:cloud_download",
+    "Subcategory": "Versions:verified:1",
+    "Description": "Leave empty unless you pin one: a Workshop install reports its Coop build as a git commit, not a version number, so this is the only value it can be compared against. Fill in the 40-character commit shown in the server banner or in release-info.txt, and an update that moves the Coop build is reported instead of silently replacing the server.",
+    "Keywords": "version,coop,commit,guard",
+    "DefaultValue": "",
+    "EnumValues": {},
+    "InputType": "text",
+    "Placeholder": "ff01e7c6705f0c716633d3d4d839f94f3c0ccae9"
+  },
+  {
+    "FieldName": "BlockOnVersionMismatch",
+    "DisplayName": "Refuse to finish on a version mismatch",
+    "Category": "Server Update:cloud_download",
+    "Subcategory": "Versions:verified:1",
+    "Description": "No (default): a mismatch is reported and the update still finishes, which is what you want the day you deliberately update. Yes: the update stops with a non-zero code when the installed build differs from the two values above, so a scheduled update cannot move the server to a build you have not validated.",
+    "Keywords": "version,guard,block,strict",
+    "DefaultValue": "false",
+    "EnumValues": {
+      "false": "No (report only)",
+      "true": "Yes, stop on mismatch"
+    },
+    "InputType": "enum"
+  },
+  {
+    "FieldName": "MondeUrl",
+    "DisplayName": "URL du monde de depart (facultatif)",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Monde et sauvegardes:public:2",
+    "Description": "Sauvegarde .sav d ou partir pour ce pack, quand le pack a un monde custom : carte, cache de distances et campagne doivent decrire le meme univers, et un serveur dedie ne sait pas creer cette campagne. Vide : le monde deja present dans Game Saves est repris, ou la copie monde/<pack>-depart.sav si elle existe. Le fichier telecharge est verifie par empreinte et par sa liste de modules avant installation, puis conserve comme point de depart.",
+    "Keywords": "url du monde de depart (facultatif)",
+    "DefaultValue": "",
+    "IncludeInCommandLine": false,
+    "InputType": "text",
+    "ParamField": ""
+  },
+  {
+    "FieldName": "MondeSha256",
+    "DisplayName": "Empreinte du monde de depart (facultatif)",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Monde et sauvegardes:public:2",
+    "Description": "sha256 de la sauvegarde ci-dessus. Vide : l empreinte est epinglee au premier telechargement (ecrite a cote du fichier) et tout changement ulterieur est refuse. Renseigner la valeur connue si vous hebergez le fichier.",
+    "Keywords": "empreinte du monde de depart (facultatif)",
+    "DefaultValue": "",
+    "IncludeInCommandLine": false,
+    "InputType": "text",
+    "ParamField": ""
+  },
+  {
+    "FieldName": "MondeReset",
+    "DisplayName": "Repartir de zero au prochain demarrage",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Monde et sauvegardes:public:2",
+    "Description": "Coche puis demarre : la partie en cours est archivee dans sauvegardes/, supprimee, et le monde de depart est reinstalle. Ne se declenche qu une fois : le lanceur pose un marqueur (monde/.reset-fait), donc redemarrer avec la case encore cochee ne detruit pas le monde neuf. Pour refaire une remise a zero : decocher, demarrer une fois (le marqueur disparait), puis recocher. Sans ce reglage, deposer un fichier vide nomme RESET dans le dossier monde/ fait la meme chose.",
+    "Keywords": "repartir de zero au prochain demarrage",
+    "DefaultValue": "false",
+    "IncludeInCommandLine": false,
+    "InputType": "checkbox",
+    "ParamField": ""
+  },
+  {
+    "FieldName": "mc_mapFullVolumeDistance",
+    "DisplayName": "Voice: Full Volume on Map",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Voix de proximite:record_voice_over:1",
+    "Description": "Distance in metres, on the campaign map, up to which a player's voice is heard at full volume",
+    "Keywords": "mapfullvolumedistance",
+    "DefaultValue": "5",
+    "EnumValues": {},
+    "InputType": "number",
+    "Suffix": "m"
+  },
+  {
+    "FieldName": "mc_mapMaximumDistance",
+    "DisplayName": "Voice: Max Range on Map",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Voix de proximite:record_voice_over:1",
+    "Description": "Distance in metres beyond which a player is not heard at all on the campaign map",
+    "Keywords": "mapmaximumdistance",
+    "DefaultValue": "20",
+    "EnumValues": {},
+    "InputType": "number",
+    "Suffix": "m"
+  },
+  {
+    "FieldName": "mc_sceneFullVolumeDistance",
+    "DisplayName": "Voice: Full Volume in Mission",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Voix de proximite:record_voice_over:1",
+    "Description": "Distance in metres, inside a battle or a scene, up to which a player's voice is heard at full volume",
+    "Keywords": "scenefullvolumedistance",
+    "DefaultValue": "10",
+    "EnumValues": {},
+    "InputType": "number",
+    "Suffix": "m"
+  },
+  {
+    "FieldName": "mc_sceneMaximumDistance",
+    "DisplayName": "Voice: Max Range in Mission",
+    "Category": "Gameplay:sports_esports",
+    "Subcategory": "Voix de proximite:record_voice_over:1",
+    "Description": "Distance in metres beyond which a player is not heard at all inside a battle or a scene",
+    "Keywords": "scenemaximumdistance",
+    "DefaultValue": "50",
+    "EnumValues": {},
+    "InputType": "number",
+    "Suffix": "m"
+  }
+]
