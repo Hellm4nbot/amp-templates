@@ -81,7 +81,7 @@
     "DefaultValue": "vanilla",
     "EnumValues": {
       "vanilla": "Vanilla (Coop seul, temoin)",
-      "taom": "TAOM 2.0.29.5 (Bannerlord 1.4.8)",
+      "taom": "TAOM — utiliser plutot le template « Bannerlord TAOM (AMP3) »",
       "custom": "Personnalise (manifeste dans le dossier de packs)"
     },
     "IncludeInCommandLine": false,
