@@ -119,9 +119,9 @@
     "DisplayName": "Update source",
     "Category": "Server Update:cloud_download",
     "Subcategory": "Source:source:1",
-    "Description": "auto: Steam Workshop first, team CDN only if the workshop download fails. steam: workshop only, fail if unavailable. cdn: skip SteamCMD entirely and take the team's release archive, no Steam account needed.",
+    "Description": "cdn par defaut pour ce template : la release Coop 0.1.8 n existe que sur le GitHub de la team, l objet d atelier 3770450698 livre encore un paquet en jeu 1.4.8 — sur auto on telecharge 6,5 Go pour rien avant de le rejeter. Repasser sur auto le jour ou l atelier publie un paquet 1.5.7. steam : atelier seulement, echec si indisponible.",
     "Keywords": "update,source,steam,workshop,cdn,github",
-    "DefaultValue": "auto",
+    "DefaultValue": "cdn",
     "EnumValues": {
       "auto": "Auto (workshop, then CDN)",
       "steam": "Steam Workshop only",
