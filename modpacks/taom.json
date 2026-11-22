@@ -13,7 +13,8 @@
       "sha256": "d2e97346aa3aabec8edfb3bee57b754858d02b8ae6502a4eaaa2e08f9d9c4c61",
       "taille": 22047916275,
       "prefixe": "Modules",
-      "remarque": "archive officielle TAOM 2.0.41 (build 20261120-2224), non redistribuee. Le lien de partage R2 vu le 22/11 est signe et expire au bout de sept jours : renseigner l url depuis le panneau, ou deposer l archive dans le dossier des packs. L empreinte fait foi."
+      "remarque": "archive officielle TAOM 2.0.41 (build 20261120-2224), non redistribuee. Le lien de partage R2 vu le 22/11 est signe et expire au bout de sept jours : renseigner l url depuis le panneau, ou deposer l archive dans le dossier des packs. L empreinte fait foi.",
+      "nom": "TAOM-2.0.41.zip"
     },
     "coopcompat": {
       "type": "module",
@@ -21,7 +22,8 @@
       "sha256": "2a5c7cb2c69d9cf1db5dc1a4057833edee26e0418d9be6a634658acf1b6ae7d6",
       "taille": 52909,
       "prefixe": "",
-      "remarque": "patch de compatibilite Coop publie par la team TAOM (module a part, non redistribue). Son numero de version doit egaler celui de TAOM : 2.0.41, sinon la comparaison de version refuse la connexion."
+      "remarque": "patch de compatibilite Coop publie par la team TAOM (module a part, non redistribue). Son numero de version doit egaler celui de TAOM : 2.0.41, sinon la comparaison de version refuse la connexion.",
+      "nom": "TAOM.CoopCompat.zip"
     },
     "modules_du_jeu": {
       "type": "archive",
