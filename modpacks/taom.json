@@ -1,19 +1,27 @@
 {
   "nom": "taom",
-  "libelle": "TAOM 2.0.29.5 (Bannerlord 1.4.8)",
-  "jeu": "1.4.8",
-  "coop": "0.1.7",
+  "libelle": "TAOM 2.0.41 (Bannerlord 1.5.7)",
+  "jeu": "1.5.7",
+  "coop": "0.1.8",
   "monde": "prepare",
-  "note_monde": "TAOM construit sa carte a la creation de campagne : un serveur dedie ne peut pas creer ce monde. Il faut un .sav cree sur une machine joueur avec exactement ces modules, puis depose dans le dossier d import.",
-  "note": "Ordre repris de Modules/TAOM.Dependencies/last-good-modlist.txt, livre dans l archive : c est la liste que TAOM a validee jusqu au menu principal (2026-09-13). Elle place TAOM_Map AVANT TAOM, contrairement a la metadonnee DependedModuleMetadata de TAOM_Map qui declare « TAOM LoadBeforeThis » : entre une declaration et une liste mesuree, on suit la mesure. ATTENTION : ce pack reste epingle sur 1.4.8 / Coop 0.1.7, son etat mesure. Il n a jamais ete valide sur 1.5.7 : sous un paquet 0.1.8 la garde refuse de demarrer (Coop declare ses cinq modules en v1.5.7), et c est voulu — une campagne TAOM 1.5.7 serait un essai, pas une reference.",
+  "note_monde": "TAOM construit sa carte a la creation de campagne : un serveur dedie ne peut pas creer ce monde. Il faut un .sav cree sur une machine joueur avec exactement ces modules, puis depose dans le dossier d import (ou servi par URL). Les sauvegardes TAOM 1.4.8 ne se chargent pas en 2.0.41 : nouvelle campagne obligatoire.",
+  "note": "Pack refait pour TAOM 2.0.41 / Bannerlord 1.5.7 / Coop 0.1.8, d apres le guide d installation v2.0.41 et le README de TAOM.CoopCompat. Trois changements par rapport au pack 2.0.29.5 : StoryMode entre dans la liste (TAOM.Dependencies le declare en DependedModule, et Coop 0.1.8 l exige aussi), CustomBattle passe APRES SandBox et StoryMode, et TAOM.CoopCompat vient en dernier. DualWield reste dehors : le module n a aucun binaire Win64_Shipping_Server, c est un mod de client (armes a deux mains, clips d animation).",
   "sources": {
     "taom_archive": {
       "type": "archive",
-      "url": "https://archives.example.invalid/AMP/Mount%20%26%20Blade%20II%20%3A%20Bannerlord/TAOM_2_0_29_5.zip",
-      "sha256": "0aaff9dca5f86dd432cf52d5cbc581b87c2d70924a49bc4f9f9e545f5a10284a",
-      "taille": 19368167073,
+      "url": "",
+      "sha256": "d2e97346aa3aabec8edfb3bee57b754858d02b8ae6502a4eaaa2e08f9d9c4c61",
+      "taille": 22047916275,
       "prefixe": "Modules",
-      "remarque": "archive publique TAOM 2.0.29.5, non redistribuee : le template telecharge l'original et verifie l'empreinte"
+      "remarque": "archive officielle TAOM 2.0.41 (build 20261120-2224), non redistribuee. Le lien de partage R2 vu le 22/11 est signe et expire au bout de sept jours : renseigner l url depuis le panneau, ou deposer l archive dans le dossier des packs. L empreinte fait foi."
+    },
+    "coopcompat": {
+      "type": "module",
+      "url": "",
+      "sha256": "2a5c7cb2c69d9cf1db5dc1a4057833edee26e0418d9be6a634658acf1b6ae7d6",
+      "taille": 52909,
+      "prefixe": "",
+      "remarque": "patch de compatibilite Coop publie par la team TAOM (module a part, non redistribue). Son numero de version doit egaler celui de TAOM : 2.0.41, sinon la comparaison de version refuse la connexion."
     },
     "modules_du_jeu": {
       "type": "archive",
@@ -21,7 +29,7 @@
       "sha256": "",
       "taille": 0,
       "destination": "game-modules",
-      "remarque": "modules officiels du jeu (CustomBattle, BirthAndDeath) : non redistribues. Renseigner l url et l empreinte depuis le panneau, ou deposer l archive dans le dossier des modules du jeu."
+      "remarque": "modules officiels du jeu (StoryMode, CustomBattle) : non redistribues. Renseigner l url et l empreinte depuis le panneau, ou deposer l archive dans le dossier des modules du jeu."
     }
   },
   "modules": [
@@ -42,32 +50,38 @@
       "source": "engine"
     },
     {
+      "id": "SandBox",
+      "source": "engine"
+    },
+    {
+      "id": "StoryMode",
+      "source": {
+        "jeu": true
+      }
+    },
+    {
       "id": "CustomBattle",
       "source": {
         "jeu": true
       }
     },
     {
-      "id": "SandBox",
-      "source": "engine"
-    },
-    {
       "id": "DedicatedServer.Windows",
       "source": "engine"
-    },
-    {
-      "id": "LOTRLOME_Armory",
-      "source": {
-        "archive": "taom_archive",
-        "dossier": "LOTRLOME_Armory"
-      },
-      "mod": "TAOM"
     },
     {
       "id": "TAOM_Map",
       "source": {
         "archive": "taom_archive",
         "dossier": "TAOM_Map"
+      },
+      "mod": "TAOM"
+    },
+    {
+      "id": "LOTRLOME_Armory",
+      "source": {
+        "archive": "taom_archive",
+        "dossier": "LOTRLOME_Armory"
       },
       "mod": "TAOM"
     },
@@ -82,43 +96,63 @@
     {
       "id": "Coop",
       "source": "engine"
+    },
+    {
+      "id": "TAOM.CoopCompat",
+      "source": {
+        "archive": "coopcompat",
+        "dossier": "TAOM.CoopCompat"
+      },
+      "mod": "TAOM"
     }
   ],
   "joueurs": {
-    "jeu": "1.4.8",
+    "jeu": "1.5.7",
     "installer": [
       {
         "nom": "Bannerlord",
-        "version": "1.4.8",
+        "version": "1.5.7",
         "ou": "Steam",
         "lien": "https://steamdb.info/app/261550/patchnotes/"
       },
       {
         "nom": "Mod Coop",
-        "version": "0.1.7 (commit ecd4c479)",
-        "ou": "atelier Steam item 3770450698",
-        "lien": "https://steamcommunity.com/sharedfiles/filedetails/?id=3770450698"
+        "version": "0.1.8",
+        "ou": "GitHub BannerlordCoop (release v0.1.8), et surtout PAS l atelier Steam en plus",
+        "lien": "https://github.com/Bannerlord-Coop-Team/BannerlordCoop/releases"
       },
       {
         "nom": "TAOM",
-        "version": "2.0.29.5",
-        "ou": "NexusMods",
+        "version": "2.0.41",
+        "ou": "TAOM Launcher (canal public)",
         "lien": "https://www.nexusmods.com/mountandblade2bannerlord/mods/7748?tab=files"
+      },
+      {
+        "nom": "TAOM.CoopCompat",
+        "version": "2.0.41",
+        "ou": "Discord TAOM, canal des patchs de compatibilite",
+        "lien": ""
+      },
+      {
+        "nom": "DualWield",
+        "version": "0.10.8",
+        "ou": "fourni dans l archive TAOM, cote client seulement",
+        "lien": ""
       }
     ],
     "etapes": [
-      "Installer Bannerlord 1.4.8 et le mod Coop du meme build que le serveur (le serveur annonce le commit au demarrage).",
-      "Telecharger TAOM 2.0.29.5 sur Nexus et extraire les quatre dossiers (TAOM.Dependencies, TAOM_Map, LOTRLOME_Armory, TAOM) dans le dossier Modules du jeu.",
-      "Activer les modules dans cet ordre : TAOM.Dependencies, puis les modules du jeu, puis TAOM_Map, LOTRLOME_Armory, TAOM.",
-      "Creer une campagne Sandbox (jamais Story Mode : le serveur ne sait pas la charger), atteindre la carte.",
-      "Regler les options MCM en solo avant de creer la sauvegarde : les reglages du serveur sont ceux du fichier de config, pas du .sav.",
-      "Sauvegarder sous le nom voulu, puis copier le .sav dans le dossier d import du serveur.",
-      "Au premier demarrage, le serveur ecrit le fichier .json associe : les joueurs creeront leur personnage lors de leur premiere session."
+      "Installer Bannerlord 1.5.7 et le mod Coop 0.1.8 : une seule copie de Coop. Si l atelier Steam en installe une aussi, desabonner, sinon la connexion casse (« two copies of Coop at the same time break the join »).",
+      "Installer TAOM 2.0.41 avec son launcher, puis ajouter TAOM.CoopCompat, et DualWield cote client.",
+      "Ordre des modules : TAOM.Dependencies, Harmony, ButterLib, UIExtenderEx, MCM, Native, SandBoxCore, SandBox, StoryMode, CustomBattle, TAOM_Map, LOTRLOME_Armory, TAOM, DualWield, Coop, TAOM.CoopCompat.",
+      "DECOCHER : War Sails (NavalDLC) — TAOM ne demarre pas avec, et Coop refuse la connexion si serveur et joueur ne sont pas d accord ; Birth And Aging (module fourni par le lanceur, inutile et refuse par Coop) ; RBM si vous l utilisez.",
+      "Creer une campagne, atteindre la carte, regler les options MCM, puis sauvegarder : le serveur ne peut pas creer de monde.",
+      "Copier la PAIRE .sav + .json dans le dossier d import du serveur — le .sav seul fait perdre les personnages des joueurs.",
+      "Premier demarrage : le serveur ecrit son .json, les joueurs creent leur personnage."
     ]
   },
-  "avertissement": "Le module DLC BirthAndDeath est retire de cette liste : Coop le refuse (« DLC is not supported ») et assure lui-meme les naissances et les morts par son reglage birthAndDeath (CoopData/mod-config.json). CustomBattle, lui, vient de l installation du jeu de l operateur et reste necessaire.",
-  "coop_reconnu": "Modules/TAOM.Dependencies/coop-modules.txt cite « Coop » (atelier 3770450698) comme mod co-op reconnu : TAOM desactive alors son PatchShield destructeur et fait relancer les erreurs de sauvegarde. La combinaison est donc prevue du cote TAOM.",
-  "note_ordre": "L ordre n est pas cosmetique. DedicatedServer.Windows doit venir AVANT le fournisseur de carte (TAOM_Map) : c est ce que fait l outil Coodsz, et son script le dit — « DedicatedServer.Windows was placed before them so their Main_map assets take priority ». Place apres, la carte de l hote gagne et le serveur meurt en creant la scene (0xE0434352 juste apres NAV_MESH). A chaque nouveau build du pack, les dossiers de l archive precedente sont retires avant extraction.",
+  "avertissement": "Le module DLC BirthAndDeath est retire de cette liste : Coop le refuse (« DLC is not supported ») et assure lui-meme les naissances et les morts par son reglage birthAndDeath (CoopData/mod-config.json). StoryMode et CustomBattle, eux, viennent de l installation du jeu de l operateur et sont necessaires.",
+  "coop_reconnu": "Modules/TAOM.Dependencies/coop-modules.txt de la 2.0.41 liste toujours « Coop » (identifiant du mod BannerlordCoop) en plus de BannerlordTogether et BattleLinkMPClient : quand l un d eux tourne, TAOM empeche PatchShield de retirer les patches Harmony tiers et fait relancer les erreurs de sauvegarde au lieu de les avaler. La combinaison TAOM + Coop est donc bien prevue du cote TAOM.",
+  "note_ordre": "L ordre n est pas cosmetique. DedicatedServer.Windows doit venir AVANT le fournisseur de carte (TAOM_Map) : c est ce que fait l outil Coodsz, et son script le dit — « DedicatedServer.Windows was placed before them so their Main_map assets take priority ». Place apres, la carte de l hote gagne et le serveur meurt en creant la scene (0xE0434352 juste apres NAV_MESH). Les metadonnees de la 2.0.41 contredisent le guide sur TAOM_Map et TAOM (TAOM_Map declare « TAOM LoadBeforeThis » la ou le guide met TAOM_Map avant TAOM) : on suit l ordre documente pour la co-op, et le journal de demarrage tranchera. A chaque nouveau build du pack, les dossiers de l archive precedente sont retires avant extraction.",
   "cache_distances": "TAOM_Map",
   "assemblies_interface": [
     "0Harmony.dll",
@@ -174,16 +208,22 @@
       "MCMv5",
       "MCMv5 Basic Implementation",
       "Bannerlord Module Loader"
+    ],
+    "Bannerlord.MBOptionScreen": [
+      "MCMv5",
+      "MCMv5 Basic Implementation",
+      "Bannerlord Module Loader"
     ]
   },
-  "note_sous_modules": "MCM exige un ecran : sur un serveur dedie il charge puis leve une exception muette (0xE0434352, pile Bannerlord.MBOptionScreen). On garde UIExtenderEx et ButterLib, qui n ont pas besoin d interface, et on retire les trois sous-modules MCM a l installation.",
+  "note_sous_modules": "MCM exige un ecran : sur un serveur dedie il charge puis leve une exception muette (0xE0434352, pile Bannerlord.MBOptionScreen). On retire les trois sous-modules MCM des deux endroits ou la 2.0.41 peut les poser : le module TAOM.Dependencies et le dossier Bannerlord.MBOptionScreen, que le launcher TAOM installe lui-meme. UIExtenderEx et ButterLib restent, ils n ont pas besoin d interface.",
   "actions_serveur": {
     "mode": "vanilla-seulement",
     "modules": [
-      "LOTRLOME_Armory"
+      "LOTRLOME_Armory",
+      "TAOM"
     ]
   },
-  "note_actions_serveur": "Le serveur ne resout pas les clips propres au mod : chaque action qui les reference ouvre une modale et gele le tick. On ne garde donc que les animations que les modules de base declarent, plus les actions dont le type est defini.",
+  "note_actions_serveur": "Le serveur ne resout pas les clips propres au mod : chaque action qui les reference ouvre une modale et gele le tick. On ne garde donc que les animations que les modules de base declarent, plus les actions dont le type est defini. Mesure sur la 2.0.29.5 : action_sets.xml portait 37 549 actions, la regle en a garde celles du jeu de base et le journal est passe de 1 432 avertissements a zero.",
   "assets_serveur": [
     {
       "module": "TAOM",
@@ -191,5 +231,5 @@
       "sha256": "68d7bebd063efee9fa262a702222cc5d42482bec5d0969287cc83c18673b2dfe"
     }
   ],
-  "note_assets_serveur": "Paquet de squelettes du serveur dedie, construit par tools/build_ds_skeleton_pack.py de TAOM et publie avec la 2.0.40 : sans lui, 149 recherches d os echouent et ouvrent une modale. Le moteur ne lit <module>/DsAssetPackages que sur l hote, jamais sur le client."
+  "note_assets_serveur": "Paquet de squelettes du serveur dedie, construit par tools/build_ds_skeleton_pack.py de TAOM. Verifie sur la 2.0.41 : le fichier est deja livre dans l archive, et il est octet pour octet identique a celui de la 2.0.40 (48 139 octets, meme empreinte). Il n y a donc rien a poser : on verifie l empreinte, et on alerte si elle change. Sans lui, les recherches d os echouent et ouvrent une modale."
 }
