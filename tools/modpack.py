@@ -230,8 +230,13 @@ def compatibilite(chemin_compat, chemin_manifeste=None):
     return 0
 
 
-def extraire(chemin_manifeste, archive, modules_dir):
+def extraire(chemin_manifeste, archive, modules_dir, cle_source=None):
     """Extrait d'une archive les seuls dossiers de modules du manifeste.
+
+    `cle_source` restreint le traitement aux modules que CETTE archive fournit. Sans
+    elle, un manifeste a deux archives demandait a la premiere d'oublier les modules de
+    la seconde, et l'extraction echouait sur « dossier introuvable » — c'est arrive au
+    premier pack qui en a eu deux.
 
     L'archive TAOM fait 18 Go pour quatre modules : tout decompacter puis trier
     couterait le double d'espace et de temps. On lit le repertoire central du zip
@@ -257,6 +262,8 @@ def extraire(chemin_manifeste, archive, modules_dir):
             ident = (entree.get("id") or "").strip()
             source = entree.get("source", "")
             if not ident or not isinstance(source, dict) or "archive" not in source:
+                continue
+            if cle_source and source.get("archive") != cle_source:
                 continue
             description = sources.get(source["archive"], {})
             prefixe = (description.get("prefixe") or "").strip("/")
@@ -1302,8 +1309,8 @@ def main(argv):
     if len(argv) == 4 and argv[1] == "plan":
         return plan(argv[2], argv[3])
 
-    if len(argv) == 5 and argv[1] == "extraire":
-        return extraire(argv[2], argv[3], argv[4])
+    if len(argv) in (5, 6) and argv[1] == "extraire":
+        return extraire(argv[2], argv[3], argv[4], argv[5] if len(argv) == 6 else None)
 
     if len(argv) in (3, 4) and argv[1] == "doublons":
         return doublons(argv[2], "Coop", argv[3] if len(argv) > 3 else None)
