@@ -545,9 +545,9 @@
     "DisplayName": "Birth And Death",
     "Category": "Gameplay:sports_esports",
     "Subcategory": "Campaign Difficulty:trending_up:1",
-    "Description": "Aging, births and natural deaths. NOT currently supported by Coop - leave off. Turning it off does not disable battle deaths; use Battle Death and Clan Member Death Chance for that",
+    "Description": "Naissances, vieillissement et morts naturelles. Actif par defaut chez Coop : le module BirthAndDeath du lanceur ne sert qu a exposer les options, il doit rester desactive des deux cotes — c est ce reglage qui compte.",
     "Keywords": "birth,death,aging",
-    "DefaultValue": "false",
+    "DefaultValue": "true",
     "EnumValues": {
       "False": "false",
       "True": "true"
@@ -629,9 +629,9 @@
     "DisplayName": "Gold/Food Change In Settlements",
     "Category": "Gameplay:sports_esports",
     "Subcategory": "Mod Options:tune:2",
-    "Description": "Includes income. Off: gold and food are frozen while in a settlement, including tournaments",
+    "Description": "Or, nourriture et influence qui changent dans les villes. Desactive par defaut chez Coop.",
     "Keywords": "goldfoodinfluencechangeinsettlements",
-    "DefaultValue": "true",
+    "DefaultValue": "false",
     "EnumValues": {
       "False": "false",
       "True": "true"
@@ -643,9 +643,9 @@
     "DisplayName": "Gold/Food Change In Battles",
     "Category": "Gameplay:sports_esports",
     "Subcategory": "Mod Options:tune:2",
-    "Description": "Includes income. One Day Max: at most one change per battle, e.g. paying troops once during a long siege",
+    "Description": "Or, nourriture et influence en combat : Disabled, OneDayMax ou Enabled. Desactive par defaut.",
     "Keywords": "goldfoodinfluencechangeinbattles",
-    "DefaultValue": "OneDayMax",
+    "DefaultValue": "Disabled",
     "EnumValues": {
       "Disabled": "Disabled",
       "OneDayMax": "One Day Max",
@@ -672,9 +672,9 @@
     "DisplayName": "AI Battle Join Window",
     "Category": "Gameplay:sports_esports",
     "Subcategory": "Mod Options:tune:2",
-    "Description": "Grace period in campaign hours for AI parties to join a battle involving players. 0 means AI never joins player battles",
+    "Description": "Heures pendant lesquelles une IA peut rejoindre une bataille de joueur. 6 par defaut.",
     "Keywords": "playerbattleaijoinwindowhours",
-    "DefaultValue": "24",
+    "DefaultValue": "6",
     "EnumValues": {},
     "InputType": "number",
     "MaxValue": "720",
@@ -756,9 +756,9 @@
     "DisplayName": "Smithing Stamina Multiplier",
     "Category": "Gameplay:sports_esports",
     "Subcategory": "Mod Options:tune:2",
-    "Description": "Smithing stamina recovery rate. Vanilla is 1; the mod default is 0.1 because stamina also regenerates in the smithing screen. Lower than 0.1 has no further effect",
+    "Description": "Recuperation d endurance de forge, 0.6 par defaut.",
     "Keywords": "smithingstaminarecoverymultiplier",
-    "DefaultValue": "0.1",
+    "DefaultValue": "0.6",
     "EnumValues": {},
     "InputType": "number"
   },
@@ -804,9 +804,9 @@
     "DisplayName": "Allow Hero Executions",
     "Category": "Gameplay:sports_esports",
     "Subcategory": "Mod Options:tune:2",
-    "Description": "Allow players to execute AI clan members. Executing other players is never allowed",
+    "Description": "Executions de heros. Desactive par defaut ; les executions de membres de clan joueur et de joueurs ne fonctionnent que si celui-ci est actif.",
     "Keywords": "enableheroexecutions",
-    "DefaultValue": "true",
+    "DefaultValue": "false",
     "EnumValues": {
       "False": "false",
       "True": "true"
