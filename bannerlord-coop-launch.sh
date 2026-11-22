@@ -69,8 +69,26 @@ if [ -d "$DOSSIER_JOURNAUX" ] && [ -w "$DOSSIER_JOURNAUX" ]; then
     # dit pas ce qui les declenche. On garde en memoire les 80 dernieres lignes brutes et,
     # aux cinq premieres boites, on les ecrit a part. Cinq captures suffisent a nommer la
     # cause sans ajouter de volume ensuite.
-    exec > >(awk -v J="$JOURNAL" -v I="$JOURNAL.incidents" '
-        BEGIN { bruit = 0; n = 0; captures = 0; exml = 0; eev = 0; eop = 0 }
+    # Plafond de journal. Mesure du 22/11 sur le Discord du mod : une erreur repetee a
+    # 6,9 millions de lignes par minute a rempli 120 Go en quelques minutes chez un hote.
+    # Le filtre ci-dessous reconnait le bruit connu, pas une erreur inedite : on borne donc
+    # la taille du journal, et on continue a compter ce qui n est plus ecrit.
+    JOURNAL_MAX_MO="${JOURNAL_MAX_MO:-64}"
+    exec > >(awk -v J="$JOURNAL" -v I="$JOURNAL.incidents" -v LIMITE="$((JOURNAL_MAX_MO * 1024 * 1024))" '
+        function w(l) {
+            if (plafond) { ecartees++; return }
+            octets += length(l) + 1
+            if (octets > LIMITE) {
+                plafond = 1
+                ecartees++
+                print "[coop] journal plafonne a " LIMITE " octets : la suite n est plus ecrite, seul le compteur avance" > J
+                fflush(J)
+                return
+            }
+            print l > J
+            fflush(J)
+        }
+        BEGIN { bruit = 0; n = 0; captures = 0; exml = 0; eev = 0; eop = 0; octets = 0; plafond = 0; ecartees = 0 }
         {
             tampon[n % 80] = $0
             n++
@@ -88,45 +106,49 @@ if [ -d "$DOSSIER_JOURNAUX" ] && [ -w "$DOSSIER_JOURNAUX" ]; then
             bruit++
             if (bruit % 2000 == 1) {
                 ligne = sprintf("[coop] bruit TAOM : %d incidents de tick ignores (partis hors grille meteo)", bruit)
-                print ligne; fflush(); print ligne > J; fflush(J)
+                print ligne; fflush(); w(ligne)
             }
             next
         }
         /^[[:space:]]*$/ { next }
         /attribute is not declared|^Node: |^Line: |^XML Path/ {
             exml++
-            print > J; fflush(J)
+            w($0)
             if (exml % 200 == 1) {
                 ligne = sprintf("[coop] bruit du mod : %d lignes XML ecartees de la console (gardees dans le journal)", exml)
-                print ligne; fflush(); print ligne > J; fflush(J)
+                print ligne; fflush(); w(ligne)
             }
             next
         }
         /Could not find the event index/ {
             eev++
-            print > J; fflush(J)
+            w($0)
             if (eev % 500 == 1) {
                 ligne = sprintf("[coop] bruit du mod : %d lignes « event index » ecartees de la console", eev)
-                print ligne; fflush(); print ligne > J; fflush(J)
+                print ligne; fflush(); w(ligne)
             }
             next
         }
         /\[DedicatedServer Engine\] opening / {
             eop++
-            print > J; fflush(J)
+            w($0)
             next
         }
-        { print; fflush(); print > J; fflush(J) }
+        { print; fflush(); w($0) }
         END {
             if (bruit > 0) {
                 ligne = sprintf("[coop] bruit TAOM : %d incidents de tick au total", bruit)
-                print ligne > J; fflush(J)
+                w(ligne)
             }
             ligne = sprintf("[coop] bruit du mod : %d lignes XML, %d « event index » et %d ouvertures de fichiers ecartees de la console", exml, eev, eop)
-            print ligne; fflush(); print ligne > J; fflush(J)
+            print ligne; fflush(); w(ligne)
+            if (ecartees > 0) {
+                ligne = sprintf("[coop] journal plafonne : %d ligne(s) non ecrite(s), %d octets au total", ecartees, octets)
+                print ligne; fflush(); w(ligne)
+            }
             if (captures > 0) {
                 ligne = sprintf("[coop] captures d incident : %d dans %s.incidents", captures, J)
-                print ligne > J; fflush(J)
+                w(ligne)
             }
         }
     ') 2>&1
