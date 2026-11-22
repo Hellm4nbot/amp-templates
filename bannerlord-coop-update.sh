@@ -957,6 +957,10 @@ echo "    ne pas confondre avec le port moteur, qui ne sert pas aux joueurs"
 echo "  ports a ouvrir sur le routeur : ${GAMEPORT} et $((GAMEPORT + 1)), en UDP, vers cette machine"
 echo "  cote joueur : Bannerlord ${JEU_NORM:-1.5.7} (numero de build libre), mod Coop ${COOP_ID:-0.1.8} identique"
 echo "                l adresse se saisit dans l ecran de connexion du client Coop"
+echo "  journaux serveur : CoopData/DedicatedServer/logs (le plus recent et Coop_server.log)"
+echo "                     dans le dossier de donnees de cette instance"
+echo "  journal joueur   : bin/Win64_Shipping_Client/Coop_client.log, chez le joueur"
+echo "                     c est celui qu on demande quand une connexion echoue"
 
 echo
 # --- modpack ----------------------------------------------------------------

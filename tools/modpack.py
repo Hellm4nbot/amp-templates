@@ -313,6 +313,99 @@ def extraire(chemin_manifeste, archive, modules_dir):
     return code
 
 
+def doublons(modules_dir, nom="Coop", quarantaine=None):
+    """Met de cote les copies parasites d un module, et repare un dezippage imbrique.
+
+    Le FAQ de Coop 0.1.8 le dit sans detour : « Your Coop folder is probably a wrong
+    copy. Delete any extra Coop folders like Coop.11 » — deux copies d un meme module
+    dans Modules et le joueur tombe juste apres s etre connecte, sans message utile.
+    Le serveur, lui, ne se plaint pas : il charge l une des deux.
+
+    On ne supprime rien : les copies partent dans un dossier de quarantaine, et si le
+    module attendu manque alors qu une seule copie ressemble a lui, elle est renommee.
+    """
+    if not os.path.isdir(modules_dir):
+        print("dossier de modules introuvable : %s" % modules_dir)
+        return 0
+    if quarantaine is None:
+        quarantaine = os.path.join(os.path.dirname(os.path.abspath(modules_dir)), "modules-quarantaine")
+    cible = os.path.join(modules_dir, nom)
+    souci = False
+
+    # Un zip deballe un niveau de trop : Modules/Coop/Coop/SubModule.xml. Le module est
+    # complet, seulement range dans son propre sous-dossier ; on remonte son contenu.
+    imbrique = os.path.join(cible, nom)
+    if os.path.isfile(os.path.join(imbrique, "SubModule.xml")):
+        for enfant in sorted(os.listdir(imbrique)):
+            source = os.path.join(imbrique, enfant)
+            destination = os.path.join(cible, enfant)
+            if os.path.exists(destination):
+                continue
+            try:
+                os.rename(source, destination)
+            except OSError:
+                souci = True
+        try:
+            os.rmdir(imbrique)
+            print("dezippage imbrique repare : %s/%s remonte dans %s" % (nom, nom, nom))
+        except OSError:
+            print("dezippage imbrique : %s/%s contient encore des fichiers, laisse en place" % (nom, nom))
+
+    # Toute autre entree dont le nom commence par le module : Coop.11, « Coop (1) »,
+    # Coop-old, coop_backup... Bannerlord charge le dossier qu il trouve, pas celui qu on veut.
+    candidats = []
+    for entree in sorted(os.listdir(modules_dir)):
+        if entree == nom or not entree.lower().startswith(nom.lower()):
+            continue
+        chemin = os.path.join(modules_dir, entree)
+        if not os.path.isdir(chemin):
+            continue
+        candidats.append(entree)
+
+    # Le module attendu absent et une seule copie presente : c est la bonne, mal nommee.
+    if not os.path.isdir(cible) and len(candidats) == 1:
+        chemin = os.path.join(modules_dir, candidats[0])
+        ident = identifiant_module(chemin)
+        if ident and ident.lower() == nom.lower():
+            try:
+                os.rename(chemin, cible)
+                print("copie unique renommee : %s -> %s (identifiant %s)" % (candidats[0], nom, ident))
+                return 0
+            except OSError:
+                print("copie unique %s non renommable, laissee en place" % candidats[0])
+                return 1
+
+    # Un dossier dont le nom commence par Coop n est pas forcement une copie de Coop :
+    # CoopData, CoopTools... sont d autres modules, avec leur propre identifiant. On ne
+    # touche qu a ceux qui declarent le meme identifiant, c est-a-dire de vraies copies.
+    vraies = []
+    for entree in candidats:
+        chemin = os.path.join(modules_dir, entree)
+        ident = identifiant_module(chemin)
+        if ident and ident.lower() == nom.lower():
+            vraies.append(entree)
+        elif ident:
+            print("dossier %s laisse en place : module %s, pas une copie de %s" % (entree, ident, nom))
+        else:
+            print("dossier %s sans SubModule.xml lisible : laisse en place" % entree)
+    candidats = vraies
+
+    for entree in candidats:
+        os.makedirs(quarantaine, exist_ok=True)
+        destination = os.path.join(quarantaine, entree)
+        if os.path.exists(destination):
+            destination = os.path.join(quarantaine, "%s-%d" % (entree, int(time.time())))
+        try:
+            os.rename(os.path.join(modules_dir, entree), destination)
+            print("copie parasite mise de cote : Modules/%s -> %s" % (entree, destination))
+        except OSError as e:
+            print("copie parasite %s non deplacable : %s" % (entree, e))
+            souci = True
+    if candidats:
+        print("%d copie(s) de %s : le serveur charge desormais Modules/%s seul" % (len(candidats), nom, nom))
+    return 1 if souci else 0
+
+
 def plan(chemin_manifeste, modules_dir):
     """Liste, pour chaque module absent, le dossier a extraire de son archive.
 
@@ -1208,6 +1301,9 @@ def main(argv):
 
     if len(argv) == 5 and argv[1] == "extraire":
         return extraire(argv[2], argv[3], argv[4])
+
+    if len(argv) in (3, 4) and argv[1] == "doublons":
+        return doublons(argv[2], "Coop", argv[3] if len(argv) > 3 else None)
 
     if len(argv) == 4 and argv[1] == "modules":
         return modules_de(charger(argv[2]), argv[3])
