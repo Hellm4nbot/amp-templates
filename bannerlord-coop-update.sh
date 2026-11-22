@@ -697,11 +697,32 @@ PY
     fi
     rm -rf "${CACHE}/mods-sauve"
     MODS_SAUVE=""
+    # Un module que le manifeste declare n a pas a etre mis a l ecart : le pack le
+    # re-extrait juste apres. Sans ce filtre, un pack de 24 Go etait copie hors de
+    # DEST puis recopie dedans a chaque passage — mesure du 22/11 : 48 Go d echanges
+    # pour rien, quarante minutes sur un disque sature.
+    MODS_DU_PACK=$(python3 - "$MANIFESTE" <<'PYMODS' 2>/dev/null
+import json
+import sys
+
+try:
+    d = json.load(open(sys.argv[1], encoding="utf-8"))
+except Exception:
+    print("")
+    raise SystemExit(0)
+ids = [m.get("id", "") for m in d.get("modules", [])
+       if isinstance(m.get("source"), dict) and "archive" in m["source"]]
+print(" ".join(i for i in ids if i))
+PYMODS
+)
     if [ -d "$DEST/engine/Modules" ]; then
         for d in "$DEST/engine/Modules"/*; do
             [ -d "$d" ] || continue
             nom=$(basename "$d")
             [ -d "${STAGE}/engine/Modules/$nom" ] && continue
+            case " ${MODS_DU_PACK} " in
+                *" $nom "*) continue ;;
+            esac
             mkdir -p "${CACHE}/mods-sauve"
             if ! cp -a "$d" "${CACHE}/mods-sauve/"; then
                 echo "    ERREUR : mise a l ecart du mod $nom impossible, update annule"
