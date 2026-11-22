@@ -124,7 +124,9 @@ while IFS="$(printf '\t')" read -r CLE URL SHA TAILLE NOM DESTINATION; do
     [ "$SHA" = "-" ] && SHA=""
     [ "$NOM" = "-" ] && NOM=""
     [ "$DESTINATION" = "-" ] && DESTINATION="modules"
-    if [ -z "$URL" ] || [ -z "$NOM" ]; then
+    # Le nom seul suffit : une archive sans url se depose dans le dossier de packs,
+    # son empreinte fait foi. Sans nom, en revanche, il n y a rien a chercher.
+    if [ -z "$NOM" ]; then
         # Sans url, une source n'est acceptable que si ses modules sont deja en
         # place (archive deposee a la main puis deballee).
         if [ "$DESTINATION" = "game-modules" ]; then
@@ -146,6 +148,11 @@ while IFS="$(printf '\t')" read -r CLE URL SHA TAILLE NOM DESTINATION; do
     ARCHIVE="$PACKS/$NOM"
     if [ ! -f "$ARCHIVE" ]; then
         ARCHIVE="$CACHE/$NOM"
+        if [ ! -f "$ARCHIVE" ] && [ -z "$URL" ]; then
+            erreur "archive $NOM absente de $PACKS et aucune url dans le manifeste"
+            erreur "  la deposer dans $PACKS : l empreinte du manifeste fera foi"
+            exit 1
+        fi
         if [ ! -f "$ARCHIVE" ]; then
             log "telechargement de $NOM (source $CLE)"
             if ! curl -fsSL -C - --retry 2 --max-time 7200 -o "$ARCHIVE.part" "$URL"; then

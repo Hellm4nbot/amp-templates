@@ -476,7 +476,10 @@ def sources(chemin_manifeste):
         if not isinstance(d, dict):
             continue
         url = d.get("url") or ""
-        nom = url.rsplit("/", 1)[-1] if url else ""
+        # Le nom peut venir de l url, ou du manifeste quand il n y a pas d url : une
+        # archive derriere un lien signe qui a expire se depose a la main dans le
+        # dossier de packs, et l empreinte suffit a garantir qu on a la bonne.
+        nom = d.get("nom") or (url.rsplit("/", 1)[-1] if url else "")
         # Un champ vide entre deux tabulations disparait au « read » du shell (la
         # tabulation est un blanc) : on emet des sentinelles plutot que du vide.
         print(
