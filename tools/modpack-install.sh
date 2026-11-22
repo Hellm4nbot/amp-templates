@@ -239,7 +239,7 @@ while IFS="$(printf '\t')" read -r CLE URL SHA TAILLE NOM DESTINATION; do
     [ -z "$ARCHIVE" ] && [ -f "$CACHE/$NOM" ] && ARCHIVE="$CACHE/$NOM"
     [ -n "$ARCHIVE" ] || { erreur "archive $NOM introuvable pour l extraction"; exit 1; }
     log "extraction depuis $NOM"
-    python3 "$OUTIL" extraire "$MANIFESTE" "$ARCHIVE" "$MODULES" || exit 1
+    python3 "$OUTIL" extraire "$MANIFESTE" "$ARCHIVE" "$MODULES" "$CLE" || exit 1
 done <<EOF
 $(python3 "$OUTIL" sources "$MANIFESTE")
 EOF
