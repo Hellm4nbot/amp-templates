@@ -343,6 +343,26 @@ if [ ! -f "$CIBLE_MONDE" ] && [ -f "$MONDE" ]; then
         cp -a "$MONDE" "$CIBLE_MONDE" \
             && log "monde de depart installe : $PACK-depart.sav devient $SAVE.sav" \
             || { erreur "copie du monde de depart impossible"; exit 1; }
+        # La sauvegarde d une partie Coop va par deux : le .sav et le .json qui porte les
+        # personnages des joueurs. Le FAQ du mod est explicite, « grab both when moving a
+        # save » : sans le .json, tout le monde repart de la creation de personnage. On
+        # tente donc le fichier jumeau a cote de l URL, sans en faire une condition.
+        JSON_MONDE="$(dirname "$MONDE")/$PACK-depart.json"
+        if [ ! -f "$JSON_MONDE" ]; then
+            if curl -fsSL --max-time 300 -o "$JSON_MONDE.part" "${URL_MONDE%.sav}.json" 2>/dev/null; then
+                mv -f "$JSON_MONDE.part" "$JSON_MONDE"
+            else
+                rm -f "$JSON_MONDE.part"
+            fi
+        fi
+        if [ -f "$JSON_MONDE" ]; then
+            cp -a "$JSON_MONDE" "$CIBLE_MONDE.json" \
+                && log "  sidecar installe : $SAVE.json (personnages des joueurs conserves)" \
+                || log "  sidecar present mais non copie : les joueurs recreeront leur personnage"
+        else
+            log "  pas de .json a cote de l URL : sauvegarde de solo,"
+            log "    les joueurs creeront leur personnage a la premiere connexion"
+        fi
     else
         erreur "monde de depart refuse : ses modules ne correspondent pas au pack $PACK"
         exit 1
@@ -408,6 +428,15 @@ if [ "${SUPPLEMENTAIRES:-0}" = "0" ]; then
     cd "$SERV" || exit 1
     exec /usr/bin/wine BannerlordCoopServer.exe --no-tui --data-dir "Z:$DATA" -p "$PORT" --region "$REGION"
 fi
+
+# Copies parasites du module Coop : le FAQ du mod cite « Coop.11 » comme la cause d un
+# joueur qui tombe juste apres s etre connecte, et le serveur ne dit rien — il en charge
+# une au hasard. On met les vraies copies de cote et on repare un dezippage d un niveau
+# de trop, avant que les modules ne soient lus.
+DOUBLONS=$(python3 "$OUTIL" doublons "$MODULES" 2>&1 || true)
+case "$DOUBLONS" in
+    *copie*|*imbrique*|*renommee*) echo "$DOUBLONS" | while IFS= read -r l; do log "  $l"; done ;;
+esac
 
 # --- 3b. pack modde : starter .NET avec le jeton ----------------------------
 # Sous-modules inutilisables sur un serveur sans ecran (MCM et consorts), declares par le
