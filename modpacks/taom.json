@@ -4,7 +4,7 @@
   "jeu": "1.5.7",
   "coop": "0.1.8",
   "monde": "prepare",
-  "note_monde": "TAOM construit sa carte a la creation de campagne : un serveur dedie ne peut pas creer ce monde. Il faut un .sav cree sur une machine joueur avec exactement ces modules, puis depose dans le dossier d import (ou servi par URL). Les sauvegardes TAOM 1.4.8 ne se chargent pas en 2.0.41 : nouvelle campagne obligatoire.",
+  "note_monde": "TAOM construit sa carte a la creation de campagne : un serveur dedie ne peut pas creer ce monde. Il faut un .sav cree sur une machine joueur avec exactement ces modules, puis depose dans le dossier d import (ou servi par URL). Deux pieges mesures en amont : une sauvegarde faite AVANT que la TAOM_Map installee n ajoute des villages fait boucler le chargement a l infini (SandBoxNavigationCache cherche un village absent, CreateMapScene est rejoue a chaque tick, chaque essai echoue en IOException et la memoire monte — 7 Go apres 580 essais) ; et une sauvegarde 1.4.8 ne se charge pas en 2.0.41. La sauvegarde doit donc etre faite avec la version EXACTE de TAOM_Map installee, et le journal sain dit « settlement distance cache registered » une fois.",
   "note": "Pack refait pour TAOM 2.0.41 / Bannerlord 1.5.7 / Coop 0.1.8, d apres le guide d installation v2.0.41 et le README de TAOM.CoopCompat. Trois changements par rapport au pack 2.0.29.5 : StoryMode entre dans la liste (TAOM.Dependencies le declare en DependedModule, et Coop 0.1.8 l exige aussi), CustomBattle passe APRES SandBox et StoryMode, et TAOM.CoopCompat vient en dernier. DualWield reste dehors : le module n a aucun binaire Win64_Shipping_Server, c est un mod de client (armes a deux mains, clips d animation).",
   "sources": {
     "taom_archive": {
@@ -70,18 +70,18 @@
       "source": "engine"
     },
     {
-      "id": "TAOM_Map",
-      "source": {
-        "archive": "taom_archive",
-        "dossier": "TAOM_Map"
-      },
-      "mod": "TAOM"
-    },
-    {
       "id": "LOTRLOME_Armory",
       "source": {
         "archive": "taom_archive",
         "dossier": "LOTRLOME_Armory"
+      },
+      "mod": "TAOM"
+    },
+    {
+      "id": "TAOM_Map",
+      "source": {
+        "archive": "taom_archive",
+        "dossier": "TAOM_Map"
       },
       "mod": "TAOM"
     },
@@ -150,9 +150,9 @@
       "Premier demarrage : le serveur ecrit son .json, les joueurs creent leur personnage."
     ]
   },
-  "avertissement": "Le module DLC BirthAndDeath est retire de cette liste : Coop le refuse (« DLC is not supported ») et assure lui-meme les naissances et les morts par son reglage birthAndDeath (CoopData/mod-config.json). StoryMode et CustomBattle, eux, viennent de l installation du jeu de l operateur et sont necessaires.",
+  "avertissement": "Le module DLC BirthAndDeath est retire de cette liste : Coop le refuse (« DLC is not supported ») et assure lui-meme les naissances et les morts par son reglage birthAndDeath (CoopData/mod-config.json). StoryMode et CustomBattle, eux, viennent de l installation du jeu de l operateur et sont necessaires. Le module DLC BirthAndDeath reste exclu cote serveur ; les joueurs le decochent aussi (Coop refuse la connexion si serveur et joueur ne s accordent pas sur les modules optionnels).",
   "coop_reconnu": "Modules/TAOM.Dependencies/coop-modules.txt de la 2.0.41 liste toujours « Coop » (identifiant du mod BannerlordCoop) en plus de BannerlordTogether et BattleLinkMPClient : quand l un d eux tourne, TAOM empeche PatchShield de retirer les patches Harmony tiers et fait relancer les erreurs de sauvegarde au lieu de les avaler. La combinaison TAOM + Coop est donc bien prevue du cote TAOM.",
-  "note_ordre": "L ordre n est pas cosmetique. DedicatedServer.Windows doit venir AVANT le fournisseur de carte (TAOM_Map) : c est ce que fait l outil Coodsz, et son script le dit — « DedicatedServer.Windows was placed before them so their Main_map assets take priority ». Place apres, la carte de l hote gagne et le serveur meurt en creant la scene (0xE0434352 juste apres NAV_MESH). Les metadonnees de la 2.0.41 contredisent le guide sur TAOM_Map et TAOM (TAOM_Map declare « TAOM LoadBeforeThis » la ou le guide met TAOM_Map avant TAOM) : on suit l ordre documente pour la co-op, et le journal de demarrage tranchera. A chaque nouveau build du pack, les dossiers de l archive precedente sont retires avant extraction.",
+  "note_ordre": "Ordre serveur repris de docs/features/coop-dedicated-server.md du depot TAOM (branche bannerlord-1.5.x), qui donne la ligne de staging officielle : TAOM.Dependencies, Native, SandBoxCore, Sandbox, LOTRLOME_Armory, TAOM_Map, TAOM, Coop, DedicatedServer.Windows. Deux ecarts assumes, tous deux mesures chez nous. 1) StoryMode et CustomBattle sont ajoutes : TAOM.Dependencies les declare en DependedModule (donc exiges), et Coop 0.1.8 reclame StoryMode ; la doc de staging ne les cite pas mais notre instance les a deja en game-modules. 2) DedicatedServer.Windows reste AVANT TAOM_Map, alors que la doc le met en dernier : c est ce que fait l outil Coodsz et son script le dit — « DedicatedServer.Windows was placed before them so their Main_map assets take priority ». Place apres, la carte de l hote gagne et le serveur meurt en creant la scene (0xE0434352 juste apres NAV_MESH). Cette doc decrit le serveur proprietaire de Bannerlord Coop LLC, pas le module DedicatedServer.Windows du jeu : l ordre ne se transpose pas a l identique. Le journal de demarrage tranche. TAOM.CoopCompat vient apres TAOM, ce que la doc autorise explicitement (« its place against Coop does not matter »).",
   "cache_distances": "TAOM_Map",
   "assemblies_interface": [
     "0Harmony.dll",

@@ -88,7 +88,7 @@ if [ -d "$DOSSIER_JOURNAUX" ] && [ -w "$DOSSIER_JOURNAUX" ]; then
             print l > J
             fflush(J)
         }
-        BEGIN { bruit = 0; n = 0; captures = 0; exml = 0; eev = 0; eop = 0; octets = 0; plafond = 0; ecartees = 0 }
+        BEGIN { bruit = 0; n = 0; captures = 0; exml = 0; eev = 0; eop = 0; divers = 0; octets = 0; plafond = 0; ecartees = 0 }
         {
             tampon[n % 80] = $0
             n++
@@ -134,13 +134,21 @@ if [ -d "$DOSSIER_JOURNAUX" ] && [ -w "$DOSSIER_JOURNAUX" ]; then
             w($0)
             next
         }
+        /Voice def can not be found|Failed to get id for object of type|UnknownSaveId/ {
+            divers++
+            if (divers % 50 == 1) {
+                ligne = sprintf("[coop] bruit du serveur : %d lignes « voice def », « failed to get id » et « UnknownSaveId » ecartees", divers)
+                print ligne; fflush(); w(ligne)
+            }
+            next
+        }
         { print; fflush(); w($0) }
         END {
             if (bruit > 0) {
                 ligne = sprintf("[coop] bruit TAOM : %d incidents de tick au total", bruit)
                 w(ligne)
             }
-            ligne = sprintf("[coop] bruit du mod : %d lignes XML, %d « event index » et %d ouvertures de fichiers ecartees de la console", exml, eev, eop)
+            ligne = sprintf("[coop] bruit du mod : %d lignes XML, %d « event index », %d ouvertures de fichiers et %d lignes serveur ecartees de la console", exml, eev, eop, divers)
             print ligne; fflush(); w(ligne)
             if (ecartees > 0) {
                 ligne = sprintf("[coop] journal plafonne : %d ligne(s) non ecrite(s), %d octets au total", ecartees, octets)
