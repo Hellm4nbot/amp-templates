@@ -295,6 +295,11 @@ if [ -f "$ROOT/monde/RESET" ] || [ "$RESET_DEMANDE" = "1" ]; then
         [ "$RESET_DEMANDE" = "1" ] && : > "$RESET_MARQUE"
     else
         log "remise a zero demandee, mais aucune partie a archiver : rien a faire"
+        # Marqueur pose quand meme : sans lui, la case restee cochee aurait archive et
+        # supprime la premiere vraie partie au demarrage suivant.
+        if [ "$RESET_DEMANDE" = "1" ]; then
+            : > "$RESET_MARQUE"
+        fi
     fi
 elif [ -f "$RESET_MARQUE" ]; then
     rm -f "$RESET_MARQUE"
@@ -360,6 +365,11 @@ if [ ! -f "$MONDE" ] && [ -n "$URL_MONDE" ]; then
         exit 1
     fi
 fi
+
+# « Game Saves » n existe pas dans une instance neuve : le serveur ne le cree qu une fois
+# une partie lancee. Copier le monde avant ce moment echouait sur « No such file or
+# directory » et le demarrage s arretait la (constate le 23/11, premiere instance TAOM).
+mkdir -p "$SAVES" 2>/dev/null
 
 if [ ! -f "$CIBLE_MONDE" ] && [ -f "$MONDE" ]; then
     ATTENDU=$(awk '/^[0-9a-f]{64}$/{print $1}' "$MONDE_SHA" 2>/dev/null | head -1)
