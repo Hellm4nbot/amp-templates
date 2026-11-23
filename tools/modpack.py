@@ -701,7 +701,12 @@ def assemblies_interface(chemin_manifeste, modules_dir, bin_dir):
         if force is None and os.path.exists(os.path.join(bin_dir, nom)):
             continue
         if force is not None:
-            shutil.copy2(force, os.path.join(bin_dir, nom))
+            cible = os.path.join(bin_dir, nom)
+            shutil.copy2(force, cible)
+            # copy2 preserve le mode du source, souvent 600 : un serveur qui tourne sous un
+            # autre compte que celui qui a copie ne peut alors pas lire l assembly, et le
+            # CLR annonce « File not found » alors que le fichier est la. Vu le 23/11.
+            os.chmod(cible, 0o644)
             copies += 1
             continue
         trouve = None
@@ -712,7 +717,9 @@ def assemblies_interface(chemin_manifeste, modules_dir, bin_dir):
         if not trouve:
             manquants.append(nom)
             continue
-        shutil.copy2(trouve, os.path.join(bin_dir, nom))
+        cible = os.path.join(bin_dir, nom)
+        shutil.copy2(trouve, cible)
+        os.chmod(cible, 0o644)
         copies += 1
     if copies:
         print("assemblies d interface : %d copiee(s) dans le bin du serveur" % copies)
