@@ -45,6 +45,38 @@
       "mod": "TAOM"
     },
     {
+      "id": "Bannerlord.Harmony",
+      "version": "v2.4.99",
+      "declaration": true,
+      "source": {
+        "declaration": true
+      }
+    },
+    {
+      "id": "Bannerlord.ButterLib",
+      "version": "v2.12.99",
+      "declaration": true,
+      "source": {
+        "declaration": true
+      }
+    },
+    {
+      "id": "Bannerlord.UIExtenderEx",
+      "version": "v2.13.99",
+      "declaration": true,
+      "source": {
+        "declaration": true
+      }
+    },
+    {
+      "id": "Bannerlord.MBOptionScreen",
+      "version": "v5.12.99",
+      "declaration": true,
+      "source": {
+        "declaration": true
+      }
+    },
+    {
       "id": "Native",
       "source": "engine"
     },
@@ -95,6 +127,14 @@
         "dossier": "TAOM"
       },
       "mod": "TAOM"
+    },
+    {
+      "id": "DualWield",
+      "version": "v0.10.8",
+      "declaration": true,
+      "source": {
+        "declaration": true
+      }
     },
     {
       "id": "Coop",
@@ -247,5 +287,6 @@
       "Coop:0Harmony.dll"
     ]
   },
-  "notes_assemblies": "La version de Harmony qui fonctionne est celle livree par Coop (build .NET Core, 2 333 696 o). Celle de TAOM.Dependencies est compilee pour .NET Framework et fait mourir le serveur sur MissingMethodException: ILGenerator.MarkSequencePoint, absent du runtime Core. Deux fichiers d octets differents portant la meme identite d assembly sont refuses au chargement (FileLoadException) ; le meme fichier pose a plusieurs endroits est normal. D ou la pose identique dans les trois bins."
+  "notes_assemblies": "La version de Harmony qui fonctionne est celle livree par Coop (build .NET Core, 2 333 696 o). Celle de TAOM.Dependencies est compilee pour .NET Framework et fait mourir le serveur sur MissingMethodException: ILGenerator.MarkSequencePoint, absent du runtime Core. Deux fichiers d octets differents portant la meme identite d assembly sont refuses au chargement (FileLoadException) ; le meme fichier pose a plusieurs endroits est normal. D ou la pose identique dans les trois bins.",
+  "note_declarations": "Bannerlord.Harmony, ButterLib, UIExtenderEx et MBOptionScreen sont fournis par TAOM.Dependencies comme assemblies redirigees, pas comme modules : le client Coop refuse la connexion (« Server does not support module ... ») si le serveur ne les declare pas. DualWield est un mod de client sans binaire serveur : declare pour la validation, il ne charge aucun code. Les declarations sont de simples SubModule.xml, creees par le lanceur."
 }
