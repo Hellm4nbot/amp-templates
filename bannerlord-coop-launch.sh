@@ -195,7 +195,14 @@ OUTIL="$ROOT/tools/modpack.py"
 JEU="${GAME_VERSION:-1.5.7}"
 COOP_ID="${COOP_BUILD:-0.1.8}"
 
-log() { echo "[coop] $*"; }
+log() {
+    echo "[coop] $*"
+    # Copie directe dans le journal, sans passer par le tube du filtre : le 23/11 le
+    # journal restait a zero octet alors que le script allait jusqu a l exec, sans qu on
+    # puisse dire si c etait le filtre ou le script qui se taisait. Le prefixe « #direct »
+    # distingue les deux chemins quand tous les deux ecrivent.
+    printf '#direct [coop] %s\n' "$*" >> "$JOURNAL" 2>/dev/null
+}
 erreur() { echo "[coop] ERREUR : $*" >&2; }
 
 # Bandeau imprime avant de passer la main au serveur : une fois le pty en place,
@@ -625,4 +632,5 @@ log "reperes du mod relayes ici, journal complet : $LOGCOOP"
 # avertissements a un programme de surveillance de bureau ; sans ecran, le premier
 # avertissement tue le serveur. Le jeu de base n'avertit pas, les mods si.
 jalon "exec wine (starter .NET)"
+log "commande : wine $DOTNET $STARTER <jeton> /dedicatedcustomserver $PORT $REGION 0 /no_watchdog"
 exec /usr/bin/wine "$DOTNET" "$STARTER" "$JETON" /dedicatedcustomserver "$PORT" "$REGION" 0 /no_watchdog
