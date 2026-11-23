@@ -14,7 +14,8 @@
       "taille": 22047916275,
       "prefixe": "Modules",
       "remarque": "archive officielle TAOM 2.0.41 (build 20261120-2224), non redistribuee, hebergee par l operateur. Taille et empreinte verifiees le 22/11 par une requete Range sur l URL.",
-      "nom": "TAOM-2.0.41.zip"
+      "nom": "TAOM-2.0.41.zip",
+      "monde": true
     },
     "coopcompat": {
       "type": "module",
