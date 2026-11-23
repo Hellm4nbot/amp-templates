@@ -493,10 +493,9 @@ esac
 # Assemblies d interface reclamees par le pack (mods d UI) : le serveur tourne depuis son
 # propre bin, qui n en contient pas. Le manifeste dit lesquelles ; on ne copie que celles-la.
 ASM_MESSAGE=$(python3 "$OUTIL" assemblies "$MANIFESTE" "$MODULES" "$SERV/engine/bin/Win64_Shipping_Server" 2>&1 || true)
-case "$ASM_MESSAGE" in
-    *"copiee"*) log "$ASM_MESSAGE" ;;
-    *introuvable*) log "ATTENTION : $ASM_MESSAGE" ;;
-esac
+if [ -n "$ASM_MESSAGE" ]; then
+    echo "$ASM_MESSAGE" | while IFS= read -r l; do [ -n "$l" ] && log "$l"; done
+fi
 
 # Le cache de distances de la carte : l hote dedie le lit en dur dans SandBox. Un pack qui
 # change la carte declare son fournisseur dans le manifeste, et on le met en place ici —
