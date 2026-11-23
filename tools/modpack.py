@@ -740,6 +740,55 @@ def assemblies_interface(chemin_manifeste, modules_dir, bin_dir):
         shutil.copy2(trouve, cible)
         os.chmod(cible, 0o644)
         copies += 1
+    # Assemblies a poser dans le dossier d un module precis (« assemblies_modules »).
+    # Le 23/11, TAOM refusait de charger ses types parce que MCMv5 et 0Harmony n etaient
+    # visibles que depuis son propre bin, et Coop tombait sur une Harmony Framework en
+    # .NET Core (MissingMethodException sur MarkSequencePoint). Deux modules, deux besoins,
+    # et une seule identite possible : on impose donc le meme fichier partout ou il est
+    # chargeable, depuis une source declaree.
+    posees = 0
+    a_poser = manifeste.get("assemblies_modules") or {}
+    if isinstance(a_poser, dict):
+        for cible, specs in a_poser.items():
+            dossier_cible = os.path.join(modules_dir, cible, "bin", "Win64_Shipping_Server")
+            if not isinstance(specs, list):
+                specs = [specs]
+            for spec in specs:
+                if not isinstance(spec, str) or not spec.strip():
+                    continue
+                if ":" in spec:
+                    module_source, nom = spec.split(":", 1)
+                    source = os.path.join(modules_dir, module_source.strip(), "bin",
+                                          "Win64_Shipping_Server", nom.strip())
+                else:
+                    nom = spec
+                    source = None
+                    for dossier in sorted(os.listdir(modules_dir)):
+                        candidat = os.path.join(modules_dir, dossier, "bin",
+                                                "Win64_Shipping_Server", nom.strip())
+                        if os.path.isfile(candidat):
+                            source = candidat
+                            break
+                if not source or not os.path.isfile(source):
+                    print("assembly introuvable pour %s : %s" % (cible, spec))
+                    continue
+                os.makedirs(dossier_cible, exist_ok=True)
+                destination = os.path.join(dossier_cible, nom.strip())
+                # Source et destination peuvent etre le meme fichier (poser l Harmony de
+                # Coop dans Coop) : copy2 leve alors SameFileError et interrompt la suite,
+                # ce qui laissait les autres modules non traites. On se contente d y
+                # remettre les droits lisibles.
+                if os.path.realpath(source) != os.path.realpath(destination):
+                    try:
+                        shutil.copy2(source, destination)
+                    except OSError as e:
+                        print("pose impossible de %s dans %s : %s" % (spec, cible, e))
+                        continue
+                os.chmod(destination, 0o644)
+                posees += 1
+    if posees:
+        print("assemblies posees dans les modules : %d" % posees)
+
     if copies:
         print("assemblies d interface : %d copiee(s) dans le bin du serveur" % copies)
     if manquants:

@@ -236,5 +236,18 @@
       "sha256": "68d7bebd063efee9fa262a702222cc5d42482bec5d0969287cc83c18673b2dfe"
     }
   ],
-  "note_assets_serveur": "Paquet de squelettes du serveur dedie, construit par tools/build_ds_skeleton_pack.py de TAOM. Verifie sur la 2.0.41 : le fichier est deja livre dans l archive, et il est octet pour octet identique a celui de la 2.0.40 (48 139 octets, meme empreinte). Il n y a donc rien a poser : on verifie l empreinte, et on alerte si elle change. Sans lui, les recherches d os echouent et ouvrent une modale."
+  "note_assets_serveur": "Paquet de squelettes du serveur dedie, construit par tools/build_ds_skeleton_pack.py de TAOM. Verifie sur la 2.0.41 : le fichier est deja livre dans l archive, et il est octet pour octet identique a celui de la 2.0.40 (48 139 octets, meme empreinte). Il n y a donc rien a poser : on verifie l empreinte, et on alerte si elle change. Sans lui, les recherches d os echouent et ouvrent une modale.",
+  "assemblies_modules": {
+    "TAOM": [
+      "Coop:0Harmony.dll",
+      "TAOM.Dependencies:MCMv5.dll"
+    ],
+    "Coop": [
+      "Coop:0Harmony.dll"
+    ],
+    "TAOM.Dependencies": [
+      "Coop:0Harmony.dll"
+    ]
+  },
+  "notes_assemblies": "La version de Harmony qui fonctionne est celle livree par Coop (build .NET Core, 2 333 696 o). Celle de TAOM.Dependencies est compilee pour .NET Framework et fait mourir le serveur sur MissingMethodException: ILGenerator.MarkSequencePoint, absent du runtime Core. Deux fichiers d octets differents portant la meme identite d assembly sont refuses au chargement (FileLoadException) ; le meme fichier pose a plusieurs endroits est normal. D ou la pose identique dans les trois bins."
 }
