@@ -203,7 +203,9 @@
     "System.Threading.Tasks.Extensions.dll",
     "System.ValueTuple.dll",
     "protobuf-net.Core.dll",
-    "protobuf-net.dll"
+    "protobuf-net.dll",
+    "TAOM.Dependencies:0Harmony.dll",
+    "TAOM.Dependencies:MCMv5.dll"
   ],
   "sous_modules_desactives": {
     "TAOM.Dependencies": [
