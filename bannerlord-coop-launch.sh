@@ -53,7 +53,15 @@ REGION="${REGION:-EU}"
 DOSSIER_JOURNAUX="$ROOT/logs"
 mkdir -p "$DOSSIER_JOURNAUX" 2>/dev/null
 JOURNAL="$DOSSIER_JOURNAUX/console-$(date +%Y%m%d-%H%M%S).log"
-if [ -d "$DOSSIER_JOURNAUX" ] && [ -w "$DOSSIER_JOURNAUX" ]; then
+# Trace inconditionnelle : le 23/11 un demarrage a rempli ses journaux moteur sans laisser
+# le moindre console-*.log cote lanceur, et il n y avait aucun moyen de savoir si le script
+# avait tourne, avec quels reglages, ni ou il s etait arrete. Une ligne ici, toujours.
+TRACE="$DOSSIER_JOURNAUX/trace-demarrage.log"
+printf '%s  demarrage  pack=%s  monde=%s  port=%s  journal=%s\n' \
+    "$(date '+%Y-%m-%d %H:%M:%S')" "${MODPACK:-?}" "${MONDE_URL:+url}" "${ENGINE_PORT:-?}" \
+    "$(basename "$JOURNAL")" >> "$TRACE" 2>/dev/null
+: >> "$JOURNAL" 2>/dev/null
+if [ -s "$JOURNAL" ] || [ -w "$DOSSIER_JOURNAUX" ]; then
     # Le modele meteo vanilla decoupe la carte en une grille fixe ; la carte de TAOM la
     # depasse, et chaque parti hors grille leve une exception de tick, rattrapee par Coop,
     # repetee a chaque tick et pour chaque parti. Sans filtre, ce bruit atteint des millions
@@ -74,7 +82,7 @@ if [ -d "$DOSSIER_JOURNAUX" ] && [ -w "$DOSSIER_JOURNAUX" ]; then
     # Le filtre ci-dessous reconnait le bruit connu, pas une erreur inedite : on borne donc
     # la taille du journal, et on continue a compter ce qui n est plus ecrit.
     JOURNAL_MAX_MO="${JOURNAL_MAX_MO:-64}"
-    exec > >(awk -v J="$JOURNAL" -v I="$JOURNAL.incidents" -v LIMITE="$((JOURNAL_MAX_MO * 1024 * 1024))" '
+    exec > >(awk -v J="$JOURNAL" -v E="$JOURNAL.etats" -v I="$JOURNAL.incidents" -v LIMITE="$((JOURNAL_MAX_MO * 1024 * 1024))" '
         function w(l) {
             if (plafond) { ecartees++; return }
             octets += length(l) + 1
@@ -92,6 +100,14 @@ if [ -d "$DOSSIER_JOURNAUX" ] && [ -w "$DOSSIER_JOURNAUX" ]; then
         {
             tampon[n % 80] = $0
             n++
+            # Les lignes @DS@{...} portent la vraie cause quand le serveur meurt : le
+            # 23/11, « FileLoadException: Assembly with same name is already loaded »
+            # n existait que la, dans une ligne que la rotation du journal avait emportee.
+            # Elles vont donc dans leur propre fichier, qui n est jamais plafonne.
+            if ($0 ~ /@DS@/) {
+                print $0 > E
+                fflush(E)
+            }
             if ($0 ~ /Would you like to always ignore/ && captures < 5) {
                 captures++
                 print "=== capture " captures " ===" > I
