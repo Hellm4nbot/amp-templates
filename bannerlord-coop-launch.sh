@@ -552,6 +552,10 @@ fi
 CACHE_MESSAGE=$(python3 "$OUTIL" cache "$MANIFESTE" "$MODULES" 2>/dev/null || true)
 [ -n "$CACHE_MESSAGE" ] && log "$CACHE_MESSAGE"
 
+# Declarations de modules : les bibliotheques que TAOM reclame sans les livrer comme
+# modules. Le client Coop refuse la connexion si le serveur ne les declare pas.
+DECL_MESSAGE=$(python3 "$OUTIL" declarations "$MANIFESTE" "$MODULES" 2>&1 || true)
+[ -n "$DECL_MESSAGE" ] && log "$DECL_MESSAGE"
 JETON=$(python3 "$OUTIL" jeton "$MANIFESTE" "$MODULES")
 CODE=$?
 if [ "$CODE" != "0" ]; then

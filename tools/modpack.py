@@ -447,6 +447,45 @@ def plan(chemin_manifeste, modules_dir):
     return 1 if reste else 0
 
 
+def declarations(chemin_manifeste, modules_dir):
+    """Cree les modules que le manifeste declare sans code.
+
+    Le client Coop refuse la connexion si le serveur ne declare pas les modules que TAOM
+    reclame (« Server does not support module 'ButterLib (provided by TAOM.Dependencies)' »).
+    Ces bibliotheques sont livrees par TAOM.Dependencies comme assemblies redirigees, pas
+    comme modules : il n'existe donc aucun dossier a charger. On declare un SubModule.xml
+    minimal, sans bin — le module est present pour la validation et ne charge aucun code.
+    """
+    try:
+        manifeste = charger_avec_base(chemin_manifeste)
+    except (OSError, ValueError) as e:
+        print("manifeste illisible : %s" % e)
+        return 2
+    crees = 0
+    for entree in manifeste.get("modules", []):
+        if not entree.get("declaration"):
+            continue
+        ident = (entree.get("id") or "").strip()
+        if not ident:
+            continue
+        dossier = os.path.join(modules_dir, ident)
+        os.makedirs(dossier, exist_ok=True)
+        chemin = os.path.join(dossier, "SubModule.xml")
+        if os.path.isfile(chemin):
+            continue
+        version = entree.get("version") or "v1.0.0"
+        with open(chemin, "w", encoding="utf-8") as f:
+            f.write('<?xml version="1.0" encoding="utf-8"?>\n<Module>\n'
+                    '  <Name value="%s" />\n  <Id value="%s" />\n'
+                    '  <Version value="%s" />\n  <DefaultModule value="false" />\n'
+                    '  <ModuleCategory value="Core" />\n  <DependedModules />\n'
+                    '  <SubModules />\n</Module>\n' % (ident, ident, version))
+        crees += 1
+    if crees:
+        print("declarations de modules : %d creee(s)" % crees)
+    return 0
+
+
 def modules_de(manifeste, cle):
     """Identifiants des modules d'une provenance donnee.
 
@@ -1405,6 +1444,9 @@ def main(argv):
 
     if len(argv) in (3, 4) and argv[1] == "doublons":
         return doublons(argv[2], "Coop", argv[3] if len(argv) > 3 else None)
+
+    if len(argv) == 4 and argv[1] == "declarations":
+        return declarations(argv[2], argv[3])
 
     if len(argv) == 4 and argv[1] == "modules":
         return modules_de(charger(argv[2]), argv[3])
