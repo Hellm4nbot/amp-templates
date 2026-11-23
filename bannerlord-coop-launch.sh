@@ -61,6 +61,14 @@ printf '%s  demarrage  pack=%s  monde=%s  port=%s  journal=%s\n' \
     "$(date '+%Y-%m-%d %H:%M:%S')" "${MODPACK:-?}" "${MONDE_URL:+url}" "${ENGINE_PORT:-?}" \
     "$(basename "$JOURNAL")" >> "$TRACE" 2>/dev/null
 : >> "$JOURNAL" 2>/dev/null
+# stderr du lanceur sur disque : sans cela, une erreur bash ou un refus d execution ne
+# laisse aucune trace des que la console AMP ne la conserve pas (constate le 23/11).
+ERRLOG="$DOSSIER_JOURNAUX/stderr-lanceur.log"
+exec 2>>"$ERRLOG"
+# Jalons : chaque grande etape laisse son nom dans la trace. Un arret sans ligne de journal
+# devient alors localisable au lieu d etre un point d interrogation.
+jalon() { printf '%s  etape  %s\n' "$(date '+%H:%M:%S')" "$1" >> "$TRACE" 2>/dev/null; }
+jalon "demarrage du script"
 if [ -s "$JOURNAL" ] || [ -w "$DOSSIER_JOURNAUX" ]; then
     # Le modele meteo vanilla decoupe la carte en une grille fixe ; la carte de TAOM la
     # depasse, et chaque parti hors grille leve une exception de tick, rattrapee par Coop,
@@ -272,6 +280,8 @@ if [ "${MC_modOptions_warSails:-false}" = "true" ]; then
     log "  une campagne normale s arrete sur Exit 9 dans ce mode, et inversement."
 fi
 
+jalon "monde : entree"
+
 # --- 0. monde de depart du pack ---------------------------------------------
 # Un pack a monde custom ne peut pas creer sa campagne sur un serveur dedie : le monde
 # vient d une machine joueur. On en garde une copie vierge dans monde/, et on la remet
@@ -431,6 +441,8 @@ elif [ -f "$CIBLE_MONDE" ]; then
     fi
 fi
 
+jalon "monde : fin"
+
 # --- 1. import d'une sauvegarde ---------------------------------------------
 # Le monde d'un overhaul se cree sur une machine joueur : sans ce chemin, il
 # faudrait aller copier des fichiers a la main au fond du conteneur.
@@ -468,6 +480,8 @@ if [ -d "$IMPORT" ]; then
     fi
 fi
 
+jalon "imports : fin"
+
 # --- 2. modules supplementaires ? -------------------------------------------
 SUPPLEMENTAIRES=$(python3 - "$MANIFESTE" <<'PY'
 import json, sys
@@ -475,6 +489,8 @@ m = json.load(open(sys.argv[1], encoding="utf-8-sig"))
 print(sum(1 for e in m.get("modules", []) if e.get("source") != "engine"))
 PY
 ) || { erreur "manifeste illisible : $MANIFESTE"; exit 1; }
+
+jalon "modules : fin"
 
 # --- 3a. pack sans module ajoute : ligne eprouvee du paquet -----------------
 if [ "${SUPPLEMENTAIRES:-0}" = "0" ]; then
@@ -608,4 +624,5 @@ log "reperes du mod relayes ici, journal complet : $LOGCOOP"
 # /no_watchdog est obligatoire des qu'un mod est present : le moteur signale ses
 # avertissements a un programme de surveillance de bureau ; sans ecran, le premier
 # avertissement tue le serveur. Le jeu de base n'avertit pas, les mods si.
+jalon "exec wine (starter .NET)"
 exec /usr/bin/wine "$DOTNET" "$STARTER" "$JETON" /dedicatedcustomserver "$PORT" "$REGION" 0 /no_watchdog
