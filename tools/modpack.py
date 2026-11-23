@@ -686,7 +686,23 @@ def assemblies_interface(chemin_manifeste, modules_dir, bin_dir):
                 sources.append(candidat)
     manquants = []
     for nom in noms:
-        if os.path.exists(os.path.join(bin_dir, nom)):
+        # « Module:assembly.dll » : la copie se fait depuis ce module et ecrase la version
+        # deja presente. Necessaire quand deux modules livrent le meme nom dans des versions
+        # differentes — Coop livre un 0Harmony ancien dans le bin du serveur, TAOM en exige
+        # un plus recent, et le fichier deja la empechait la copie sans rien dire.
+        force = None
+        if ":" in nom:
+            module, nom_fichier = nom.split(":", 1)
+            nom = nom_fichier.strip()
+            force = os.path.join(modules_dir, module.strip(), "bin", "Win64_Shipping_Server", nom)
+            if not os.path.exists(force):
+                manquants.append("%s (dans %s)" % (nom, module.strip()))
+                continue
+        if force is None and os.path.exists(os.path.join(bin_dir, nom)):
+            continue
+        if force is not None:
+            shutil.copy2(force, os.path.join(bin_dir, nom))
+            copies += 1
             continue
         trouve = None
         for source in sources:
