@@ -633,4 +633,8 @@ log "reperes du mod relayes ici, journal complet : $LOGCOOP"
 # avertissement tue le serveur. Le jeu de base n'avertit pas, les mods si.
 jalon "exec wine (starter .NET)"
 log "commande : wine $DOTNET $STARTER <jeton> /dedicatedcustomserver $PORT $REGION 0 /no_watchdog"
-exec /usr/bin/wine "$DOTNET" "$STARTER" "$JETON" /dedicatedcustomserver "$PORT" "$REGION" 0 /no_watchdog
+# La sortie du serveur part dans un fichier a part, par un tube simple (| tee) et non par
+# une substitution de processus : le 23/11 le filtre awk ne recevait rien du tout et tout ce
+# que le serveur disait — dont la ligne @DS@ qui nomme la cause d arret — disparaissait.
+# tee ecrit au fur et a mesure, et la console AMP continue de tout recevoir.
+exec /usr/bin/wine "$DOTNET" "$STARTER" "$JETON" /dedicatedcustomserver "$PORT" "$REGION" 0 /no_watchdog 2>&1 | tee -a "$JOURNAL.raw"
