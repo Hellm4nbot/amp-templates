@@ -641,4 +641,26 @@ log "commande : wine $DOTNET $STARTER <jeton> /dedicatedcustomserver $PORT $REGI
 # une substitution de processus : le 23/11 le filtre awk ne recevait rien du tout et tout ce
 # que le serveur disait — dont la ligne @DS@ qui nomme la cause d arret — disparaissait.
 # tee ecrit au fur et a mesure, et la console AMP continue de tout recevoir.
-exec /usr/bin/wine "$DOTNET" "$STARTER" "$JETON" /dedicatedcustomserver "$PORT" "$REGION" 0 /no_watchdog 2>&1 | tee -a "$JOURNAL.raw"
+/usr/bin/wine "$DOTNET" "$STARTER" "$JETON" /dedicatedcustomserver "$PORT" "$REGION" 0 /no_watchdog 2>&1 | tee -a "$JOURNAL.raw"
+CODE=${PIPESTATUS[0]}
+
+# Resume de session : les compteurs qui disent si le monde a diverges, sans relire 4 Mo de
+# journal a la main. Les suppressions hors thread suivent l activite normale de la campagne ;
+# ce sont les objets introuvables et les echecs de tick qui annoncent une divergence.
+RESUME="$LOGS/resume-session.txt"
+{
+  echo "session   : $(date '+%Y-%m-%d %H:%M:%S')"
+  echo "duree     : $SECONDS s"
+  echo "code      : $CODE"
+  echo "lignes    : $(wc -l < "$JOURNAL.raw" 2>/dev/null)"
+  echo "hors-thread        : $(grep -c 'allowedThread=False' "$JOURNAL.raw" 2>/dev/null)"
+  echo "objets introuvables: $(grep -c 'Failed to get' "$JOURNAL.raw" 2>/dev/null)"
+  echo "exceptions         : $(grep -ci 'exception\|unhandled' "$JOURNAL.raw" 2>/dev/null)"
+  echo "echecs de tick     : $(grep -ci 'Failed to run\|Failed to tick' "$JOURNAL.raw" 2>/dev/null)"
+  echo "connexions         : $(grep -c 'player connecting' "$JOURNAL.raw" 2>/dev/null)"
+  echo "partis (dernier)   : $(grep -oE 'parties=[0-9]+' "$JOURNAL.raw" 2>/dev/null | tail -1)"
+} > "$RESUME" 2>/dev/null || true
+[ -f "$RESUME" ] && log "resume de session : $RESUME"
+
+log "serveur arrete, code $CODE"
+exit "$CODE"
