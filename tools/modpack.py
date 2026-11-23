@@ -603,19 +603,38 @@ def sauvegarde(chemin_sav, chemin_manifeste=None):
         ignores = sorted({m for m in modules if infrastructure(m)})
         if ignores:
             print("  ignore dans la comparaison (modules serveur) : %s" % ", ".join(ignores))
-        attendus = [e["id"] for e in manifeste.get("modules", [])
-                    if e.get("id") and not infrastructure(e["id"])]
-        cote_save = [m for m in modules if not infrastructure(m)]
-        manquants = [m for m in attendus if m.lower() not in {x.lower() for x in cote_save}]
-        en_trop = [m for m in cote_save if m.lower() not in {x.lower() for x in attendus}]
+        # Ce qui identifie un MONDE, ce sont les modules d archive qui le composent (carte,
+        # ressources, surcouche). Le reste ne doit pas entrer dans la comparaison :
+        #   - Coop et TAOM.CoopCompat n existent pas dans une sauvegarde creee en solo, et
+        #     le premier monde d un serveur est forcement cree ailleurs, en solo ;
+        #   - StoryMode, CustomBattle et les modules moteur peuvent manquer chez le joueur ;
+        #   - Harmony, ButterLib, UIExtenderEx, MCM, DualWield sont des modules de client,
+        #     absents du serveur par construction.
+        # Comparer tout cela refusait une sauvegarde parfaitement valable : constate le
+        # 23/11 sur une sauvegarde TAOM 2.0.41 en 1.5.7, refusee pour cinq modules de client.
+        sources = manifeste.get("sources") or {}
+        def du_monde(entree):
+            src = entree.get("source")
+            if not isinstance(src, dict) or "archive" not in src:
+                return False
+            return bool((sources.get(src["archive"]) or {}).get("monde"))
+        monde = [e["id"] for e in manifeste.get("modules", [])
+                 if e.get("id") and not infrastructure(e["id"]) and du_monde(e)]
+        if not monde:
+            monde = [e["id"] for e in manifeste.get("modules", [])
+                     if e.get("id") and not infrastructure(e["id"])
+                     and isinstance(e.get("source"), dict) and "archive" in e["source"]]
+        vus = {m.lower() for m in modules}
+        manquants = [m for m in monde if m.lower() not in vus]
         if manquants:
-            print("  REFUS : modules du pack absents de la sauvegarde : %s" % ", ".join(manquants))
-        if en_trop:
-            print("  REFUS : modules de la sauvegarde absents du pack : %s" % ", ".join(en_trop))
-        if manquants or en_trop:
-            print("  une sauvegarde doit etre creee avec exactement les modules du pack")
+            print("  REFUS : modules du monde absents de la sauvegarde : %s" % ", ".join(manquants))
+            print("  cette sauvegarde vient d un autre monde : elle serait chargee sur une")
+            print("  carte differente, exactement le cas qui fait mourir le cache de distances")
             return 1
-        print("  modules conformes au pack %s" % manifeste.get("nom", "?"))
+        print("  monde conforme au pack %s (%s)" % (manifeste.get("nom", "?"), ", ".join(monde)))
+        autres = [m for m in modules if not infrastructure(m) and m not in monde]
+        if autres:
+            print("  hors comparaison (client ou moteur) : %s" % ", ".join(autres))
     return 0
 
 
