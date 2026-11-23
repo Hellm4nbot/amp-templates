@@ -139,18 +139,16 @@
       {
         "nom": "DualWield",
         "version": "0.10.8",
-        "ou": "fourni dans l archive TAOM, cote client seulement",
-        "lien": ""
+        "ou": "client seulement — l archive ne contient que Win64_Shipping_Client, aucun binaire serveur : impossible de le charger cote serveur",
+        "lien": "https://archives.example.invalid/AMP/Mount%20%26%20Blade%20II%20%3A%20Bannerlord/TAOM/StoryMode%2BDualWield%2BCustomBattle.zip"
       }
     ],
     "etapes": [
-      "Installer Bannerlord 1.5.7 et le mod Coop 0.1.8 : une seule copie de Coop. Si l atelier Steam en installe une aussi, desabonner, sinon la connexion casse (« two copies of Coop at the same time break the join »).",
-      "Installer TAOM 2.0.41 avec son launcher, puis ajouter TAOM.CoopCompat, et DualWield cote client.",
-      "Ordre des modules : TAOM.Dependencies, Harmony, ButterLib, UIExtenderEx, MCM, Native, SandBoxCore, SandBox, StoryMode, CustomBattle, TAOM_Map, LOTRLOME_Armory, TAOM, DualWield, Coop, TAOM.CoopCompat.",
-      "DECOCHER : War Sails (NavalDLC) — TAOM ne demarre pas avec, et Coop refuse la connexion si serveur et joueur ne sont pas d accord ; Birth And Aging (module fourni par le lanceur, inutile et refuse par Coop) ; RBM si vous l utilisez.",
-      "Creer une campagne, atteindre la carte, regler les options MCM, puis sauvegarder : le serveur ne peut pas creer de monde.",
-      "Copier la PAIRE .sav + .json dans le dossier d import du serveur — le .sav seul fait perdre les personnages des joueurs.",
-      "Premier demarrage : le serveur ecrit son .json, les joueurs creent leur personnage."
+      "Installer Bannerlord 1.5.7 et le mod Coop 0.1.8 : une seule copie de Coop. Si l atelier Steam en installe aussi, desabonner, sinon la connexion casse (« two copies of Coop at the same time break the join »).",
+      "Installer TAOM 2.0.41 avec son launcher, puis ajouter TAOM.CoopCompat.",
+      "Modules du jeu : StoryMode et CustomBattle v1.5.7, identiques a ceux du serveur — verifies par empreinte du SubModule.xml. Ils sont dans l archive https://archives.example.invalid/AMP/Mount%20%26%20Blade%20II%20%3A%20Bannerlord/TAOM/StoryMode%2BDualWield%2BCustomBattle.zip avec DualWield.",
+      "DualWield (v0.10.8) est un mod de client : l archive ne livre que Win64_Shipping_Client. Le garder cote joueur ; si Coop refuse la connexion pour un module present chez le joueur et absent du serveur, le decocher.",
+      "Ordre des modules : TAOM.Dependencies, Harmony, ButterLib, UIExtenderEx, MCM, Native, SandBoxCore, SandBox, StoryMode, CustomBattle, TAOM_Map, LOTRLOME_Armory, TAOM, DualWield, Coop, TAOM.CoopCompat."
     ]
   },
   "avertissement": "Le module DLC BirthAndDeath est retire de cette liste : Coop le refuse (« DLC is not supported ») et assure lui-meme les naissances et les morts par son reglage birthAndDeath (CoopData/mod-config.json). StoryMode et CustomBattle, eux, viennent de l installation du jeu de l operateur et sont necessaires. Le module DLC BirthAndDeath reste exclu cote serveur ; les joueurs le decochent aussi (Coop refuse la connexion si serveur et joueur ne s accordent pas sur les modules optionnels).",
