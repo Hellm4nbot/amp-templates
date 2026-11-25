@@ -1,8 +1,8 @@
 [
   {
     "DisplayName": "Installer le runtime",
-    "Category": "Server Update:cloud_download",
-    "Subcategory": "Server:settings:1",
+    "Category": "Updates",
+    "Subcategory": "",
     "Description": "Telecharge et installe le runtime SE2 autonome (7,4 Go, moteur et .NET 9 portables) quand il manque. Decoche si tu fournis toi-meme le dossier runtime dans l'instance (copie d'un serveur existant).",
     "Keywords": "runtime,moteur,telechargement",
     "FieldName": "InstallRuntime",
@@ -18,8 +18,8 @@
   },
   {
     "DisplayName": "Dossier des archives",
-    "Category": "Server Update:cloud_download",
-    "Subcategory": "Server:settings:1",
+    "Category": "Updates",
+    "Subcategory": "",
     "Description": "Sous-dossier de l'instance ou deposer les archives (nom, taille et sha256 verifies) quand tu ne veux pas de telechargement : le zip du serveur, celui du runtime, et un sous-dossier steamlibs pour les trois DLL Steam.",
     "Keywords": "packs,archives,depot",
     "FieldName": "PacksDir",
@@ -35,8 +35,8 @@
   },
   {
     "DisplayName": "URL du serveur SE2 Online",
-    "Category": "Server Update:cloud_download",
-    "Subcategory": "Server:settings:1",
+    "Category": "Updates",
+    "Subcategory": "",
     "Description": "Archive du serveur SE2 Online a installer. Vide = l'URL publiee par version.php de l'auteur pour la version courante. Une URL fixe sert a epingler une version precise.",
     "Keywords": "url,version,archive",
     "FieldName": "ServerZipUrl",
@@ -52,8 +52,8 @@
   },
   {
     "DisplayName": "Empreinte du serveur (sha256)",
-    "Category": "Server Update:cloud_download",
-    "Subcategory": "Server:settings:1",
+    "Category": "Updates",
+    "Subcategory": "",
     "Description": "sha256 attendu pour l'archive du serveur. Vide = celui publie par version.php. Une archive dont l'empreinte differe est refusee avant extraction.",
     "Keywords": "sha256,empreinte,verification",
     "FieldName": "ServerZipSha256",
@@ -69,8 +69,8 @@
   },
   {
     "DisplayName": "URL du runtime SE2",
-    "Category": "Server Update:cloud_download",
-    "Subcategory": "Server:settings:1",
+    "Category": "Updates",
+    "Subcategory": "",
     "Description": "Runtime autonome (moteur SE2 4.0 et .NET 9 portables) a installer. Vide = l'URL publiee par version.php pour le moteur que le serveur annonce.",
     "Keywords": "runtime,url,moteur",
     "FieldName": "RuntimeZipUrl",
@@ -86,8 +86,8 @@
   },
   {
     "DisplayName": "Empreinte du runtime (sha256)",
-    "Category": "Server Update:cloud_download",
-    "Subcategory": "Server:settings:1",
+    "Category": "Updates",
+    "Subcategory": "",
     "Description": "sha256 attendu pour l'archive du runtime (7,4 Go). Vide = celui publie par version.php. Verifie avant extraction, comme pour le serveur.",
     "Keywords": "sha256,runtime,empreinte",
     "FieldName": "RuntimeZipSha256",
@@ -103,8 +103,8 @@
   },
   {
     "DisplayName": "URL du runtime SE2",
-    "Category": "Server Update:cloud_download",
-    "Subcategory": "Server:settings:1",
+    "Category": "Updates",
+    "Subcategory": "",
     "Description": "Runtime autonome (moteur SE2 4.0 et .NET 9 portables) a installer. Vide = l'URL publiee par version.php pour le moteur que le serveur annonce.",
     "Keywords": "runtime,url,moteur",
     "FieldName": "RuntimeZipUrl",
@@ -121,8 +121,8 @@
   },
   {
     "DisplayName": "Empreinte du runtime (sha256)",
-    "Category": "Server Update:cloud_download",
-    "Subcategory": "Server:settings:1",
+    "Category": "Updates",
+    "Subcategory": "",
     "Description": "sha256 attendu pour l'archive du runtime (7,4 Go). Vide = celui publie par version.php. Verifie avant extraction, comme pour le serveur.",
     "Keywords": "sha256,runtime,empreinte",
     "FieldName": "RuntimeZipSha256",
