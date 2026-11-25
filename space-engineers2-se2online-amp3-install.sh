@@ -227,6 +227,29 @@ fi
 # viennent du client Steam ou de SteamCMD installes sur la machine. On les accepte
 # deposees dans $PACKS/steamlibs, sinon on amorce SteamCMD pour Windows sous Wine.
 STEAM_LIBS="steamclient64.dll tier0_s64.dll vstdlib_s64.dll"
+
+# --- bloc bibliotheques Steam ------------------------------------------------
+# L operateur peut fournir un zip des trois DLL (URL + sha256 dans le panneau) :
+# c est la voie normale, SteamCMD anonyme ne peut rien telecharger pour un jeu payant.
+if [ -n "${STEAM_URL:-}" ]; then
+    if fetch_verified "$STEAM_URL" "${STEAM_SHA256:-}" 0 "$BASE/steamlibs.zip"; then
+        rm -rf "$BASE/.steamlibs"
+        if unzip_to "$BASE/steamlibs.zip" "$BASE/.steamlibs" >/dev/null 2>&1; then
+            got=0
+            for l in "steamclient64.dll" "tier0_s64.dll" "vstdlib_s64.dll"; do
+                src=$(find "$BASE/.steamlibs" -type f -iname "$l" 2>/dev/null | head -1)
+                [ -n "$src" ] || { warn "absente de l archive : $l"; continue; }
+                cp -f "$src" "$SRV/$l" && chmod 644 "$SRV/$l" && got=$((got+1))
+                if [ -d "$RT/Game2" ]; then cp -f "$src" "$RT/Game2/$l" && chmod 644 "$RT/Game2/$l"; fi
+            done
+            log "$got bibliotheque(s) Steam posee(s) depuis l archive"
+            rm -rf "$BASE/.steamlibs" "$BASE/steamlibs.zip"
+        else
+            warn "extraction de l archive de bibliotheques Steam impossible"
+        fi
+    fi
+fi
+# --- fin bloc bibliotheques Steam --------------------------------------------
 missing_steam=""
 for l in $STEAM_LIBS; do [ -f "$SRV/$l" ] || missing_steam="$missing_steam $l"; done
 if [ -n "$missing_steam" ]; then

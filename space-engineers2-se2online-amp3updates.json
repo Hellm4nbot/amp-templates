@@ -4,7 +4,7 @@
     "UpdateSourcePlatform": "Linux",
     "UpdateSource": "Executable",
     "UpdateSourceData": "/bin/bash",
-    "UpdateSourceArgs": "-c \"f={{$FullRootDir}}space-engineers2-se2online-amp3-install.sh; mkdir -p {{$FullRootDir}}; curl -fsSL --max-time 120 -o $f.tmp https://raw.githubusercontent.com/Hellm4nbot/amp-templates/main/space-engineers2-se2online-amp3-install.sh && mv -f $f.tmp $f && ROOT={{$FullRootDir}} PACKS_DIR='{{PacksDir}}' INSTALL_RUNTIME='{{InstallRuntime}}' SERVER_URL='{{ServerZipUrl}}' SERVER_SHA256='{{ServerZipSha256}}' RUNTIME_URL='{{RuntimeZipUrl}}' RUNTIME_SHA256='{{RuntimeZipSha256}}' bash $f\"",
+    "UpdateSourceArgs": "-c \"f={{$FullRootDir}}space-engineers2-se2online-amp3-install.sh; mkdir -p {{$FullRootDir}}; curl -fsSL --max-time 120 -o $f.tmp https://raw.githubusercontent.com/Hellm4nbot/amp-templates/main/space-engineers2-se2online-amp3-install.sh && mv -f $f.tmp $f && ROOT={{$FullRootDir}} PACKS_DIR='{{PacksDir}}' INSTALL_RUNTIME='{{InstallRuntime}}' SERVER_URL='{{ServerZipUrl}}' SERVER_SHA256='{{ServerZipSha256}}' RUNTIME_URL='{{RuntimeZipUrl}}' RUNTIME_SHA256='{{RuntimeZipSha256}}' STEAM_URL='{{SteamLibsZipUrl}}' STEAM_SHA256='{{SteamLibsZipSha256}}' bash $f\"",
     "SkipOnFailure": false
   },
   {
