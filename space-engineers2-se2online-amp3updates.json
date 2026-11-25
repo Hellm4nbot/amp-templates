@@ -1,0 +1,18 @@
+[
+  {
+    "UpdateStageName": "Installation SE2 Online (archive verifiee ou URL)",
+    "UpdateSourcePlatform": "Linux",
+    "UpdateSource": "Executable",
+    "UpdateSourceData": "/bin/bash",
+    "UpdateSourceArgs": "-c \"f={{$FullRootDir}}space-engineers2-se2online-amp3-install.sh; mkdir -p {{$FullRootDir}}; curl -fsSL --max-time 120 -o $f.tmp https://raw.githubusercontent.com/Hellm4nbot/amp-templates/main/space-engineers2-se2online-amp3-install.sh && mv -f $f.tmp $f && ROOT={{$FullRootDir}} PACKS_DIR='{{PacksDir}}' INSTALL_RUNTIME='{{InstallRuntime}}' SERVER_URL='{{ServerZipUrl}}' SERVER_SHA256='{{ServerZipSha256}}' RUNTIME_URL='{{RuntimeZipUrl}}' RUNTIME_SHA256='{{RuntimeZipSha256}}' bash $f\"",
+    "SkipOnFailure": false
+  },
+  {
+    "UpdateStageName": "Verification du binaire installe",
+    "UpdateSourcePlatform": "Linux",
+    "UpdateSource": "Executable",
+    "UpdateSourceData": "/bin/bash",
+    "UpdateSourceArgs": "-c \"e={{$FullBaseDir}}.launch-exe; if [ -s $e ] && [ -f {{$FullBaseDir}}$(cat $e) ]; then echo OK - binaire present : $(cat $e); else echo ERREUR - aucun binaire dans {{$FullBaseDir}} : l archive installee n est pas le serveur SE2 Online; exit 1; fi\"",
+    "SkipOnFailure": false
+  }
+]

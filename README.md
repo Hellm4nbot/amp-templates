@@ -528,6 +528,37 @@ cycle de vie (démarrage, arrêt, ports, limites), tandis que les réglages de l
   `DeploymentTemplates` avant de refetcher.
 | Subnautica (Nitrox) AMP 3 | `subnautica-nitrox-amp3*` | copie de `subnautica2.kvp`, chemin du jeu sorti du réglage cassé |
 | NightCoop Hub (AMP 3) | `nightcoop-hub-amp3*` | créé ici : aucun binaire publié en amont, le template compile le hub depuis ses sources |
+| Space Engineers 2 (SE2 Online) AMP 3 | `space-engineers2-se2online-amp3*` | adaptation AMP 3 de `space-engineers2-se2online.kvp` (catalogue CubeCoders) |
+
+## Space Engineers 2 (SE2 Online) sur AMP 3
+
+Serveur dédié du plugin SE2 Online, sous Wine dans `cubecoders/amp3base:wine-stable` :
+le runner est un programme .NET pour Windows.
+
+Le template amont échouait sur `cd: /amp/space-engineers2/: No such file or directory` :
+son étape d'installation entrait dans le dossier de l'application avant de le créer, et
+elle attendait un zip déposé à la main sans jamais chercher au bon endroit. Ici :
+
+- **aucune étape ne dépend d'un dossier existant** : tout est créé par `mkdir -p`, et le
+  script ne fait jamais `cd` dans un chemin qui peut manquer ;
+- **deux artefacts signés** par l'auteur, décrits publiquement par
+  `https://se2-online.yellow51.dev/version.php` : le serveur (45 239 939 o,
+  `sha256 dbf32386…b6e0`, version 0.18.5) et le runtime autonome (7 357 079 452 o,
+  moteur SE2 4.0.0.3169 + .NET 9 portables). Chacun vient soit d'une **archive déposée
+  dans `packs/`**, reconnue par nom + taille + sha256, soit d'une **URL vérifiée** par
+  taille et sha256 avant extraction ;
+- **le nom du binaire n'est pas supposé** : l'installation écrit le `.exe` qu'elle a
+  réellement trouvé dans `server/.launch-exe`, et le lanceur lit ce fichier ;
+- les trois DLL du client Steam (`steamclient64.dll`, `tier0_s64.dll`, `vstdlib_s64.dll`)
+  ne sont pas dans le runtime : le template amorce SteamCMD pour Windows sous Wine, et
+  accepte ces DLL déposées dans `packs/steamlibs/` ;
+- ports **UDP 27216** (jeu), UDP 27217 (requête Steam, jeu + 1), **TCP 27220** (RCON) ;
+- `server.json` n'est pas confié à l'AutoMap d'AMP (structure imbriquée) : les réglages
+  du panneau sont réappliqués dans le fichier à chaque démarrage par le lanceur, qui ne
+  touche qu'aux clés qu'il possède.
+
+Le détail — étapes, variables, ce qui reste à vérifier au premier démarrage — est dans la
+branche `amp3`, section « Space Engineers 2 (SE2 Online) ».
 
 ## NightCoop Hub sur AMP 3 (Linux uniquement)
 

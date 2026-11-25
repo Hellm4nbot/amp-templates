@@ -1,0 +1,23 @@
+[
+  {
+    "Protocol": "UDP",
+    "Port": 27216,
+    "Ref": "ServerPort",
+    "Name": "Game Port",
+    "Description": "Port de jeu (Network.ListenPort). Les joueurs s'y connectent en direct ; il doit etre joignable depuis l'exterieur."
+  },
+  {
+    "Protocol": "UDP",
+    "Port": 27217,
+    "Ref": "QueryPort",
+    "Name": "Steam Query Port",
+    "Description": "Port de requete Steam, toujours le port de jeu + 1. Sert a la liste des serveurs ; s'il change, il doit rester colle au port de jeu."
+  },
+  {
+    "Protocol": "TCP",
+    "Port": 27220,
+    "Ref": "RconPort",
+    "Name": "RCON Port",
+    "Description": "Console distante Source RCON (RconPort), fermee tant que la console distante n'est pas activee. Ne doit jamais valoir le port de jeu, le port + 1, ni 7742."
+  }
+]
