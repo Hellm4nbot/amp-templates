@@ -29,6 +29,9 @@ SERVER_SIZE="${SERVER_SIZE:-0}"
 RUNTIME_URL="${RUNTIME_URL:-}"
 RUNTIME_SHA256="${RUNTIME_SHA256:-}"
 RUNTIME_SIZE="${RUNTIME_SIZE:-0}"
+# AMP transmet les cases a cocher en "True"/"False", pas en "1" : une egalite stricte a "1"
+# laissait le runtime desactive alors que la case etait cochee.
+truthy() { case "$(printf '%s' "$1" | tr 'A-Z' 'a-z')" in 1|true|yes|on) return 0 ;; *) return 1 ;; esac; }
 INSTALL_RUNTIME="${INSTALL_RUNTIME:-1}"
 VERSION_PHP="${VERSION_PHP:-https://se2-online.yellow51.dev/version.php}"
 
@@ -165,6 +168,12 @@ SERVER_ZIP=""
 if [ -n "$SERVER_SHA256" ] && SERVER_ZIP=$(pack_by_sha "$SERVER_SHA256" "Y51_SE2Online-DedicatedServer.zip"); then
     log "archive du serveur fournie par l'operateur : $SERVER_ZIP"
 else
+    # Nettoyage de l ancien defaut : les premieres versions empilaient la racine et ecrivaient
+    # dans $BASE/se2online. Ce dossier ne sert plus, et ses tampons d etat fausseraient la suite.
+    if [ -d "$BASE/se2online" ] && { [ -f "$BASE/se2online/.etat-server" ] || [ -d "$BASE/se2online/server" ]; }; then
+        rm -rf "$BASE/se2online" && log "ancien dossier double supprime : $BASE/se2online"
+    fi
+
     fetch_verified "$SERVER_URL" "$SERVER_SHA256" "$SERVER_SIZE" "$BASE/server.zip" \
         || die "aucune archive serveur utilisable : deposez le zip dans $PACKS (nom, taille et sha256 verifies) ou renseignez ServerZipUrl"
     SERVER_ZIP="$BASE/server.zip"
@@ -179,7 +188,7 @@ else
 fi
 
 # ---------------------------------------------------------------- runtime (7.4 Go)
-if [ "$INSTALL_RUNTIME" = "1" ]; then
+if truthy "$INSTALL_RUNTIME"; then
     RT_ZIP=""
     if [ -n "$RUNTIME_SHA256" ] && RT_ZIP=$(pack_by_sha "$RUNTIME_SHA256" "Y51_SE2Online-DedicatedRuntime.zip"); then
         log "archive runtime fournie par l'operateur : $RT_ZIP"
