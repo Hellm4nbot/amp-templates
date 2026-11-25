@@ -8,7 +8,7 @@
 set -uo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BASE="$ROOT/se2online"
+BASE="$ROOT"   # ROOT est deja la racine du jeu (voir install.sh)
 SRV="$BASE/server"
 RT="$BASE/runtime"
 LOG_PREFIX="[se2]"

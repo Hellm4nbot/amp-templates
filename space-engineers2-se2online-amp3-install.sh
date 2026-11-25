@@ -12,7 +12,11 @@ set -uo pipefail
 
 ROOT="${ROOT:-${1:-}}"
 [ -n "$ROOT" ] || { echo "[se2] ROOT manquant : rien a installer"; exit 1; }
-BASE="$ROOT/se2online"
+# ROOT est deja la racine du jeu (App.RootDir=./se2online/ cote kvp, resolue en
+# /amp/<instance>/se2online). Y rajouter "se2online" creait /amp/<instance>/se2online/se2online :
+# l installation ecrivait 18 fichiers la ou AMP attend /amp/<instance>/se2online/server, et
+# l etape suivante declarait « aucun binaire ». On ne fait que normaliser la barre finale.
+BASE="${ROOT%/}"
 SRV="$BASE/server"
 RT="$BASE/runtime"
 PACKS="$BASE/${PACKS_DIR:-packs}"
