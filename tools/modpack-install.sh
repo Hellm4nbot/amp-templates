@@ -86,7 +86,40 @@ fi
 # comportement.
 if [ -n "${MODPACK_URL:-}" ] || [ -n "${GAME_MODULES_URL:-}" ]; then
     DERIVE="$PACKS/$PACK.local.json"
-    cp "$MANIFESTE" "$DERIVE" || exit 1
+    # Le manifeste derive n est plus recopie du manifeste frais : il est FUSIONNE avec celui
+    # deja present. Un cp simple effacait les URL reelles que l operateur avait saisies (le
+    # depot public ne porte que des hotes neutres), et l update suivant repartait sur
+    # archives.example.invalid. L existant gagne, la base complete les cles nouvelles, et les
+    # modules sont apparies par identifiant pour qu un module ajoute au depot soit repris.
+    python3 - "$MANIFESTE" "$DERIVE" <<'PYFUSION' || exit 1
+import json, os, sys
+base_p, derive_p = sys.argv[1], sys.argv[2]
+def charger(p):
+    try:
+        with open(p, encoding="utf-8-sig") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+base = charger(base_p)
+existant = charger(derive_p) if os.path.isfile(derive_p) else {}
+out = dict(existant)
+for cle, valeur in base.items():
+    out.setdefault(cle, valeur)
+if isinstance(base.get("modules"), list) and isinstance(existant.get("modules"), list):
+    par_id = {m.get("id"): m for m in existant["modules"] if isinstance(m, dict)}
+    fusion = []
+    for m in base["modules"]:
+        if not isinstance(m, dict):
+            continue
+        fusion.append(par_id.get(m.get("id"), m))
+    fusion += [m for m in existant["modules"]
+               if isinstance(m, dict) and m.get("id") not in {x.get("id") for x in fusion}]
+    out["modules"] = fusion
+tmp = derive_p + ".tmp"
+with open(tmp, "w", encoding="utf-8") as f:
+    json.dump(out, f, ensure_ascii=False, indent=2)
+os.replace(tmp, derive_p)
+PYFUSION
     while IFS="$(printf '\t')" read -r CLE DESTINATION; do
         [ -n "${CLE:-}" ] || continue
         [ "$DESTINATION" = "-" ] && DESTINATION="modules"
