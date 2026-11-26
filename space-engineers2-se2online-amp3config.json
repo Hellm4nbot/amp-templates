@@ -106,11 +106,7 @@
     "Category": "Updates",
     "Subcategory": "",
     "Description": "Zip contenant steamclient64.dll, tier0_s64.dll et vstdlib_s64.dll, que le serveur SE2 Online ne peut pas telecharger lui-meme (le jeu est payant, SteamCMD anonyme refuse). L installateur verifie l empreinte, cherche les trois fichiers ou qu ils soient dans l archive et les pose dans server/ et runtime/Game2. Vide = les DLL sont cherchees dans le sous-dossier steamlibs du dossier des archives.",
-    "Keywords": [
-      "steam",
-      "dll",
-      "bibliotheques"
-    ],
+    "Keywords": "steam dll bibliotheques",
     "FieldName": "SteamLibsZipUrl",
     "InputType": "text",
     "Hidden": false,
@@ -120,19 +116,14 @@
     "DefaultValue": "",
     "Placeholder": "https://exemple.invalid/steamlibs.zip",
     "Required": false,
-    "EnumValues": {},
-    "Setting": "SteamLibsZipUrl"
+    "EnumValues": {}
   },
   {
     "DisplayName": "Empreinte des bibliotheques Steam (sha256)",
     "Category": "Updates",
     "Subcategory": "",
     "Description": "sha256 attendu pour le zip des bibliotheques Steam. Une archive dont l empreinte differe est refusee. Vide = archive acceptee sans verification d empreinte, ce qui n est pas recommande.",
-    "Keywords": [
-      "steam",
-      "dll",
-      "bibliotheques"
-    ],
+    "Keywords": "steam dll bibliotheques",
     "FieldName": "SteamLibsZipSha256",
     "InputType": "text",
     "Hidden": false,
@@ -142,8 +133,7 @@
     "DefaultValue": "",
     "Placeholder": "sha256",
     "Required": false,
-    "EnumValues": {},
-    "Setting": "SteamLibsZipSha256"
+    "EnumValues": {}
   },
   {
     "DisplayName": "Nom de la session",
