@@ -188,6 +188,24 @@ else
 fi
 
 # ---------------------------------------------------------------- runtime (7.4 Go)
+# L archive du runtime contient un dossier "runtime/" a sa racine : extraite dans $RT, elle
+# donne $RT/runtime/Game2 et le controle $RT/Game2 echoue — le serveur refuse alors de
+# demarrer en annoncant un runtime absent, alors que 9 Go viennent d etre extraits.
+# On remonte le contenu d un niveau au lieu de retelecharger 7,4 Go.
+normaliser_runtime() {
+    [ -d "$RT/Game2" ] && return 0
+    g=$(find "$RT" -maxdepth 4 -type d -name Game2 2>/dev/null | head -1)
+    [ -n "$g" ] || return 1
+    parent=$(dirname "$g")
+    [ "$parent" = "$RT" ] && return 0
+    log "runtime imbrique dans ${parent#"$BASE"/} : contenu remonte a la racine"
+    shopt -s dotglob nullglob
+    mv -f "$parent"/* "$RT"/ 2>/dev/null
+    shopt -u dotglob nullglob
+    rmdir "$parent" 2>/dev/null || true
+    [ -d "$RT/Game2" ]
+}
+if [ -d "$RT" ]; then normaliser_runtime || true; fi
 if truthy "$INSTALL_RUNTIME"; then
     RT_ZIP=""
     if [ -n "$RUNTIME_SHA256" ] && RT_ZIP=$(pack_by_sha "$RUNTIME_SHA256" "Y51_SE2Online-DedicatedRuntime.zip"); then
@@ -211,6 +229,7 @@ if truthy "$INSTALL_RUNTIME"; then
         if [ "$(cat "$BASE/.etat-runtime" 2>/dev/null)" != "$RT_SHA_NOW" ] || [ ! -d "$RT/Game2" ]; then
             log "installation du runtime SE2 (long : plusieurs minutes)"
             unzip_to "$RT_ZIP" "$RT" || die "extraction impossible du runtime"
+            normaliser_runtime || warn "Game2 reste introuvable apres extraction du runtime"
             printf '%s\n' "$RT_SHA_NOW" > "$BASE/.etat-runtime"
             # L'archive telechargee ne sert plus une fois extraite : 7,4 Go rendus.
             [ "$RT_ZIP" = "$BASE/runtime.zip" ] && { rm -f "$BASE/runtime.zip"; log "archive runtime supprimee apres extraction"; }
@@ -250,17 +269,25 @@ if [ -n "${STEAM_URL:-}" ]; then
     fi
 fi
 # --- fin bloc bibliotheques Steam --------------------------------------------
-missing_steam=""
-for l in $STEAM_LIBS; do [ -f "$SRV/$l" ] || missing_steam="$missing_steam $l"; done
+# Les DLL doivent etre a cote de l exe ET a cote de steam_api64.dll (runtime/Game2) :
+# presentes au seul endroit du serveur, elles laissaient le runtime sans client Steam.
+steam_manquantes() {
+    for l in $STEAM_LIBS; do
+        [ -f "$SRV/$l" ] || { printf '%s ' "$l"; continue; }
+        if [ -d "$RT/Game2" ] && [ ! -f "$RT/Game2/$l" ]; then printf '%s ' "$l"; fi
+    done
+}
+missing_steam=$(steam_manquantes)
 if [ -n "$missing_steam" ]; then
     libdir="$PACKS/steamlibs"
     copied=0
     for l in $STEAM_LIBS; do
         [ -f "$libdir/$l" ] || continue
-        cp -f "$libdir/$l" "$SRV/$l" && copied=$((copied+1))
+        cp -f "$libdir/$l" "$SRV/$l" && chmod 644 "$SRV/$l" && copied=$((copied+1))
+        if [ -d "$RT/Game2" ]; then cp -f "$libdir/$l" "$RT/Game2/$l" && chmod 644 "$RT/Game2/$l"; fi
     done
     [ "$copied" -gt 0 ] && log "$copied bibliotheque(s) Steam copiee(s) depuis $libdir"
-    for l in $STEAM_LIBS; do [ -f "$SRV/$l" ] || missing_steam="$l"; done
+    missing_steam=$(steam_manquantes)
 fi
 if [ -n "${missing_steam:-}" ]; then
     if [ ! -x "$BASE/steamcmd/steamcmd.exe" ] && command -v wine >/dev/null 2>&1; then
