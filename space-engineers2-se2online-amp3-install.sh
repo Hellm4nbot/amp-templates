@@ -240,8 +240,10 @@ if truthy "$INSTALL_RUNTIME"; then
             unzip_to "$RT_ZIP" "$RT" || die "extraction impossible du runtime"
             normaliser_runtime || warn "Game2 reste introuvable apres extraction du runtime"
             printf '%s\n' "$RT_SHA_NOW" > "$BASE/.etat-runtime"
-            # L'archive telechargee ne sert plus une fois extraite : 7,4 Go rendus.
-            [ "$RT_ZIP" = "$BASE/runtime.zip" ] && { rm -f "$BASE/runtime.zip"; log "archive runtime supprimee apres extraction"; }
+            # L archive reste sur disque : la supprimer apres une extraction reussie faisait
+            # retelecharger 7,4 Go au prochain update. Elle est remplacee par la suivante et
+            # ne part qu en cas d echec d extraction (voir plus haut).
+            [ "$RT_ZIP" = "$BASE/runtime.zip" ] && log "archive runtime conservee pour les prochains updates"
         else
             log "runtime deja installe pour cette empreinte"
         fi
@@ -272,7 +274,7 @@ if [ -n "${STEAM_URL:-}" ]; then
                 if [ -d "$RT/Game2" ]; then cp -f "$src" "$RT/Game2/$l" && chmod 644 "$RT/Game2/$l"; fi
             done
             log "$got bibliotheque(s) Steam posee(s) depuis l archive"
-            rm -rf "$BASE/.steamlibs" "$BASE/steamlibs.zip"
+            rm -rf "$BASE/.steamlibs"
         else
             warn "extraction de l archive de bibliotheques Steam impossible"
         fi

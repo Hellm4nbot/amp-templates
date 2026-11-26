@@ -701,7 +701,12 @@ PY
     # re-extrait juste apres. Sans ce filtre, un pack de 24 Go etait copie hors de
     # DEST puis recopie dedans a chaque passage — mesure du 22/11 : 48 Go d echanges
     # pour rien, quarante minutes sur un disque sature.
-    MODS_DU_PACK=$(python3 - "$MANIFESTE" <<'PYMODS' 2>/dev/null
+    # $MANIFESTE n existe pas dans ce script (il est propre a modpack-install.sh) : avec set -u
+    # la substitution echouait, MODS_DU_PACK restait vide et le filtre ne protegeait plus les
+    # modules du pack. Le manifeste effectif est le derive s il existe, la base sinon.
+    PACK_MANIFESTE="$PACKJSON"
+    [ -f "${PACKJSON%.json}.local.json" ] && PACK_MANIFESTE="${PACKJSON%.json}.local.json"
+    MODS_DU_PACK=$(python3 - "$PACK_MANIFESTE" <<'PYMODS' 2>/dev/null
 import json
 import sys
 
@@ -775,7 +780,14 @@ PYMODS
     echo "    fichiers mis en place"
 
     rm -rf "$STAGE"
-    rm -f "$ARCH"
+    # L archive reste en cache : la supprimer apres une installation reussie obligeait le
+    # prochain update a retelecharger 2,5 Go pour rien. Seules les archives de la meme
+    # famille, remplacees par celle qui vient de s installer, sont retirees.
+    for vieille in "${CACHE}"/BannerlordCoop-DedicatedServer-Win64-*.7z; do
+        [ -e "$vieille" ] || continue
+        [ "$vieille" = "$ARCH" ] && continue
+        rm -f "$vieille" && echo "    archive remplacee retiree : $(basename "$vieille")"
+    done
 
     echo
     echo "    version installee :"
