@@ -207,6 +207,15 @@ normaliser_runtime() {
 }
 if [ -d "$RT" ]; then normaliser_runtime || true; fi
 if truthy "$INSTALL_RUNTIME"; then
+    # Deja installe ? L archive est supprimee apres extraction, donc sans ce test chaque
+    # Update retelechargeait 7,4 Go alors que Game2 est sur le disque et que l empreinte
+    # enregistree correspond a celle du manifeste. Un seul cas doit retelecharger : une
+    # empreinte differente, c est-a-dire une version publiee plus recente.
+    if [ -d "$RT" ]; then normaliser_runtime || true; fi
+    ETAT_RT=$(cat "$BASE/.etat-runtime" 2>/dev/null || true)
+    if [ -d "$RT/Game2" ] && [ -n "$ETAT_RT" ] && { [ -z "$RUNTIME_SHA256" ] || [ "$ETAT_RT" = "$RUNTIME_SHA256" ]; }; then
+        log "runtime deja installe : Game2 present, empreinte ${ETAT_RT} identique au manifeste, rien a telecharger"
+    else
     RT_ZIP=""
     if [ -n "$RUNTIME_SHA256" ] && RT_ZIP=$(pack_by_sha "$RUNTIME_SHA256" "Y51_SE2Online-DedicatedRuntime.zip"); then
         log "archive runtime fournie par l'operateur : $RT_ZIP"
@@ -236,6 +245,7 @@ if truthy "$INSTALL_RUNTIME"; then
         else
             log "runtime deja installe pour cette empreinte"
         fi
+    fi
     fi
 else
     log "runtime non demande (InstallRuntime desactive) : utilisation d'une copie fournie dans $RT"
