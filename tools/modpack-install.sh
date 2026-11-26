@@ -120,18 +120,45 @@ with open(tmp, "w", encoding="utf-8") as f:
     json.dump(out, f, ensure_ascii=False, indent=2)
 os.replace(tmp, derive_p)
 PYFUSION
+    # Une URL de pack ne vaut que pour l archive principale : l appliquer a toutes les
+    # sources ecrasait l archive de compatibilite (52 Ko) par les 22 Go du pack. Les sources
+    # sont donc classees — modules du jeu, compatibilite, puis archive principale (la
+    # premiere rencontree) — et une source qui garde un hote neutre est signalee.
+    MAIN_FAIT=0
     while IFS="$(printf '\t')" read -r CLE DESTINATION; do
         [ -n "${CLE:-}" ] || continue
         [ "$DESTINATION" = "-" ] && DESTINATION="modules"
-        if [ "$DESTINATION" = "game-modules" ] && [ -n "${GAME_MODULES_URL:-}" ]; then
-            log "url des modules du jeu fournie par le panneau : $GAME_MODULES_URL"
-            python3 "$OUTIL" surcharger "$DERIVE" "$DERIVE" "$GAME_MODULES_URL" \
-                "${GAME_MODULES_SHA256:-}" "" "$CLE" || exit 1
-        elif [ "$DESTINATION" != "game-modules" ] && [ -n "${MODPACK_URL:-}" ]; then
-            log "url du pack fournie par le panneau : $MODPACK_URL"
-            python3 "$OUTIL" surcharger "$DERIVE" "$DERIVE" "$MODPACK_URL" \
-                "${MODPACK_SHA256:-}" "${MODPACK_TAILLE:-}" "$CLE" || exit 1
+        if [ "$DESTINATION" = "game-modules" ]; then
+            if [ -n "${GAME_MODULES_URL:-}" ]; then
+                log "url des modules du jeu fournie par le panneau : $GAME_MODULES_URL"
+                python3 "$OUTIL" surcharger "$DERIVE" "$DERIVE" "$GAME_MODULES_URL" \
+                    "${GAME_MODULES_SHA256:-}" "" "$CLE" || exit 1
+            else
+                log "modules du jeu : aucune url au panneau, la source $CLE reste au manifeste"
+            fi
+            continue
         fi
+        case "$CLE" in
+            *compat*)
+                if [ -n "${COMPAT_URL:-}" ]; then
+                    log "url de l archive de compatibilite fournie par le panneau : $COMPAT_URL"
+                    python3 "$OUTIL" surcharger "$DERIVE" "$DERIVE" "$COMPAT_URL" \
+                        "${COMPAT_SHA256:-}" "" "$CLE" || exit 1
+                else
+                    log "compatibilite : aucune url au panneau, la source $CLE reste au manifeste"
+                fi
+                ;;
+            *)
+                if [ -n "${MODPACK_URL:-}" ] && [ "$MAIN_FAIT" = 0 ]; then
+                    log "url du pack fournie par le panneau : $MODPACK_URL (source $CLE)"
+                    python3 "$OUTIL" surcharger "$DERIVE" "$DERIVE" "$MODPACK_URL" \
+                        "${MODPACK_SHA256:-}" "${MODPACK_TAILLE:-}" "$CLE" || exit 1
+                    MAIN_FAIT=1
+                elif [ -n "${MODPACK_URL:-}" ]; then
+                    log "source $CLE laissee au manifeste (l url du panneau vaut pour l archive principale)"
+                fi
+                ;;
+        esac
     done <<EOF
 $(python3 "$OUTIL" cles "$MANIFESTE")
 EOF
