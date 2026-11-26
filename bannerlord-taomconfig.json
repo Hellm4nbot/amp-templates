@@ -60,6 +60,30 @@
     "ParamField": ""
   },
   {
+    "FieldName": "CompatUrl",
+    "DisplayName": "URL de l archive de compatibilite (facultatif)",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Sources du pack:cloud_download:3",
+    "Description": "Archive TAOM.CoopCompat (quelques dizaines de Ko) qui passe en dernier. Elle a sa propre URL : la confondre avec l archive du pack ferait telecharger 22 Go a la place de 52 Ko.",
+    "Keywords": "url archive compatibilite",
+    "DefaultValue": "",
+    "IncludeInCommandLine": false,
+    "InputType": "text",
+    "ParamField": ""
+  },
+  {
+    "FieldName": "CompatSha256",
+    "DisplayName": "Empreinte de l archive de compatibilite",
+    "Category": "Bannerlord Coop:stadia_controller",
+    "Subcategory": "Sources du pack:cloud_download:3",
+    "Description": "sha256 du zip TAOM.CoopCompat. Verifie avant extraction.",
+    "Keywords": "empreinte compatibilite",
+    "DefaultValue": "",
+    "IncludeInCommandLine": false,
+    "InputType": "text",
+    "ParamField": ""
+  },
+  {
     "FieldName": "ImportDir",
     "DisplayName": "Dossier d import des sauvegardes",
     "Category": "Bannerlord Coop:stadia_controller",
